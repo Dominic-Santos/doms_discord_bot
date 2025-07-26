@@ -63,6 +63,10 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot):
         async def update(ctx):
             await self.get_newsfeed(ctx)
 
+        @self.bot.command(description="Get information about the bot")
+        async def about(ctx):
+            await ctx.respond("This is a Discord bot built for managing Pokémon TCG events and News.\n\nIt can validate decklists, manage tournament sign-ups, and provide news updates from PokéBeach.\n\nCreated by Dominic Santos (dominatordom8125 on Discord) ", ephemeral=True)
+
         @self.bot.listen(once=True)
         async def on_ready():
             self.logger.info(f"Bot is ready! Logged in as {self.bot.user.name} ({self.bot.user.id})")
