@@ -36,7 +36,7 @@ def get_decklist_pdf(output_filename):
             break
     shutil.rmtree('downloaded_files', ignore_errors=True)  # Clean up the directory
 
-def get_decklist_png(output_filename):
+def get_decklist_png(output_filename="sign_up_sheet.png"):
     # Here you would implement the logic to generate the decklist PNG
     get_decklist_pdf("tmp.pdf")
     convert_pdf_to_png("tmp.pdf", output_filename)

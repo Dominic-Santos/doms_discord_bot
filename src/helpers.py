@@ -2,6 +2,9 @@ import os
 import sys
 import logging
 
+from threading import Thread
+
+
 def check_dir(directory: str):
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -23,3 +26,17 @@ def create_logger(name: str, filename: str ="log.txt"):
     logger.addHandler(handler)
     logger.addHandler(screen_handler)
     return logger
+
+
+class CustomThread(Thread):
+    def __init__(self, target, args=[], kwargs={}):
+        super().__init__(target=target, args=args, **kwargs)
+        self.daemon = True  # Set the thread as a daemon thread
+        self.return_value = None
+    
+    def run(self):
+        self.return_value = self._target(*self._args, **self._kwargs)
+
+    def join(self, *args, **kwargs):
+        super().join(*args, **kwargs)
+        return self.return_value
