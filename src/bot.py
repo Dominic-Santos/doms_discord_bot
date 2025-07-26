@@ -24,6 +24,7 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot):
         decklist = self.bot.create_group("decklist", "Manage your deck")
         newsfeed = self.bot.create_group("newsfeed", "Manage newsfeed posts")
         tournament = self.bot.create_group("tournament", "Manage tournament sign-ups")
+        admin = self.bot.create_group("admin", "Admin commands")
 
         @decklist.command(description="Check your decklist is standard legal")
         async def check(ctx, limitless_url: discord.Option(str, "Limitless URL of the decklist")):
@@ -39,19 +40,19 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot):
         ):
             await self.tournament_signup(ctx, name, pokemon_id, year_of_birth, limitless_url)
 
-        @tournament.command(description="Update the sign-up sheet")
-        async def update_sheet(ctx):
+        @admin.command(description="Update the sign-up sheet")
+        async def update_signup_sheet(ctx):
             await self.update_signup_sheet(ctx)
 
-        @decklist.command(description="Sync the legal cards list for deck validation")
-        async def sync(ctx):
+        @admin.command(description="Sync the legal cards list for deck validation")
+        async def update_legal_cards(ctx):
             await self.get_legal_cards(ctx)
 
-        @tournament.command(description="Set the output channel for tournament sign-ups")
+        @admin.command(description="Set the output channel for tournament sign-ups")
         async def set_output_channel(ctx):
             await self.set_output_channel(ctx)
 
-        @tournament.command(description="Test output channel for tournament sign-ups")
+        @admin.command(description="Test output channel for tournament sign-ups")
         async def test_output_channel(ctx):
             await self.test_output_channel(ctx)
 
