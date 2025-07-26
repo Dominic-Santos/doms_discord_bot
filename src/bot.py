@@ -19,43 +19,47 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot):
         self.load_output_channels()
         self.load_newsfeed_channels()
         self.add_commands()
-        # self.add_tasks()
     
     def add_commands(self):
         decklist = self.bot.create_group("decklist", "Manage your deck")
-        legalcards = self.bot.create_group("legalcards", "Manage your legal cards")
-        output = self.bot.create_group("output", "Manage output channels")
         newsfeed = self.bot.create_group("newsfeed", "Manage newsfeed posts")
+        tournament = self.bot.create_group("tournament", "Manage tournament sign-ups")
 
         @decklist.command(description="Check your decklist is standard legal")
-        async def check(ctx, limitless_url: str):
+        async def check(ctx, limitless_url: discord.Option(str, "Limitless URL of the decklist")):
             await self.decklist_check(ctx, limitless_url)
 
-        @decklist.command(description="Sign up for a tournament")
-        async def signup(ctx, full_name: str, pokemon_id: int, year_of_birth: int, limitless_url: str):
-            await self.tournament_signup(ctx, full_name, pokemon_id, year_of_birth, limitless_url)
+        @tournament.command(description="Sign up for a tournament")
+        async def signup(
+            ctx,
+            name: discord.Option(str, "Full name of the player"),
+            pokemon_id: discord.Option(int, "Pokemon ID of the player"),
+            year_of_birth: discord.Option(int, "Year of birth of the player"),
+            limitless_url: discord.Option(str, "Limitless URL of the decklist"),
+        ):
+            await self.tournament_signup(ctx, name, pokemon_id, year_of_birth, limitless_url)
 
-        @decklist.command(description="Update the sign-up sheet")
+        @tournament.command(description="Update the sign-up sheet")
         async def update_sheet(ctx):
             await self.update_signup_sheet(ctx)
 
-        @legalcards.command(description="Sync the legal cards list")
+        @decklist.command(description="Sync the legal cards list for deck validation")
         async def sync(ctx):
             await self.get_legal_cards(ctx)
 
-        @output.command(description="Set the output channel for the bot")
-        async def set(ctx):
+        @tournament.command(description="Set the output channel for tournament sign-ups")
+        async def set_output_channel(ctx):
             await self.set_output_channel(ctx)
 
-        @output.command(description="Test output channel")
-        async def test(ctx):
+        @tournament.command(description="Test output channel for tournament sign-ups")
+        async def test_output_channel(ctx):
             await self.test_output_channel(ctx)
 
         @newsfeed.command(description="Set the newsfeed channel")
-        async def set(ctx):
+        async def set_channel(ctx):
             await self.set_newsfeed_channel(ctx)
 
-        @newsfeed.command(description="Update the newsfeed posts")
+        @newsfeed.command(description="Check for newsfeed updates")
         async def update(ctx):
             await self.get_newsfeed(ctx)
 
