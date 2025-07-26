@@ -60,6 +60,9 @@ class DecklistBot:
         await ctx.respond("Decklist is valid!", ephemeral=True)
 
     def do_decklist_check(self, limitless_url: str) -> tuple[bool, dict, str]:
+        valid = self.check_limitless_url(limitless_url)
+        if not valid:
+            return False, {}, "Invalid Limitless URL."
         t = CustomThread(get_decklist_from_url, args=(limitless_url,))
         t.start()
         deck_data = t.join()
@@ -126,6 +129,15 @@ class DecklistBot:
         t = CustomThread(get_sign_up_sheet)
         t.start()
         t.join()
+
+    def check_limitless_url(self, url: str) -> tuple[bool]:
+        if url.startswith("https://my.limitlesstcg.com/builder?i="):
+            return True
+        if url.startswith("http://my.limitlesstcg.com/builder?i="):
+            return True
+        if url.startswith("my.limitlesstcg.com/builder?i="):
+            return True
+        return False
 
     def check_sign_up_sheet(self):
         return os.path.exists("sign_up_sheet.png")
