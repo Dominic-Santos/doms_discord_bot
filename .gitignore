@@ -205,3 +205,13 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Local configuration files
+output_channels.json
+legal_cards.json
+
+# artifacts from chrome headless browser
+downloaded_files/
+
+# logs
+logs/
