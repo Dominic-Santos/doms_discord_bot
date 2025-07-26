@@ -1,5 +1,5 @@
-from .decklist.core import  load_card_database
-from .decklist.pkmncards import get_legal_cards
+from .core import  load_card_database
+from .pkmncards import get_legal_cards
 
 from .helpers import CustomThread
 

@@ -2,9 +2,9 @@ import os
 import discord
 import json
 
-from .decklist.limitless import get_decklist_from_url
-from .decklist.core import validate_decklist, fill_sheet
-from .decklist.pokemon import get_decklist_png as get_sign_up_sheet
+from .limitless import get_decklist_from_url
+from .core import validate_decklist, fill_sheet
+from .pokemon import get_decklist_png as get_sign_up_sheet
 
 from .helpers import CustomThread
 

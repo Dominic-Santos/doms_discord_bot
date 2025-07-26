@@ -3,16 +3,13 @@ import discord
 
 from discord.ext import tasks
 
-from .decklist.limitless import get_decklist_from_url
-from .decklist.core import validate_decklist, load_card_database
-from .decklist.pkmncards import get_legal_cards
-
 from .helpers import create_logger
 from .bot_decklist import DecklistBot
 from .bot_legalcards import LegalCardsBot
+from .bot_newsfeed import NewsfeedBot
 
 
-class Bot(DecklistBot, LegalCardsBot):
+class Bot(DecklistBot, LegalCardsBot, NewsfeedBot):
     def __init__(self, token):
         self.bot = discord.Bot()
         self.token = token
@@ -20,13 +17,15 @@ class Bot(DecklistBot, LegalCardsBot):
 
         self.load_legal_cards()
         self.load_output_channels()
+        self.load_newsfeed_channels()
         self.add_commands()
-        self.add_tasks()
+        # self.add_tasks()
     
     def add_commands(self):
         decklist = self.bot.create_group("decklist", "Manage your deck")
         legalcards = self.bot.create_group("legalcards", "Manage your legal cards")
         output = self.bot.create_group("output", "Manage output channels")
+        newsfeed = self.bot.create_group("newsfeed", "Manage newsfeed posts")
 
         @decklist.command(description="Check your decklist is standard legal")
         async def check(ctx, limitless_url: str):
@@ -52,13 +51,23 @@ class Bot(DecklistBot, LegalCardsBot):
         async def test(ctx):
             await self.test_output_channel(ctx)
 
+        @newsfeed.command(description="Set the newsfeed channel")
+        async def set(ctx):
+            await self.set_newsfeed_channel(ctx)
+
+        @newsfeed.command(description="Update the newsfeed posts")
+        async def update(ctx):
+            await self.get_newsfeed(ctx)
+
         @self.bot.listen(once=True)
         async def on_ready():
             self.logger.info(f"Bot is ready! Logged in as {self.bot.user.name} ({self.bot.user.id})")
+            self.add_tasks()
 
     def add_tasks(self):
         time_update_legal_cards = datetime.time(hour=7)
         time_update_signup_sheet = datetime.time(hour=8)
+        interval_update_newsfeed = {"hours": 6}
 
         @tasks.loop(time=time_update_legal_cards)
         async def update_legal_cards():
@@ -68,8 +77,13 @@ class Bot(DecklistBot, LegalCardsBot):
         async def update_signup_sheet():
             self.update_signup_sheet_task()
 
+        @tasks.loop(**interval_update_newsfeed)
+        async def update_newsfeed():
+            await self.get_newsfeed_task()
+
         update_legal_cards.start()
         update_signup_sheet.start()
+        update_newsfeed.start()
         self.logger.info("Scheduled tasks started.")
 
     def run(self):
