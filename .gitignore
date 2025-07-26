@@ -209,6 +209,7 @@ __marimo__/
 # Local configuration files
 output_channels.json
 legal_cards.json
+config.json
 
 # artifacts from chrome headless browser
 downloaded_files/
