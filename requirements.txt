@@ -1,4 +1,4 @@
 py-cord==2.6.1
-PyMuPDF==1.25.4
+PyMuPDF==1.26.3
 seleniumbase==4.33.12
 pillow==10.4.0

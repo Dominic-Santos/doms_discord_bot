@@ -16,15 +16,14 @@ def convert_pdf_to_png(in_file, out_file):
 
 def get_decklist_pdf(output_filename):
     # Here you would implement the logic to generate the decklist PDF
-    
-    with SB(uc=True, test=False, locale_code="en", ad_block=True, external_pdf=True) as sb:
-        sb.activate_cdp_mode(POKEMON_RULES_URL)
-        sb.sleep(1)
-        a_elements = sb.cdp.find_visible_elements("a")
-        for a in a_elements:
-            if a.get_attribute("innerHTML").strip() == "Play! Pokémon Deck List (A4)":
-                a.click()
-                sb.sleep(1)
+    sb = SB(uc=True, test=False, locale_code="en", ad_block=True, external_pdf=True)
+    sb.activate_cdp_mode(POKEMON_RULES_URL)
+    sb.sleep(1)
+    a_elements = sb.cdp.find_visible_elements("a")
+    for a in a_elements:
+        if a.get_attribute("innerHTML").strip() == "Play! Pokémon Deck List (A4)":
+            a.click()
+            sb.sleep(1)
 
     for file in os.listdir("downloaded_files"):
         if file.endswith(".pdf"):
@@ -42,7 +41,3 @@ def get_decklist_png(output_filename="sign_up_sheet.png"):
     convert_pdf_to_png("tmp.pdf", output_filename)
     # Clean up temporary files if necessary
     os.remove("tmp.pdf")
-
-
-if __name__ == "__main__":
-    get_decklist_png("decklist.png")
