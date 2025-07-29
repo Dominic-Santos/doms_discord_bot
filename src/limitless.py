@@ -1,4 +1,4 @@
-from seleniumbase import Driver as SB
+from seleniumbase import Driver
 
 
 def get_decklist_from_url(link):
@@ -6,7 +6,7 @@ def get_decklist_from_url(link):
     trainers = {}
     energies = {}
 
-    sb = SB(uc=True, locale_code="en", ad_block=True)
+    sb = Driver(uc=True, locale_code="en", ad_block=True)
 
     sb.uc_activate_cdp_mode(link)
     sb.sleep(1)

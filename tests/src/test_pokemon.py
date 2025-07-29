@@ -20,25 +20,25 @@ def test_get_decklist_png(mock_remove, mock_convert, mock_get_pdf):
 @patch('os.remove')
 @patch('os.path.exists')
 @patch('os.listdir')
-@patch('src.pokemon.SB')
-def test_get_decklist_pdf(mock_sb, mock_listdir, mock_exists, mock_remove, mock_rename, mock_rmtree):
-    mock_sb_instance = mock_sb.return_value
-    mock_sb_instance.cdp.find_visible_elements.return_value = [
-        mock_sb_instance.cdp.find_visible_elements.return_value[0]
+@patch('src.pokemon.Driver')
+def test_get_decklist_pdf(mock_driver, mock_listdir, mock_exists, mock_remove, mock_rename, mock_rmtree):
+    mock_driver_instance = mock_driver.return_value
+    mock_driver_instance.cdp.find_visible_elements.return_value = [
+        mock_driver_instance.cdp.find_visible_elements.return_value[0]
     ]
-    mock_sb_instance.cdp.find_visible_elements.return_value[0].get_attribute.return_value = "Play! Pokémon Deck List (A4)"
-    mock_sb_instance.cdp.find_visible_elements.return_value[0].click.return_value = None
+    mock_driver_instance.cdp.find_visible_elements.return_value[0].get_attribute.return_value = "Play! Pokémon Deck List (A4)"
+    mock_driver_instance.cdp.find_visible_elements.return_value[0].click.return_value = None
 
     mock_listdir.return_value = ["decklist.pdf"]
     mock_exists.return_value = True
 
     get_decklist_pdf("output.pdf")
 
-    mock_sb.assert_called_once_with(uc=True, test=False, locale_code="en", ad_block=True, external_pdf=True)
-    mock_sb_instance.activate_cdp_mode.assert_called_once_with("https://www.pokemon.com/us/play-pokemon/about/tournaments-rules-and-resources")
-    assert mock_sb_instance.sleep.call_count == 2
-    mock_sb_instance.cdp.find_visible_elements.assert_called_once_with("a")
-    mock_sb_instance.cdp.find_visible_elements.return_value[0].click.assert_called_once()
+    mock_driver.assert_called_once_with(uc=True, locale_code="en", ad_block=True, external_pdf=True)
+    mock_driver_instance.uc_activate_cdp_mode.assert_called_once_with("https://www.pokemon.com/us/play-pokemon/about/tournaments-rules-and-resources")
+    assert mock_driver_instance.sleep.call_count == 2
+    mock_driver_instance.cdp.find_visible_elements.assert_called_once_with("a")
+    mock_driver_instance.cdp.find_visible_elements.return_value[0].click.assert_called_once()
     mock_listdir.assert_called_once_with("downloaded_files")
     mock_exists.assert_has_calls([
         call("downloaded_files\\decklist.pdf"),

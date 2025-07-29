@@ -1,6 +1,6 @@
 import fitz  # PyMuPDF
 import os
-from seleniumbase import Driver as SB
+from seleniumbase import Driver
 import shutil
 
 
@@ -16,7 +16,7 @@ def convert_pdf_to_png(in_file, out_file):
 
 def get_decklist_pdf(output_filename):
     # Here you would implement the logic to generate the decklist PDF
-    sb = SB(uc=True, locale_code="en", ad_block=True, external_pdf=True)
+    sb = Driver(uc=True, locale_code="en", ad_block=True, external_pdf=True)
     sb.uc_activate_cdp_mode(POKEMON_RULES_URL)
     sb.sleep(1)
     a_elements = sb.cdp.find_visible_elements("a")

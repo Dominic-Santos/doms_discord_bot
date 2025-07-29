@@ -1,8 +1,8 @@
-from seleniumbase import Driver as SB
+from seleniumbase import Driver
 
 def get_newsfeed() -> list[str]:
     posts = []
-    sb = SB(uc=True, locale_code="en", ad_block=True)
+    sb = Driver(uc=True, locale_code="en", ad_block=True)
     sb.uc_activate_cdp_mode("https://www.pokebeach.com/")
     sb.sleep(1)
     post_div = sb.cdp.find_visible_elements("div.xpress_articleList")[0]
