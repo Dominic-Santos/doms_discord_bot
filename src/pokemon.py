@@ -1,6 +1,6 @@
 import fitz  # PyMuPDF
 import os
-from seleniumbase import SB
+from seleniumbase import Driver as SB
 import shutil
 
 
@@ -16,8 +16,8 @@ def convert_pdf_to_png(in_file, out_file):
 
 def get_decklist_pdf(output_filename):
     # Here you would implement the logic to generate the decklist PDF
-    sb = SB(uc=True, test=False, locale_code="en", ad_block=True, external_pdf=True)
-    sb.activate_cdp_mode(POKEMON_RULES_URL)
+    sb = SB(uc=True, locale_code="en", ad_block=True, external_pdf=True)
+    sb.uc_activate_cdp_mode(POKEMON_RULES_URL)
     sb.sleep(1)
     a_elements = sb.cdp.find_visible_elements("a")
     for a in a_elements:
@@ -33,6 +33,7 @@ def get_decklist_pdf(output_filename):
                     os.remove(output_filename)  # Remove existing file if it exists
                 os.rename(pdf_path, output_filename)
             break
+    sb.quit()
     shutil.rmtree('downloaded_files', ignore_errors=True)  # Clean up the directory
 
 def get_decklist_png(output_filename="sign_up_sheet.png"):

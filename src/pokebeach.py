@@ -1,9 +1,9 @@
-from seleniumbase import SB
+from seleniumbase import Driver as SB
 
 def get_newsfeed() -> list[str]:
     posts = []
-    sb = SB(uc=True, test=False, locale_code="en", ad_block=True)
-    sb.activate_cdp_mode("https://www.pokebeach.com/")
+    sb = SB(uc=True, locale_code="en", ad_block=True)
+    sb.uc_activate_cdp_mode("https://www.pokebeach.com/")
     sb.sleep(1)
     post_div = sb.cdp.find_visible_elements("div.xpress_articleList")[0]
     for post in post_div.children:
@@ -15,5 +15,5 @@ def get_newsfeed() -> list[str]:
             posts.append(post_url)
         except Exception as e:
             pass
-
+    sb.quit()
     return posts

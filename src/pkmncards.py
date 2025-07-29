@@ -1,4 +1,4 @@
-from seleniumbase import SB
+from seleniumbase import Driver as SB
 import json
 
 CARD_LIST_ULR = "https://pkmncards.com/?s=format%3A{current_format}&sort=date&ord=auto&display=list"
@@ -12,28 +12,30 @@ REPLACE_CHARACTERS = {
 
 def get_legal_card_list():
     legal_cards = []
-    with SB(uc=True, test=False, locale_code="en", ad_block=True) as sb:
-        sb.activate_cdp_mode(CURRENT_FORMAT)
-        sb.sleep(1)
-        
-        headers = ["set", "number", "name", "type", "color", "rarity"]
+    sb = SB(uc=True, locale_code="en", ad_block=True)
 
-        while True:
-            card_elements = sb.cdp.find_visible_elements("article.type-pkmn_card")
-            for card in card_elements:
-                card_details = {}
-                card_base = card.children[0].children[0].children
-                for i, header in enumerate(headers):
-                    card_details[header] = card_base[i].text.strip()
-                card_details["link"] = card_base[2].children[0]["href"]
-                legal_cards.append(card_details)
-            
-            try:
-                next_link_element = sb.cdp.find_visible_elements("li.next-link a")
-            except Exception as e:
-                break
-            next_link_element[0].click()
-            sb.sleep(1)
+    sb.uc_activate_cdp_mode(CURRENT_FORMAT)
+    sb.sleep(1)
+    
+    headers = ["set", "number", "name", "type", "color", "rarity"]
+
+    while True:
+        card_elements = sb.cdp.find_visible_elements("article.type-pkmn_card")
+        for card in card_elements:
+            card_details = {}
+            card_base = card.children[0].children[0].children
+            for i, header in enumerate(headers):
+                card_details[header] = card_base[i].text.strip()
+            card_details["link"] = card_base[2].children[0]["href"]
+            legal_cards.append(card_details)
+        
+        try:
+            next_link_element = sb.cdp.find_visible_elements("li.next-link a")
+        except Exception as e:
+            break
+        next_link_element[0].click()
+        sb.sleep(1)
+    sb.quit()
     return legal_cards
 
 
@@ -62,10 +64,11 @@ def get_legal_cards(filename="legal_cards.json"):
 
 
 def get_card_text(card_link):
-    with SB(uc=True, test=False, locale_code="en", ad_block=True) as sb:
-        sb.activate_cdp_mode(card_link)
-        sb.sleep(1)
-        card_text = sb.cdp.find_visible_elements('div.card-text-area div.card-tabs div.tab div.text')[0].text.strip()
+    sb = SB(uc=True, locale_code="en", ad_block=True)
+    sb.uc_activate_cdp_mode(card_link)
+    sb.sleep(1)
+    card_text = sb.cdp.find_visible_elements('div.card-text-area div.card-tabs div.tab div.text')[0].text.strip()
+    sb.quit()    
     return card_text.strip()
 
 
