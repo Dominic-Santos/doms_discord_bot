@@ -64,17 +64,9 @@ def get_legal_cards(filename="legal_cards.json"):
 
 
 def get_card_text(card_link):
-    sb = SB(uc=True, locale_code="en", ad_block=True)
+    sb = Driver(uc=True, locale_code="en", ad_block=True)
     sb.uc_activate_cdp_mode(card_link)
     sb.sleep(1)
     card_text = sb.cdp.find_visible_elements('div.card-text-area div.card-tabs div.tab div.text')[0].text.strip()
     sb.quit()    
     return card_text.strip()
-
-
-if __name__ == "__main__":
-    card_text = get_card_text("https://pkmncards.com/card/abomasnow-paldea-evolved-pal-011/")
-    card_text2 = get_card_text("https://pkmncards.com/card/abomasnow-paldean-fates-paf-101/")
-    print(card_text)
-    print(card_text2)
-    print("Same" if card_text == card_text2 else "Different")
