@@ -1,4 +1,4 @@
-from seleniumbase import Driver as SB
+from seleniumbase import Driver
 import json
 
 CARD_LIST_ULR = "https://pkmncards.com/?s=format%3A{current_format}&sort=date&ord=auto&display=list"
@@ -12,7 +12,7 @@ REPLACE_CHARACTERS = {
 
 def get_legal_card_list():
     legal_cards = []
-    sb = SB(uc=True, locale_code="en", ad_block=True)
+    sb = Driver(uc=True, locale_code="en", ad_block=True)
 
     sb.uc_activate_cdp_mode(CURRENT_FORMAT)
     sb.sleep(1)
