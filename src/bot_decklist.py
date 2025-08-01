@@ -95,8 +95,8 @@ class DecklistBot:
         fill_sheet(
             player={
                 "name": full_name,
-                "id": pokemon_id,
-                "year_of_birth": year_of_birth
+                "id": str(pokemon_id),
+                "year_of_birth": str(year_of_birth)
             },
             cards=deck_data,
             output_filename=output_filename
