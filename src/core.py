@@ -4,6 +4,18 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 
+def get_offset(card_type, amount):
+    if card_type == "pokemon":
+        if amount > 13:
+            return 19
+        elif amount > 11:
+            return 23
+    elif card_type == "trainer":
+        if amount > 19:
+            return 23
+    return 27
+
+
 def fill_sheet(sheet_location="sign_up_sheet.png", player={}, cards={}, output_filename=None):
 
     if not sheet_location.endswith(".png"):
@@ -31,13 +43,7 @@ def fill_sheet(sheet_location="sign_up_sheet.png", player={}, cards={}, output_f
     set_letter_x = 1085
 
     pokemon = sorted(cards.get("pokemon", []), key=lambda x: x.get("name", "zzzzzzzzzzzzz"))
-
-    if len(pokemon) > 13:
-        offset = 19
-    elif len(pokemon) > 11:
-        offset = 23
-    else:
-        offset = 27
+    offset = get_offset("pokemon", len(pokemon))
     
     for i, card in enumerate(pokemon):
         y = 372 + i * offset - (1 * i // 1.5)
@@ -48,11 +54,7 @@ def fill_sheet(sheet_location="sign_up_sheet.png", player={}, cards={}, output_f
         draw.text((set_letter_x, y), card.get("letter", "ABC"), (0,0,0), font=player_name_font)
 
     trainers = cards.get("trainers", {})
-
-    if len(trainers) > 19:
-        offset = 23
-    else:
-        offset = 27
+    offset = get_offset("trainer", len(trainers))
 
     for i, card in enumerate(sorted(trainers.keys())):
         y = 725 + i * offset - (1 * i // 1.5)
@@ -60,8 +62,10 @@ def fill_sheet(sheet_location="sign_up_sheet.png", player={}, cards={}, output_f
         draw.text((card_name_x, y), card, (0,0,0), font=player_name_font)
 
     energies = cards.get("energies", {})
+    offset = get_offset("energy", len(energies))
+
     for i, card in enumerate(sorted(energies.keys())):
-        y = 1288 + i * 27 - (1 * i // 1.5)
+        y = 1288 + i * offset - (1 * i // 1.5)
         draw.text((quantity_x, y), str(energies[card].get("quantity", 0)), (0,0,0), font=player_name_font)
         draw.text((card_name_x, y), card, (0,0,0), font=player_name_font)
 

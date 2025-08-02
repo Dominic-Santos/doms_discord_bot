@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock
-from src.core import validate_decklist, fill_sheet, load_card_database
+from src.core import validate_decklist, fill_sheet, load_card_database, get_offset
 
 def test_load_card_database_not_json():
     try:
@@ -197,3 +197,61 @@ def test_validate_decklist():
     valid, error = validate_decklist(decklist, legal_cards=legalcards)
     assert valid
     assert error == ""
+
+def test_get_offset():
+    assert get_offset("pokemon", 14) == 19
+    assert get_offset("pokemon", 13) == 23
+    assert get_offset("pokemon", 10) == 27
+    assert get_offset("trainer", 20) == 23
+    assert get_offset("trainer", 19) == 27
+    assert get_offset("energy", 1) == 27
+    assert get_offset("energy", 100) == 27
+
+def test_fill_sheet_not_png():
+    try:
+        fill_sheet("bogus.jpg")
+    except ValueError as e:
+        assert str(e) == "Sheet location must be a PNG file."
+
+
+@patch("src.core.Image")
+@patch("src.core.ImageFont")
+@patch("src.core.ImageDraw")
+def test_fill_sheet_no_data(mock_draw, mock_font, mock_image):
+    draw_instance = MagicMock()
+    image_instance = MagicMock()
+    mock_draw.Draw.return_value = draw_instance
+    mock_image.open.return_value = image_instance
+
+    fill_sheet()
+
+    assert draw_instance.text.call_count == 2
+    mock_image.open.assert_called_once()
+    image_instance.save.assert_called_once()
+
+
+@patch("src.core.Image")
+@patch("src.core.ImageFont")
+@patch("src.core.ImageDraw")
+def test_fill_sheet(mock_draw, mock_font, mock_image):
+    draw_instance = MagicMock()
+    image_instance = MagicMock()
+    mock_draw.Draw.return_value = draw_instance
+    mock_image.open.return_value = image_instance
+
+    fill_sheet(
+        player={"name": "test boy"},
+        cards={
+            "pokemon": [{}],
+            "trainers": {
+                "test trainer": {}
+            },
+            "energies": {
+                "test energy": {}
+            }
+        }
+    )
+
+    assert draw_instance.text.call_count == 11
+    mock_image.open.assert_called_once()
+    image_instance.save.assert_called_once()
