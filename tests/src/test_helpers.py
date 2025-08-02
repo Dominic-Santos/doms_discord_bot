@@ -1,5 +1,5 @@
 import logging
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from src.helpers import check_dir, create_logger, CustomThread
 
 @patch('os.makedirs')

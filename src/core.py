@@ -32,11 +32,15 @@ def fill_sheet(sheet_location="sign_up_sheet.png", player={}, cards={}, output_f
 
     pokemon = sorted(cards.get("pokemon", []), key=lambda x: x.get("name", "zzzzzzzzzzzzz"))
 
+    if len(pokemon) > 13:
+        offset = 19
+    elif len(pokemon) > 11:
+        offset = 23
+    else:
+        offset = 27
+    
     for i, card in enumerate(pokemon):
-        if len(pokemon) > 11:
-            y = 372 + i * 23 - (1 * i // 1.5)
-        else:
-            y = 372 + i * 27 - (1 * i // 1.5)
+        y = 372 + i * offset - (1 * i // 1.5)
         draw.text((quantity_x, y), str(card.get("quantity", 0)), (0,0,0), font=player_name_font)
         draw.text((card_name_x, y), card.get("name", "card name"), (0,0,0), font=player_name_font)
         draw.text((set_x, y),  card.get("set", "ABC"), (0,0,0), font=player_name_font)
@@ -44,18 +48,22 @@ def fill_sheet(sheet_location="sign_up_sheet.png", player={}, cards={}, output_f
         draw.text((set_letter_x, y), card.get("letter", "ABC"), (0,0,0), font=player_name_font)
 
     trainers = cards.get("trainers", {})
+
+    if len(trainers) > 19:
+        offset = 23
+    else:
+        offset = 27
+
     for i, card in enumerate(sorted(trainers.keys())):
-        if len(trainers) > 19:
-            y = 725 + i * 23 - (1 * i // 1.5)
-        else:
-            y = 725 + i * 27 - (1 * i // 1.5)
+        y = 725 + i * offset - (1 * i // 1.5)
         draw.text((quantity_x, y), str(trainers[card].get("quantity", 0)), (0,0,0), font=player_name_font)
         draw.text((card_name_x, y), card, (0,0,0), font=player_name_font)
 
     energies = cards.get("energies", {})
     for i, card in enumerate(sorted(energies.keys())):
-        draw.text((quantity_x, 1288 + i * 27 - (1 * i // 1.5)), str(energies[card].get("quantity", 0)), (0,0,0), font=player_name_font)
-        draw.text((card_name_x, 1288 + i * 27 - (1 * i // 1.5)), card, (0,0,0), font=player_name_font)
+        y = 1288 + i * 27 - (1 * i // 1.5)
+        draw.text((quantity_x, y), str(energies[card].get("quantity", 0)), (0,0,0), font=player_name_font)
+        draw.text((card_name_x, y), card, (0,0,0), font=player_name_font)
 
     img.save(output_filename)
 
@@ -66,7 +74,7 @@ def load_card_database(filename="legal_cards.json"):
     try:
         with open(filename, "r") as f:
             data = json.load(f)
-    except Exception as e:
+    except Exception:
         raise ValueError("Error loading JSON file.")
     
     pokemon = {}
