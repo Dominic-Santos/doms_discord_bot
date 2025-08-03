@@ -34,4 +34,3 @@ def test_bot_init(
     b.run()
 
     mock_bot.run.assert_called_once()
-
