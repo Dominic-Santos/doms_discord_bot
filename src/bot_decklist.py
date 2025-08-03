@@ -131,11 +131,8 @@ class DecklistBot:
         t.join()
 
     def check_limitless_url(self, url: str) -> tuple[bool]:
-        if url.startswith("https://my.limitlesstcg.com/builder?i="):
-            return True
-        if url.startswith("http://my.limitlesstcg.com/builder?i="):
-            return True
-        if url.startswith("my.limitlesstcg.com/builder?i="):
+        clean = url.strip("https://").strip("http://")
+        if clean.startswith("my.limitlesstcg.com/builder?i="):
             return True
         return False
 
