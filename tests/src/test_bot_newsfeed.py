@@ -12,10 +12,12 @@ class MockCtx():
     
     async def respond(self, message, ephemeral=False):
         self.last_response = message
-        return
 
     async def defer(self, ephemeral=False):
         return
+    
+    async def send(self, post):
+        self.last_response = post
     
 
 async def mock_empty_func():
@@ -83,3 +85,62 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
         await b.get_newsfeed_task()
         assert mock_logger_instance.info.call_count == 4
+
+    
+    @patch("src.bot_newsfeed.get_newsfeed")
+    @patch("src.bot.create_logger")
+    @patch("src.bot.discord")
+    @patch("src.bot_newsfeed.json")
+    @patch("src.bot_decklist.json")
+    @patch("builtins.open")
+    @patch("src.bot_legalcards.load_card_database")
+    async def test_bot_do_getnewsfeed(
+        self,
+        mock_load,
+        mock_open,
+        mock_dl_json,
+        mock_nf_json,
+        mock_discord,
+        mock_logger,
+        mock_newsfeed
+    ):
+        mock_load.return_value = ({}, {}, {})
+        mock_logger_instance = mock_logger.return_value
+        mock_bot = MagicMock()
+        mock_discord.Bot.return_value = mock_bot
+        def raise_exception():
+            raise Exception("test error")
+        try:
+            raise_exception()
+        except Exception as e:
+            assert str(e) == "test error"
+
+        mock_nf_json.load = raise_exception
+
+        b = Bot("faketoken")
+
+        mock_newsfeed.return_value = False
+
+        await b.do_get_newsfeed()
+
+        assert mock_logger_instance.info.call_count == 2
+
+        mock_newsfeed.return_value = ["this is a post"]
+        b.newsfeed_channels = {"1234": {"channel_id": "2345"}}
+        mock_bot.get_channel.return_value = None
+
+        await b.do_get_newsfeed()
+        mock_logger_instance.warning.assert_called_once()
+
+
+        mock_ctx = MockCtx()
+        mock_bot.get_channel.return_value = mock_ctx
+        await b.do_get_newsfeed()
+
+        assert mock_ctx.last_response == "this is a post"
+        assert b.newsfeed_channels["1234"]["latest_post"] == "this is a post"
+
+        mock_ctx.last_response = "nothing"
+        await b.do_get_newsfeed()
+        assert mock_ctx.last_response == "nothing"
+
