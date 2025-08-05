@@ -11,6 +11,7 @@ class MockCtx():
         self.guild.id = 202
         self.author = MagicMock()
         self.author.id = 303
+        self.author.mention = "testuser"
     
     async def respond(self, message, *args, **kwargs):
         self.last_response = message
@@ -128,6 +129,6 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
 
         await b.tournament_signup(mock_ctx, "test person", 1234, 1990, "https://my.limitlesstcg.com/builder?i=abc123abc")
         mock_fill.assert_called_once()
-        assert mock_ctx.last_send == f"New tournament signup:\n- Name: test person\n- Pokémon ID: 1234\n- Year of Birth: 1990\n- Decklist: https://my.limitlesstcg.com/builder?i=abc123abc"
+        assert mock_ctx.last_send == f"New tournament signup:\n- Name: test person (testuser)\n- Pokémon ID: 1234\n- Year of Birth: 1990\n- Decklist: https://my.limitlesstcg.com/builder?i=abc123abc"
         assert mock_ctx.last_response == "Tournament signup has been processed!"
         mock_remove.assert_called_once()

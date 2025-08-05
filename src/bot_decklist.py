@@ -102,8 +102,10 @@ class DecklistBot:
             output_filename=output_filename
         )
 
+        author = ctx.author.mention
+
         await channel.send(
-            f"New tournament signup:\n- Name: {full_name}\n- Pokémon ID: {pokemon_id}\n- Year of Birth: {year_of_birth}\n- Decklist: {limitless_url}",
+            f"New tournament signup:\n- Name: {full_name} ({author})\n- Pokémon ID: {pokemon_id}\n- Year of Birth: {year_of_birth}\n- Decklist: {limitless_url}",
             file=discord.File(output_filename, filename="sign_up_sheet.png")
         )
         
