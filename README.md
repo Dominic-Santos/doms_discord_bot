@@ -25,9 +25,10 @@
       <a href="#create-your-own-bot">Create your own bot</a>
       <ul>
         <li><a href="#discord-app">Discord App</a></li>
+        <li><a href="#roles-based-commands">Roles based commands</a></li>
         <li><a href="#configure-the-app">Configure the App</a></li>
         <li><a href="#install-requirements">Install requirements</a></li>
-        <li><a href="#roles-based-commands">Roles based commands</a></li>
+        <li><a href="#run-the-bot">Run the bot</a></li>
       </ul>
     </li>
   </ol>
@@ -47,7 +48,20 @@ If you’d like to run your own version of the bot, feel free to fork, use, or c
 
 You will need to create a discord app, follow the guide [here](https://discord.com/developers/docs/intro)
 
-The bot will require permissions to post messages in channels and manage events
+The bot will require permissions to post messages in channels and manage events.
+
+### Roles based commands
+
+Some commands are intended for server admins only. We recommend restricting access to commands based on server roles, which can be configured through your server's integration settings.
+
+Admin commands:
+* /admin
+* /newsfeed
+
+User commands:
+* /about
+* /decklist
+* /tournament
 
 ### Configure the App
 
@@ -68,15 +82,7 @@ Follow the example in config.json and fill out the fields:
 pip install -r requirements.txt
 ```
 
-### Roles based commands
-
-Some commands are intended for server admins only. We recommend restricting access to commands based on server roles, which can be configured through your server's integration settings.
-
-Admin commands:
-* /admin
-* /newsfeed
-
-User commands:
-* /about
-* /decklist
-* /tournament
+### Run the bot
+```sh
+python main.py
+```
