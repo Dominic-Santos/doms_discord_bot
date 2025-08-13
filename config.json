@@ -1,3 +1,5 @@
 {
     "app_token": "app_token_placeholder",
+    "admin_password": "123abc",
+    "maintenance_mode": true
 }

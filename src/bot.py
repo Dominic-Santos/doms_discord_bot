@@ -7,9 +7,10 @@ from .helpers import create_logger
 from .bot_decklist import DecklistBot
 from .bot_legalcards import LegalCardsBot
 from .bot_newsfeed import NewsfeedBot
+from .bot_admin import AdminBot
 
 
-class Bot(DecklistBot, LegalCardsBot, NewsfeedBot):
+class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot):
     def __init__(self, token: str, maintenance_mode: bool, password: str):
         self.bot = discord.Bot()
         self.token = token
@@ -69,6 +70,17 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot):
         @self.bot.command(description="Get information about the bot")
         async def about(ctx):
             await ctx.respond("This is a Discord bot built for managing Pokémon TCG events and News.\n\nIt can validate decklists, manage tournament sign-ups, and provide news updates from PokéBeach.\n\nCreated by Dominic Santos (dominatordom8125 on Discord) ", ephemeral=True)  # pragma: no cover
+        
+        @admin.command(description="Check if the bot is in maintenance mode")
+        async def check_maintenance(ctx):
+            await self.maintenance_status(ctx)  # pragma: no cover
+
+        @admin.command(description="Toggle bot maintenance mode")
+        async def toggle_maintenance(
+            ctx,
+            password: discord.Option(str, "Bot admin password"),
+        ):
+            await self.toggle_maintenance(ctx, password)  # pragma: no cover
 
         @self.bot.listen(once=True)
         async def on_ready():
