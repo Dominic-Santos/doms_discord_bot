@@ -19,17 +19,49 @@
   <summary>Table of Contents</summary>
   <ol>
     <li>
-      <a href="#about-the-project">About The Project</a>
+        <a href="#About-The-Project">About The Project</a>
     </li>
     <li>
-      <a href="#create-your-own-bot">Create your own bot</a>
-      <ul>
-        <li><a href="#discord-app">Discord App</a></li>
-        <li><a href="#roles-based-commands">Roles based commands</a></li>
-        <li><a href="#configure-the-app">Configure the App</a></li>
-        <li><a href="#install-requirements">Install requirements</a></li>
-        <li><a href="#run-the-bot">Run the bot</a></li>
-      </ul>
+        <a href="#How-to-use-the-bot">How to use the bot</a>
+        <ul>
+            <li><a href="#Installation">Installation</a></li>
+        </ul>
+    </li>
+    <li>
+        <a href="#Roles-based-commands">Roles based commands</a>
+    </li>
+    <li>
+        <a href="#Commands">Commands</a>
+        <ul>
+            <li><a href="#/about">/about</a></li>
+            <li><a href="#/admin-check_maintenance">/admin check_maintenance</a></li>
+            <li><a href="#/admin-toggle_maintenance-<password>">/admin toggle_maintenance</a></li>
+            <li><a href="#/admin-set_output_channel">/admin set_output_channel</a></li>
+            <li><a href="#/admin-set_output_channel">/admin set_output_channel</a></li>
+            <li><a href="#/admin-update_legal_cards">/admin update_legal_cards</a></li>
+            <li><a href="#/admin-update_signup_sheet">/admin update_signup_sheet</a></li>
+            <li><a href="#/newsfeed-set_channel">/newsfeed set_channel</a></li>
+            <li><a href="#/newsfeed-update">/newsfeed update</a></li>
+            <li><a href="#/decklist-check-<deck_url>">/decklist check</a></li>
+            <li><a href="#/tournament-signup-<name>-<pokemon_id>-<year_of_birth>-<deck_url>">/tournament signup</a></li>
+        </ul>
+    </li>
+    <li>
+        <a href="#Timed-tasks">Timed tasks</a>
+        <ul>
+            <li><a href="#Update-sign-up-sheet">Update sign up sheet</a></li>
+            <li><a href="#Update-legal-cards">Update legal cards</a></li>
+            <li><a href="#Check-for-new-newsfeed-articles">Check for new newsfeed articles</a></li>
+        </ul>
+    </li>
+    <li>
+        <a href="#Create-your-own-bot">Create your own bot</a>
+        <ul>
+            <li><a href="#Discord-App">Discord App</a></li>
+            <li><a href="#Configure-the-App">Configure the App</a></li>
+            <li><a href="#Install-requirements">Install requirements</a></li>
+            <li><a href="#Run-the-bot">Run the bot</a></li>
+        </ul>
     </li>
   </ol>
 </details>
@@ -114,6 +146,22 @@ User commands:
 > * pokemon_id: Users Pokémon ID.
 > * year_of_birth: Users year of birth.
 > * deck_url: create a deck using the [builder](https://my.limitlesstcg.com/builder), then click Share > Copy Import Link
+
+## Timed tasks
+
+The bot also has some tasks that run every so often
+
+### Update sign up sheet
+
+> Runs everyday at 8am, updates the tournament sign up sheet.
+
+### Update legal cards
+
+> Runs everyday at 7am, updates the standard legal cards, used for deck checks and tournament sign-ups.
+
+### Check for new newsfeed articles
+
+> Runs every 6 hours, checks for new newsfeed articles.
 
 ## Create your own bot
 
