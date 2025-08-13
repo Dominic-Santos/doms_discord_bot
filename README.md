@@ -13,3 +13,62 @@
     <a href="https://github.com/Dominic-Santos/doms_discord_bot"><strong>Explore the docs »</strong></a>
   </p>
 </div>
+
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#built-with">Built With</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
+
+
+<!-- ABOUT THE PROJECT -->
+## About The Project
+
+This is a passion project aimed at providing better tools and automation for my local game store. As a Pokémon Professor (Judge), I found the official tools to be severely lacking. To help alleviate some of the pain points, I’ve been developing this bot with features designed to keep the community informed and streamline daily operations — from deck checks to sign-ups and more.
+
+## Create your own bot
+
+If you wish to run your own version of the bot, feel free to fork/use/copy the code in this repo :smiley: a mention is always apreciated
+
+### Discord App
+
+You will need to create a discord app, follow the guide [here](https://discord.com/developers/docs/intro)
+
+### Configure the App
+
+Follow the example in config.json and fill out the fields:
+```json
+{
+    "app_token": "app_token_placeholder",
+    "admin_password": "123abc",
+    "maintenance_mode": true
+}
+```
+* app_token: this is provided by Discord when creating the Discord App.
+* admin_password: this is used by super-admin to control the bot via discord commands.
+* maintenance_mode: if the bot will start in maintenance mode.
+
+### Install requirements
+```sh
+pip install -r requirements.txt
+```
