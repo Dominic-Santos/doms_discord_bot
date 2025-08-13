@@ -80,7 +80,6 @@ User commands:
 ## /admin set_output_channel
 
 > Set the current channel as the output tournament sign-ups.
-
 > It's recommended this be a hidden channel available only to staff.
 
 ## /admin set_output_channel
@@ -106,13 +105,11 @@ User commands:
 ## /decklist check <deck_url>
 
 > Check if a decklist is standard legal.
-
 >> deck_url: create a deck using the [builder](https://my.limitlesstcg.com/builder), then click Share > Copy Import Link
 
 ## /tournament signup <name> <pokemon_id> <year_of_birth> <deck_url>
 
 > Sign up for a tournament, if the deck is standard legal, the sign-up info is posted in the tournament sign-up output channel.
-
 >> name: Users first and last name.
 >> pokemon_id: Users Pokémon ID.
 >> year_of_birth: Users year of birth.
