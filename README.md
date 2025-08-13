@@ -32,19 +32,6 @@
     </li>
     <li>
         <a href="#Commands">Commands</a>
-        <ul>
-            <li><a href="#/about">/about</a></li>
-            <li><a href="#/admin-check_maintenance">/admin check_maintenance</a></li>
-            <li><a href="#/admin-toggle_maintenance-<password>">/admin toggle_maintenance</a></li>
-            <li><a href="#/admin-set_output_channel">/admin set_output_channel</a></li>
-            <li><a href="#/admin-set_output_channel">/admin set_output_channel</a></li>
-            <li><a href="#/admin-update_legal_cards">/admin update_legal_cards</a></li>
-            <li><a href="#/admin-update_signup_sheet">/admin update_signup_sheet</a></li>
-            <li><a href="#/newsfeed-set_channel">/newsfeed set_channel</a></li>
-            <li><a href="#/newsfeed-update">/newsfeed update</a></li>
-            <li><a href="#/decklist-check-<deck_url>">/decklist check</a></li>
-            <li><a href="#/tournament-signup-<name>-<pokemon_id>-<year_of_birth>-<deck_url>">/tournament signup</a></li>
-        </ul>
     </li>
     <li>
         <a href="#Timed-tasks">Timed tasks</a>
