@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from src.bot import Bot
+from src.helpers import MAINTENANCE_MODE_MESSAGE
 
 class MockCtx():
     def __init__(self):
@@ -56,7 +57,7 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
         mock_nf_json.load = raise_exception
 
-        b = Bot("faketoken")
+        b = Bot("faketoken", False, "123")
 
         mock_dl_json.load.assert_called_once()
         
@@ -117,7 +118,7 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
         mock_nf_json.load = raise_exception
 
-        b = Bot("faketoken")
+        b = Bot("faketoken", False, "123")
 
         mock_newsfeed.return_value = False
 
@@ -144,3 +145,35 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         await b.do_get_newsfeed()
         assert mock_ctx.last_response == "nothing"
 
+    @patch("src.bot.tasks")
+    @patch("src.bot.create_logger")
+    @patch("src.bot.discord")
+    @patch("src.bot_newsfeed.json")
+    @patch("src.bot_decklist.json")
+    @patch("builtins.open")
+    @patch("src.bot_legalcards.load_card_database")
+    async def test_bot_newsfeed_maintenance(
+        self,
+        mock_load,
+        mock_open,
+        mock_dl_json,
+        mock_nf_json,
+        mock_discord,
+        mock_logger,
+        mock_tasks
+    ):
+        mock_load.return_value = ({}, {}, {})
+        mock_logger_instance = mock_logger.return_value
+        mock_bot = MagicMock()
+        mock_discord.Bot.return_value = mock_bot
+
+        b = Bot("faketoken", True, "123")
+
+        mock_ctx = MockCtx()
+        await b.get_newsfeed(mock_ctx)
+        assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
+
+        await b.get_newsfeed_task()
+        assert mock_logger_instance.info.call_count == 2
+
+    

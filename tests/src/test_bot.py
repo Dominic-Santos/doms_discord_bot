@@ -21,7 +21,7 @@ def test_bot_init(
     mock_bot = MagicMock()
     mock_discord.Bot.return_value = mock_bot
 
-    b = Bot("faketoken")
+    b = Bot("faketoken", False, "123")
 
     mock_dl_json.load.assert_called_once()
     mock_nf_json.load.assert_called_once()

@@ -10,9 +10,11 @@ from .bot_newsfeed import NewsfeedBot
 
 
 class Bot(DecklistBot, LegalCardsBot, NewsfeedBot):
-    def __init__(self, token):
+    def __init__(self, token: str, maintenance_mode: bool, password: str):
         self.bot = discord.Bot()
         self.token = token
+        self.maintenance = maintenance_mode
+        self.password = password
         self.logger = create_logger("decklist_bot", filename="logs/bot.log")
 
         self.load_legal_cards()

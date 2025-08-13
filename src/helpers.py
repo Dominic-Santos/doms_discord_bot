@@ -4,6 +4,8 @@ import logging
 
 from threading import Thread
 
+MAINTENANCE_MODE_MESSAGE = "Maintenance mode is active, try again later"
+
 
 def check_dir(directory: str):
     if not os.path.exists(directory):

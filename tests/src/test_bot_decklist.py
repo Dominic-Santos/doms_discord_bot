@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from src.bot import Bot
+from src.helpers import MAINTENANCE_MODE_MESSAGE
 
 class MockCtx():
     def __init__(self):
@@ -64,7 +65,7 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
 
         mock_dl_json.load = raise_exception
 
-        b = Bot("faketoken")
+        b = Bot("faketoken", False, "123")
         
         assert mock_logger_instance.info.call_count == 2
         assert b.output_channels == {}
@@ -176,7 +177,7 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         def mock_do_update_sheet():
             return Exception("Test")
 
-        b = Bot("faketoken")
+        b = Bot("faketoken", False, "123")
         b.do_update_sheet = mock_do_update_sheet
 
         mock_ctx = MockCtx()
@@ -185,3 +186,40 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
 
         b.update_signup_sheet_task()
         assert mock_logger_instance.error.call_count == 1
+
+    @patch("src.bot.create_logger")
+    @patch("src.bot.discord")
+    @patch("src.bot_newsfeed.json")
+    @patch("src.bot_decklist.json")
+    @patch("builtins.open")
+    @patch("src.bot_legalcards.load_card_database")
+    async def test_bot_signup_sheet_maintenance(
+        self,
+        mock_load,
+        mock_open,
+        mock_dl_json,
+        mock_nf_json,
+        mock_discord,
+        mock_logger,
+    ):
+        mock_load.return_value = ({}, {})
+        mock_bot = MagicMock()
+        mock_discord.Bot.return_value = mock_bot
+        mock_logger_instance = mock_logger.return_value
+
+        b = Bot("faketoken", True, "123")
+
+        mock_ctx = MockCtx()
+
+        await b.decklist_check(mock_ctx, "https://my.com/builder?i=abc123abc")
+        assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
+
+        await b.tournament_signup(mock_ctx, "test person", 1234, 1990, "https://my.limitlesstcg.com/builder?i=abc123abc")
+        assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
+
+        await b.update_signup_sheet(mock_ctx)
+        assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
+
+        assert mock_logger_instance.info.call_count == 1
+        b.update_signup_sheet_task()
+        assert mock_logger_instance.info.call_count == 3

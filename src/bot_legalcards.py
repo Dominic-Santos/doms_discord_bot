@@ -1,7 +1,7 @@
 from .core import  load_card_database
 from .pkmncards import get_legal_cards
 
-from .helpers import CustomThread
+from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
 
 
 class LegalCardsBot:
@@ -20,11 +20,20 @@ class LegalCardsBot:
 
     def get_legal_cards_task(self):
         self.logger.info("Updating legal cards...")
+        if self.maintenance:
+            self.logger.info("Won't update legal cards, Maintenance mode is active")
+            return
+
         self.do_get_legal_cards()
         self.logger.info("Legal cards updated successfully.")
 
     async def get_legal_cards(self, ctx):
         await ctx.defer(ephemeral=True)
+
+        if self.maintenance:
+            await ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
+            return
+
         self.do_get_legal_cards()
         await ctx.respond("Legal cards list has been updated!", ephemeral=True)
 

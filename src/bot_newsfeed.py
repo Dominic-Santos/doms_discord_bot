@@ -1,7 +1,7 @@
 import json
 
 from .pokebeach import get_newsfeed
-from .helpers import CustomThread
+from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
 
 
 class NewsfeedBot:
@@ -31,11 +31,21 @@ class NewsfeedBot:
 
     async def get_newsfeed(self, ctx):
         await ctx.defer(ephemeral=True)
+
+        if self.maintenance:
+            await ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
+            return
+
         await self.do_get_newsfeed()
         await ctx.respond("Newsfeed posts have been updated!", ephemeral=True)
 
     async def get_newsfeed_task(self):
         self.logger.info("Checking newsfeed posts...")
+
+        if self.maintenance:
+            self.logger.info("Won't get newsfeed, Maintenance mode is active")
+            return
+
         await self.do_get_newsfeed()
         self.logger.info("Newsfeed posts updated successfully.")
 

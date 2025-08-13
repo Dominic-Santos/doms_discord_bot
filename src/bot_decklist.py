@@ -6,7 +6,7 @@ from .limitless import get_decklist_from_url
 from .core import validate_decklist, fill_sheet
 from .pokemon import get_decklist_png as get_sign_up_sheet
 
-from .helpers import CustomThread
+from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
 
 class DecklistBot:
     def load_output_channels(self):
@@ -53,6 +53,11 @@ class DecklistBot:
 
     async def decklist_check(self, ctx, deck):
         await ctx.defer(ephemeral=True)
+
+        if self.maintenance:
+            await ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
+            return
+
         valid, _, error = self.do_decklist_check(deck)
         if not valid:
             await ctx.respond(f"Decklist is not valid: {error}", ephemeral=True)
@@ -71,6 +76,10 @@ class DecklistBot:
 
     async def tournament_signup(self, ctx, full_name: str, pokemon_id: int, year_of_birth: int, limitless_url: str):
         await ctx.defer(ephemeral=True)
+
+        if self.maintenance:
+            await ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
+            return
 
         if not self.legal_cards:
             await ctx.respond("Legal cards are not loaded. Please try again later.", ephemeral=True)
@@ -119,8 +128,12 @@ class DecklistBot:
     
     async def update_signup_sheet(self, ctx):
         await ctx.defer(ephemeral=True)
+
+        if self.maintenance:
+            await ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
+            return
+        
         error = self.do_update_sheet()
-        print("the error", error)
         if error is None:
             msg = "Sheet has been updated!"
         else:
@@ -129,6 +142,11 @@ class DecklistBot:
 
     def update_signup_sheet_task(self):
         self.logger.info("Updating sign-up sheet...")
+
+        if self.maintenance:
+            self.logger.info("Won't update sign-up sheet, Maintenance mode is active")
+            return
+
         error = self.do_update_sheet()
         if error is None:
             self.logger.info("Sign-up sheet updated successfully.")
