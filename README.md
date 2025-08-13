@@ -65,49 +65,49 @@ User commands:
 
 ## Commands
 
-## /about
+### /about
 
 > Info about the creator! Me 😊
 
-## /admin check_maintenance
+### /admin check_maintenance
 
 > Check if the bot is in maintenance mode.
 
-## /admin toggle_maintenance <password>
+### /admin toggle_maintenance <password>
 
 > Owner can set the bot maintenance mode on/off. Bot admin password is required.
 
-## /admin set_output_channel
+### /admin set_output_channel
 
 > Set the current channel as the output tournament sign-ups.
 > It's recommended this be a hidden channel available only to staff.
 
-## /admin set_output_channel
+### /admin set_output_channel
 
 > Send a generic message to the tournament sign-up output channel.
 
-## /admin update_legal_cards
+### /admin update_legal_cards
 
 > Update the standard legal card data, this is used for deck checks and tournament sign-ups.
 
-## /admin update_signup_sheet
+### /admin update_signup_sheet
 
 > Update the sign-up sheet, this is used for tournament sign-ups.
 
-## /newsfeed set_channel
+### /newsfeed set_channel
 
 > Set the current channel as the output for newsfeed updates.
 
-## /newsfeed update
+### /newsfeed update
 
 > Check for new newsfeed articles.
 
-## /decklist check <deck_url>
+### /decklist check <deck_url>
 
 > Check if a decklist is standard legal.
 > * deck_url: create a deck using the [builder](https://my.limitlesstcg.com/builder), then click Share > Copy Import Link
 
-## /tournament signup <name> <pokemon_id> <year_of_birth> <deck_url>
+### /tournament signup <name> <pokemon_id> <year_of_birth> <deck_url>
 
 > Sign up for a tournament, if the deck is standard legal, the sign-up info is posted in the tournament sign-up output channel.
 > * name: Users first and last name.
