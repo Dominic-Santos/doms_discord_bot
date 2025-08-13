@@ -8,7 +8,7 @@
   <h3 align="center">doms_discord_bot</h3>
 
   <p align="center">
-    A discord bot that provides TCG news, decklist checking and tournament sign-ups. (Mostly around Pokémon TCG)
+    A Discord bot that provides TCG news, decklist validation, and tournament sign-ups — primarily focused on the Pokémon TCG.
     <br />
     <a href="https://github.com/Dominic-Santos/doms_discord_bot"><strong>Explore the docs »</strong></a>
   </p>
@@ -22,32 +22,32 @@
         <a href="#About-The-Project">About The Project</a>
     </li>
     <li>
-        <a href="#How-to-use-the-bot">How to use the bot</a>
+        <a href="#How-to-use-the-bot">How to Use the Bot</a>
         <ul>
             <li><a href="#Installation">Installation</a></li>
         </ul>
     </li>
     <li>
-        <a href="#Roles-based-commands">Roles based commands</a>
+        <a href="#Roles-based-commands">Role-Based Commands</a>
     </li>
     <li>
         <a href="#Commands">Commands</a>
     </li>
     <li>
-        <a href="#Timed-tasks">Timed tasks</a>
+        <a href="#Timed-tasks">Timed Tasks</a>
         <ul>
-            <li><a href="#Update-sign-up-sheet">Update sign up sheet</a></li>
-            <li><a href="#Update-legal-cards">Update legal cards</a></li>
-            <li><a href="#Check-for-new-newsfeed-articles">Check for new newsfeed articles</a></li>
+            <li><a href="#Update-sign-up-sheet">Update Sign-Up Sheet</a></li>
+            <li><a href="#Update-legal-cards">Update Legal Cards</a></li>
+            <li><a href="#Check-for-new-newsfeed-articles">Check for New Newsfeed Articles</a></li>
         </ul>
     </li>
     <li>
-        <a href="#Create-your-own-bot">Create your own bot</a>
+        <a href="#Create-your-own-bot">Create Your Own Bot</a>
         <ul>
             <li><a href="#Discord-App">Discord App</a></li>
             <li><a href="#Configure-the-App">Configure the App</a></li>
-            <li><a href="#Install-requirements">Install requirements</a></li>
-            <li><a href="#Run-the-bot">Run the bot</a></li>
+            <li><a href="#Install-requirements">Install Requirements</a></li>
+            <li><a href="#Run-the-bot">Run the Bot</a></li>
         </ul>
     </li>
   </ol>
@@ -57,112 +57,112 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This is a passion project aimed at providing better tools and automation for my local game store. As a Pokémon Professor (Judge), I found the official tools to be severely lacking. To help alleviate some of the pain points, I’ve been developing this bot with features designed to keep the community informed and streamline daily operations — from deck checks to sign-ups and more.
+This passion project was created to provide better tools and automation for my local game store. As a Pokémon Professor (Judge), I found the official tools to be severely lacking. To help address those shortcomings, I developed this bot to keep the community informed and streamline everyday operations — from deck checks to tournament sign-ups and more.
 
-## How to use the bot
+## How to Use the Bot
 
 ### Installation
 
-Click [here](https://discord.com/oauth2/authorize?client_id=1398430497947779182) to install DomsBot to your server!
+Click [here](https://discord.com/oauth2/authorize?client_id=1398430497947779182) to install DomsBot on your server!
 
-OR
+**OR**
 
-<a href="#create-your-own-bot">Create your own bot</a> and install it to your server!
+<a href="#create-your-own-bot">Create your own bot</a> and add it to your server.
 
-## Roles based commands
+## Role-Based Commands
 
-Some commands are intended for server admins only. We recommend restricting access to commands based on server roles, which can be configured through your server's integration settings.
+Some commands are intended for server administrators only. It’s recommended to restrict command access based on server roles, which can be managed through your server's integration settings.
 
-Admin commands:
+**Admin Commands:**
 * /admin
 * /newsfeed
 
-User commands:
-* /about
-* /decklist
+**User Commands:**
+* /about  
+* /decklist  
 * /tournament
 
 ## Commands
 
 ### /about
 
-> Info about the creator! Me 😊
+> Information about the creator — me! 😊
 
 ### /admin check_maintenance
 
-> Check if the bot is in maintenance mode.
+> Check whether the bot is currently in maintenance mode.
 
 ### /admin toggle_maintenance <password>
 
-> Owner can set the bot maintenance mode on/off. Bot admin password is required.
+> Toggles maintenance mode on or off. Requires the bot admin password.
 
 ### /admin set_output_channel
 
-> Set the current channel as the output tournament sign-ups.
-> It's recommended this be a hidden channel available only to staff.
+> Set the current channel as the output for tournament sign-up messages.
+> It’s recommended to use a hidden channel visible only to staff.
 
-### /admin set_output_channel
+### /admin send_output_channel
 
 > Send a generic message to the tournament sign-up output channel.
 
 ### /admin update_legal_cards
 
-> Update the standard legal card data, this is used for deck checks and tournament sign-ups.
+> Updates the standard legal card data. This is used for deck checks and tournament sign-ups.
 
 ### /admin update_signup_sheet
 
-> Update the sign-up sheet, this is used for tournament sign-ups.
+> Updates the tournament sign-up sheet.
 
 ### /newsfeed set_channel
 
-> Set the current channel as the output for newsfeed updates.
+> Set the current channel to receive newsfeed updates.
 
 ### /newsfeed update
 
-> Check for new newsfeed articles.
+> Check for and fetch new newsfeed articles.
 
 ### /decklist check <deck_url>
 
-> Check if a decklist is standard legal.
-> * deck_url: create a deck using the [builder](https://my.limitlesstcg.com/builder), then click Share > Copy Import Link
+> Validates whether a decklist is Standard legal.
+> * `deck_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**.
 
 ### /tournament signup <name> <pokemon_id> <year_of_birth> <deck_url>
 
-> Sign up for a tournament, if the deck is standard legal, the sign-up info is posted in the tournament sign-up output channel.
-> * name: Users first and last name.
-> * pokemon_id: Users Pokémon ID.
-> * year_of_birth: Users year of birth.
-> * deck_url: create a deck using the [builder](https://my.limitlesstcg.com/builder), then click Share > Copy Import Link
+> Sign up for a tournament. If the deck is Standard legal, the sign-up info is posted to the tournament output channel.
+> * `name`: User’s first and last name  
+> * `pokemon_id`: User’s Pokémon ID  
+> * `year_of_birth`: User’s year of birth  
+> * `deck_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**
 
-## Timed tasks
+## Timed Tasks
 
-The bot also has some tasks that run every so often
+The bot also includes scheduled tasks that run automatically at set intervals.
 
-### Update sign up sheet
+### Update Sign-Up Sheet
 
-> Runs everyday at 8am, updates the tournament sign up sheet.
+> Runs daily at 8 AM to refresh the tournament sign-up sheet.
 
-### Update legal cards
+### Update Legal Cards
 
-> Runs everyday at 7am, updates the standard legal cards, used for deck checks and tournament sign-ups.
+> Runs daily at 7 AM to update the Standard legal cards used for deck validation and sign-ups.
 
-### Check for new newsfeed articles
+### Check for New Newsfeed Articles
 
-> Runs every 6 hours, checks for new newsfeed articles.
+> Runs every 6 hours to fetch the latest articles from the newsfeed.
 
-## Create your own bot
+## Create Your Own Bot
 
-If you’d like to run your own version of the bot, feel free to fork, use, or copy the code in this repo 😊 A mention is always appreciated!
+If you’d like to run your own version of the bot, feel free to fork or copy the code from this repository 😊 A shoutout is always appreciated!
 
 ### Discord App
 
-You will need to create a discord app, follow the guide [here](https://discord.com/developers/docs/intro)
+You’ll need to create a Discord application. Follow the official guide [here](https://discord.com/developers/docs/intro).
 
-The bot will require permissions to post messages in channels and manage events.
+The bot requires permissions to post messages in channels and manage events.
 
 ### Configure the App
 
-Follow the example in config.json and fill out the fields:
+Refer to the example below and fill out your own `config.json`:
 ```json
 {
     "app_token": "app_token_placeholder",
