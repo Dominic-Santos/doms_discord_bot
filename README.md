@@ -86,7 +86,7 @@ Some commands are intended for server administrators only. It’s recommended to
 
 ### /about
 
-> Information about the creator — me! 😊
+> Information about the bot and its creator — me! 😊
 
 ### /admin check_maintenance
 
