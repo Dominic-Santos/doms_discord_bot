@@ -40,17 +40,17 @@
 
 This is a passion project aimed at providing better tools and automation for my local game store. As a Pokémon Professor (Judge), I found the official tools to be severely lacking. To help alleviate some of the pain points, I’ve been developing this bot with features designed to keep the community informed and streamline daily operations — from deck checks to sign-ups and more.
 
-## Create your own bot
+## How to use the bot
 
-If you’d like to run your own version of the bot, feel free to fork, use, or copy the code in this repo 😊 A mention is always appreciated!
+### Installation
 
-### Discord App
+Click [here](https://discord.com/oauth2/authorize?client_id=1398430497947779182) to install DomsBot to your server!
 
-You will need to create a discord app, follow the guide [here](https://discord.com/developers/docs/intro)
+OR
 
-The bot will require permissions to post messages in channels and manage events.
+<a href="#create-your-own-bot">Create your own bot</a> and install it to your server!
 
-### Roles based commands
+## Roles based commands
 
 Some commands are intended for server admins only. We recommend restricting access to commands based on server roles, which can be configured through your server's integration settings.
 
@@ -62,6 +62,22 @@ User commands:
 * /about
 * /decklist
 * /tournament
+
+## Commands
+
+### /about
+
+Info about the creator! Me 😊
+
+## Create your own bot
+
+If you’d like to run your own version of the bot, feel free to fork, use, or copy the code in this repo 😊 A mention is always appreciated!
+
+### Discord App
+
+You will need to create a discord app, follow the guide [here](https://discord.com/developers/docs/intro)
+
+The bot will require permissions to post messages in channels and manage events.
 
 ### Configure the App
 
