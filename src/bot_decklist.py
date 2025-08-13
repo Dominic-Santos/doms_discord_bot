@@ -65,7 +65,7 @@ class DecklistBot:
             return False, {}, "Invalid Limitless URL."
         t = CustomThread(get_decklist_from_url, args=(limitless_url,))
         t.start()
-        deck_data = t.join()
+        deck_data, error = t.join()
         valid, error = validate_decklist(deck_data, self.legal_cards)
         return valid, deck_data, error
 
@@ -119,18 +119,27 @@ class DecklistBot:
     
     async def update_signup_sheet(self, ctx):
         await ctx.defer(ephemeral=True)
-        self.do_update_sheet()
-        await ctx.respond("Sheet has been updated!", ephemeral=True)
+        error = self.do_update_sheet()
+        print("the error", error)
+        if error is None:
+            msg = "Sheet has been updated!"
+        else:
+            msg = f"Failed to update sheet {error}"
+        await ctx.respond(msg, ephemeral=True)
 
     def update_signup_sheet_task(self):
         self.logger.info("Updating sign-up sheet...")
-        self.do_update_sheet()
-        self.logger.info("Sign-up sheet updated successfully.")
+        error = self.do_update_sheet()
+        if error is None:
+            self.logger.info("Sign-up sheet updated successfully.")
+        else:
+            self.logger.error(f"Failed up update sign-up sheent. {error}")
 
     def do_update_sheet(self):
         t = CustomThread(get_sign_up_sheet)
         t.start()
-        t.join()
+        _, error = t.join()
+        return error
 
     def check_limitless_url(self, url: str) -> tuple[bool]:
         clean = url.strip("https://").strip("http://")

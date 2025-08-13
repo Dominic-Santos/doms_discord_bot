@@ -33,10 +33,15 @@ class CustomThread(Thread):
         super().__init__(target=target, args=args, **kwargs)
         self.daemon = True  # Set the thread as a daemon thread
         self.return_value = None
+        self.error = None
     
     def run(self):
-        self.return_value = self._target(*self._args, **self._kwargs)
+        self.error = None
+        try:
+            self.return_value = self._target(*self._args, **self._kwargs)
+        except Exception as e:
+            self.error = e
 
     def join(self, *args, **kwargs):
         super().join(*args, **kwargs)
-        return self.return_value
+        return self.return_value, self.error

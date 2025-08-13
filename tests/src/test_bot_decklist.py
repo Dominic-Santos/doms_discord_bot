@@ -23,7 +23,7 @@ class MockCtx():
         self.last_send = message
 
  
-class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
+class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
     
     @patch("src.bot_decklist.os.remove")
     @patch("src.bot_decklist.fill_sheet")
@@ -36,7 +36,7 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot_decklist.json")
     @patch("builtins.open")
     @patch("src.bot_legalcards.load_card_database")
-    async def test_bot_newsfeed(
+    async def test_bot_signup_sheet(
         self,
         mock_load,
         mock_open,
@@ -55,6 +55,7 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
         def raise_exception():
+            print("raise exception as run")
             raise Exception("test error")
         try:
             raise_exception()
@@ -132,3 +133,55 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
         assert mock_ctx.last_send == f"New tournament signup:\n- Name: test person (testuser)\n- Pokémon ID: 1234\n- Year of Birth: 1990\n- Decklist: https://my.limitlesstcg.com/builder?i=abc123abc"
         assert mock_ctx.last_response == "Tournament signup has been processed!"
         mock_remove.assert_called_once()
+
+    @patch("src.bot_decklist.os.remove")
+    @patch("src.bot_decklist.fill_sheet")
+    @patch("src.bot_decklist.validate_decklist")
+    @patch("src.bot_decklist.get_decklist_from_url")
+    @patch("src.bot_decklist.get_sign_up_sheet")
+    @patch("src.bot.create_logger")
+    @patch("src.bot.discord")
+    @patch("src.bot_newsfeed.json")
+    @patch("src.bot_decklist.json")
+    @patch("builtins.open")
+    @patch("src.bot_legalcards.load_card_database")
+    async def test_bot_singup_sheet_errors(
+        self,
+        mock_load,
+        mock_open,
+        mock_dl_json,
+        mock_nf_json,
+        mock_discord,
+        mock_logger,
+        mock_sign_sheet,
+        mock_decklist,
+        mock_validate,
+        mock_fill,
+        mock_remove
+    ):
+        mock_load.return_value = ({}, {})
+        mock_logger_instance = mock_logger.return_value
+        mock_bot = MagicMock()
+        mock_discord.Bot.return_value = mock_bot
+        def raise_exception():
+            raise Exception("test error")
+        try:
+            raise_exception()
+        except Exception as e:
+            assert str(e) == "test error"
+
+        mock_dl_json.load = raise_exception
+        mock_sign_sheet.raiseError.side_effect = raise_exception
+
+        def mock_do_update_sheet():
+            return Exception("Test")
+
+        b = Bot("faketoken")
+        b.do_update_sheet = mock_do_update_sheet
+
+        mock_ctx = MockCtx()
+        await b.update_signup_sheet(mock_ctx)
+        assert mock_ctx.last_response.startswith("Failed")
+
+        b.update_signup_sheet_task()
+        assert mock_logger_instance.error.call_count == 1

@@ -42,7 +42,7 @@ class NewsfeedBot:
     async def do_get_newsfeed(self):
         t = CustomThread(get_newsfeed)
         t.start()
-        posts = t.join()
+        posts, _ = t.join()
 
         if not posts:
             self.logger.info("No newsfeed posts found.")

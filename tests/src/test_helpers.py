@@ -20,6 +20,18 @@ def test_CustomThread():
 
     thread = CustomThread(target=dummy_function)
     thread.start()
-    result = thread.join()
+    result, error = thread.join()
     assert result == "Thread finished"
     assert thread.is_alive() is False
+    assert error is None
+
+def test_CustomThread_error():
+    def dummy_function():
+        raise Exception("Test")
+
+    thread = CustomThread(target=dummy_function)
+    thread.start()
+    result, error = thread.join()
+    assert result is None
+    assert thread.is_alive() is False
+    assert error is not None

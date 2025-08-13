@@ -18,7 +18,7 @@ def get_decklist_pdf(output_filename):
     # Here you would implement the logic to generate the decklist PDF
     sb = Driver(uc=True, locale_code="en", ad_block=True, external_pdf=True)
     sb.uc_activate_cdp_mode(POKEMON_RULES_URL)
-    sb.sleep(1)
+    sb.sleep(5)
     a_elements = sb.cdp.find_visible_elements("a")
     for a in a_elements:
         if a.get_attribute("innerHTML").strip() == "Play! Pokémon Deck List (A4)":
