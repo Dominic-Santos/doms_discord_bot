@@ -5,7 +5,6 @@ from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
 
 
 class NewsfeedBot:
-   
     def load_newsfeed_channels(self):
         try:
             with open("newsfeed_channels.json", "r") as f:
@@ -77,7 +76,7 @@ class NewsfeedBot:
                 
             for post in should_post[::-1]:
                 await channel.send(post)
-            
+
             self.newsfeed_channels[guild_id]["latest_post"] = posts[0]
-        
+
         self.save_newsfeed_channels()
