@@ -70,9 +70,9 @@ pip install -r requirements.txt
 
 ### Roles based commands
 
-Some commands are meant for server admins only, we recommand you segregate commands by server role, this can be configured in server integrations.
+Some commands are intended for server admins only. We recommend restricting access to commands based on server roles, which can be configured through your server's integration settings.
 
-Admin Only commands:
+Admin commands:
 * /admin
 * /newsfeed
 
