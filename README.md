@@ -27,6 +27,7 @@
         <li><a href="#discord-app">Discord App</a></li>
         <li><a href="#configure-the-app">Configure the App</a></li>
         <li><a href="#install-requirements">Install requirements</a></li>
+        <li><a href="#roles-based-commands">Roles based commands</a></li>
       </ul>
     </li>
   </ol>
@@ -40,11 +41,13 @@ This is a passion project aimed at providing better tools and automation for my 
 
 ## Create your own bot
 
-If you wish to run your own version of the bot, feel free to fork/use/copy the code in this repo :smiley: a mention is always apreciated
+If you’d like to run your own version of the bot, feel free to fork, use, or copy the code in this repo 😊 A mention is always appreciated!
 
 ### Discord App
 
 You will need to create a discord app, follow the guide [here](https://discord.com/developers/docs/intro)
+
+The bot will require permissions to post messages in channels and manage events
 
 ### Configure the App
 
@@ -64,3 +67,16 @@ Follow the example in config.json and fill out the fields:
 ```sh
 pip install -r requirements.txt
 ```
+
+### Roles based commands
+
+Some commands are meant for server admins only, we recommand you segregate commands by server role, this can be configured in server integrations.
+
+Admin Only commands:
+* /admin
+* /newsfeed
+
+User commands:
+* /about
+* /decklist
+* /tournament
