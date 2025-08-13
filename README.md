@@ -171,7 +171,7 @@ Refer to the example below and fill out your own `config.json`:
 }
 ```
 * app_token: this is provided by Discord when creating the Discord App.
-* admin_password: this is used by super-admin to control the bot via discord commands.
+* admin_password: this is used by super-admin to control the bot via discord commands, make up your own.
 * maintenance_mode: if the bot will start in maintenance mode.
 
 ### Install requirements
