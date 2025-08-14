@@ -55,12 +55,9 @@
 
 
 <!-- ABOUT THE PROJECT -->
-<details>
-  <summary>## About The Project</summary>
-
+## About The Project
 
 This passion project was created to provide better tools and automation for my local game store. As a Pokémon Professor (Judge), I found the official tools to be severely lacking. To help address those shortcomings, I developed this bot to keep the community informed and streamline everyday operations — from deck checks to tournament sign-ups and more.
-</details>
 
 ## How to Use the Bot
 
