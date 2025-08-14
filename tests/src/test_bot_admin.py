@@ -1,16 +1,16 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from src.bot import Bot
-from src.helpers import MAINTENANCE_MODE_MESSAGE
 
-class MockCtx(): 
+
+class MockCtx():
     async def respond(self, message, ephemeral=False):
         self.last_response = message
 
     async def defer(self, ephemeral=False):
         return
 
- 
+
 class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
 
     @patch("src.bot.create_logger")
@@ -33,7 +33,7 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
         mock_discord.Bot.return_value = mock_bot
 
         b = Bot("faketoken", False, "123")
-        
+
         mock_ctx = MockCtx()
         await b.maintenance_status(mock_ctx)
         assert mock_ctx.last_response == "Maintenance mode: off"

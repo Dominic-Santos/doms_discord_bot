@@ -22,40 +22,64 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot):
         self.load_output_channels()
         self.load_newsfeed_channels()
         self.add_commands()
-    
+
     def add_commands(self):
         decklist = self.bot.create_group("decklist", "Manage your deck")
         newsfeed = self.bot.create_group("newsfeed", "Manage newsfeed posts")
-        tournament = self.bot.create_group("tournament", "Manage tournament sign-ups")
+        tournament = self.bot.create_group(
+            "tournament", "Manage tournament sign-ups"
+        )
         admin = self.bot.create_group("admin", "Admin commands")
 
         @decklist.command(description="Check your decklist is standard legal")
-        async def check(ctx, limitless_url: discord.Option(str, "Limitless URL of the decklist")):
+        async def check(
+            ctx,
+            limitless_url: discord.Option(
+                str, "Limitless URL of the decklist"
+            ),  # type: ignore
+        ):
             await self.decklist_check(ctx, limitless_url)  # pragma: no cover
 
         @tournament.command(description="Sign up for a tournament")
         async def signup(
             ctx,
-            name: discord.Option(str, "Full name of the player"),
-            pokemon_id: discord.Option(int, "Pokemon ID of the player"),
-            year_of_birth: discord.Option(int, "Year of birth of the player"),
-            limitless_url: discord.Option(str, "Limitless URL of the decklist"),
+            name: discord.Option(
+                str, "Full name of the player"
+            ),  # type: ignore
+            pokemon_id: discord.Option(
+                int, "Pokemon ID of the player"
+            ),  # type: ignore
+            year_of_birth: discord.Option(
+                int, "Year of birth of the player"
+            ),  # type: ignore
+            limitless_url: str = discord.Option(
+                str,
+                "Limitless URL of the decklist"
+            ),
         ):
-            await self.tournament_signup(ctx, name, pokemon_id, year_of_birth, limitless_url)  # pragma: no cover
+            await self.tournament_signup(
+                ctx, name, pokemon_id, year_of_birth, limitless_url
+            )  # pragma: no cover
 
         @admin.command(description="Update the sign-up sheet")
         async def update_signup_sheet(ctx):
             await self.update_signup_sheet(ctx)  # pragma: no cover
 
-        @admin.command(description="Sync the legal cards list for deck validation")
+        @admin.command(
+            description="Sync the legal cards list for deck validation"
+        )
         async def update_legal_cards(ctx):
             await self.get_legal_cards(ctx)  # pragma: no cover
 
-        @admin.command(description="Set the output channel for tournament sign-ups")
+        @admin.command(
+            description="Set the output channel for tournament sign-ups"
+        )
         async def set_output_channel(ctx):
             await self.set_output_channel(ctx)  # pragma: no cover
 
-        @admin.command(description="Test output channel for tournament sign-ups")
+        @admin.command(
+            description="Test output channel for tournament sign-ups"
+        )
         async def test_output_channel(ctx):
             await self.test_output_channel(ctx)  # pragma: no cover
 
@@ -69,8 +93,18 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot):
 
         @self.bot.command(description="Get information about the bot")
         async def about(ctx):
-            await ctx.respond("This is a Discord bot built for managing Pokémon TCG events and News.\n\nIt can validate decklists, manage tournament sign-ups, and provide news updates from PokéBeach.\n\nCreated by Dominic Santos (dominatordom8125 on Discord) ", ephemeral=True)  # pragma: no cover
-        
+            await ctx.respond(
+                (
+                    "This is a Discord bot built for managing Pokémon "
+                    "TCG events and News.\n\n"
+                    "It can validate decklists, manage tournament sign-ups,"
+                    " and provide news updates from PokéBeach.\n\n"
+                    "Created by Dominic Santos "
+                    "(dominatordom8125 on Discord)"
+                ),
+                ephemeral=True
+            )  # pragma: no cover
+
         @admin.command(description="Check if the bot is in maintenance mode")
         async def check_maintenance(ctx):
             await self.maintenance_status(ctx)  # pragma: no cover
@@ -78,13 +112,18 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot):
         @admin.command(description="Toggle bot maintenance mode")
         async def toggle_maintenance(
             ctx,
-            password: discord.Option(str, "Bot admin password"),
+            password: discord.Option(
+                str, "Bot admin password"
+            ),  # type: ignore
         ):
             await self.toggle_maintenance(ctx, password)  # pragma: no cover
 
         @self.bot.listen(once=True)
         async def on_ready():
-            self.logger.info(f"Bot is ready! Logged in as {self.bot.user.name} ({self.bot.user.id})")  # pragma: no cover
+            self.logger.info(
+                f"Bot is ready! Logged in as {self.bot.user.name} "
+                f"({self.bot.user.id})"
+            )  # pragma: no cover
             self.add_tasks()  # pragma: no cover
 
     def add_tasks(self):

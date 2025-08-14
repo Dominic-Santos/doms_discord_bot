@@ -5,13 +5,19 @@ import shutil
 
 
 # location for the Pokémon Decklist sheet
-POKEMON_RULES_URL = "https://www.pokemon.com/us/play-pokemon/about/tournaments-rules-and-resources"
+POKEMON_RULES_URL = (
+    "https://www.pokemon.com/us/play-pokemon/"
+    "about/tournaments-rules-and-resources"
+)
+
 
 def convert_pdf_to_png(in_file, out_file):
     doc = fitz.open(in_file)  # open document
     for page in doc:  # iterate through the pages
-        pix = page.get_pixmap(matrix=fitz.Matrix(2.0, 2.0))  # render page to an image
-        pix.save(out_file) 
+        pix = page.get_pixmap(
+            matrix=fitz.Matrix(2.0, 2.0)
+        )  # render page to an image
+        pix.save(out_file)
 
 
 def get_decklist_pdf(output_filename):
@@ -22,7 +28,10 @@ def get_decklist_pdf(output_filename):
     a_elements = sb.cdp.find_visible_elements("a")
 
     for a in a_elements:
-        if a.get_attribute("innerHTML").strip() == "Play! Pokémon Deck List (A4)":
+        if (
+            a.get_attribute("innerHTML").strip()
+            == "Play! Pokémon Deck List (A4)"
+        ):
             a.click()
             sb.sleep(5)
             break
@@ -34,14 +43,18 @@ def get_decklist_pdf(output_filename):
             pdf_path = os.path.join("downloaded_files", file)
             if os.path.exists(pdf_path):
                 if os.path.exists(output_filename):
-                    os.remove(output_filename)  # Remove existing file if it exists
+                    os.remove(
+                        output_filename
+                    )  # Remove existing file if it exists
                 os.rename(pdf_path, output_filename)
             break
     else:
         raise Exception("No pdf in downloaded files")
-    
+
     sb.quit()
-    shutil.rmtree('downloaded_files', ignore_errors=True)  # Clean up the directory
+    # Clean up the directory
+    shutil.rmtree('downloaded_files', ignore_errors=True)
+
 
 def get_decklist_png(output_filename="sign_up_sheet.png"):
     # Here you would implement the logic to generate the decklist PNG
