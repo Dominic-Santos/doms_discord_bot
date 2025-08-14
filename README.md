@@ -55,9 +55,12 @@
 
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
+<details>
+  <summary>## About The Project</summary>
+
 
 This passion project was created to provide better tools and automation for my local game store. As a Pokémon Professor (Judge), I found the official tools to be severely lacking. To help address those shortcomings, I developed this bot to keep the community informed and streamline everyday operations — from deck checks to tournament sign-ups and more.
+</details>
 
 ## How to Use the Bot
 
@@ -83,6 +86,10 @@ Some commands are intended for server administrators only. It’s recommended to
 * /tournament
 
 ## Commands
+
+### /help
+
+> Brings you to this page.
 
 ### /about
 

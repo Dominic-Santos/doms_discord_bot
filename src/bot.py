@@ -105,6 +105,16 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot):
                 ephemeral=True
             )  # pragma: no cover
 
+        @self.bot.command(description="Help Documentation")
+        async def help(ctx):
+            await ctx.respond(
+                (
+                    "Readme available at "
+                    "https://github.com/Dominic-Santos/doms_discord_bot"
+                ),
+                ephemeral=True
+            )  # pragma: no cover
+
         @admin.command(description="Check if the bot is in maintenance mode")
         async def check_maintenance(ctx):
             await self.maintenance_status(ctx)  # pragma: no cover
