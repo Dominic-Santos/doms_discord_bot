@@ -1,5 +1,8 @@
 from unittest.mock import patch, MagicMock
-from src.core import validate_decklist, fill_sheet, load_card_database, get_offset
+from src.core import (
+    validate_decklist, fill_sheet, load_card_database, get_offset
+)
+
 
 def test_load_card_database_not_json():
     try:
@@ -7,26 +10,34 @@ def test_load_card_database_not_json():
     except ValueError as e:
         assert str(e) == "Filename must be a JSON file."
 
+
 @patch("builtins.open")
 def test_load_card_database_invalid_json(mock_open):
-    mock_open.side_effect = [MagicMock(read=MagicMock(return_value="invalid json"))]
+    mock_open.side_effect = [
+        MagicMock(read=MagicMock(return_value="invalid json"))
+    ]
     try:
         load_card_database("tests/data/invalid_format.json")
     except ValueError as e:
         assert str(e) == "Error loading JSON file."
 
+
 def test_load_card_database():
-    pokemon, trainers, energies = load_card_database(filename="tests/src/test_legal_cards.json")
+    pokemon, trainers, energies = load_card_database(
+        filename="tests/src/test_legal_cards.json"
+    )
     all_pokemon = [p for set in pokemon for p in pokemon[set]]
     assert len(all_pokemon) == 323
     assert len(trainers.keys()) == 14
     assert len(energies.keys()) == 2
+
 
 def test_validate_decklist_60_cards():
     decklist = {}
     valid, error = validate_decklist(decklist)
     assert valid is False
     assert error == "Decklist must contain exactly 60 cards."
+
 
 def test_validate_decklist_at_least_1_pokemon():
     decklist = {
@@ -37,6 +48,7 @@ def test_validate_decklist_at_least_1_pokemon():
     valid, error = validate_decklist(decklist)
     assert valid is False
     assert error == "Decklist must contain at least 1 Pokémon."
+
 
 def test_validate_decklist_max_4_copies():
     decklist = {
@@ -54,6 +66,7 @@ def test_validate_decklist_max_4_copies():
     assert valid is False
     assert error == "Card boss orders exceeds the maximum of 4 copies."
 
+
 def test_validate_decklist_one_ace_spec():
     decklist = {
         "pokemon": [
@@ -68,7 +81,9 @@ def test_validate_decklist_one_ace_spec():
         }
     }
 
-    pokemon, trainers, energies = load_card_database(filename="tests/src/test_legal_cards.json")
+    pokemon, trainers, energies = load_card_database(
+        filename="tests/src/test_legal_cards.json"
+    )
 
     legalcards = {
         "pokemon": pokemon,
@@ -94,7 +109,9 @@ def test_validate_decklist_illegal_card():
         }
     }
 
-    pokemon, trainers, energies = load_card_database(filename="tests/src/test_legal_cards.json")
+    pokemon, trainers, energies = load_card_database(
+        filename="tests/src/test_legal_cards.json"
+    )
 
     legalcards = {
         "pokemon": pokemon,
@@ -104,6 +121,7 @@ def test_validate_decklist_illegal_card():
     valid, error = validate_decklist(decklist, legal_cards=legalcards)
     assert valid is False
     assert error == "Card pikachu from set blah is not legal."
+
 
 def test_validate_decklist_at_least_1_basic():
     decklist = {
@@ -119,7 +137,9 @@ def test_validate_decklist_at_least_1_basic():
         }
     }
 
-    pokemon, trainers, energies = load_card_database(filename="tests/src/test_legal_cards.json")
+    pokemon, trainers, energies = load_card_database(
+        filename="tests/src/test_legal_cards.json"
+    )
     legalcards = {
         "pokemon": pokemon,
         "trainers": trainers,
@@ -128,6 +148,7 @@ def test_validate_decklist_at_least_1_basic():
     valid, error = validate_decklist(decklist, legal_cards=legalcards)
     assert valid is False
     assert error == "Decklist must contain at least one Basic Pokémon."
+
 
 def test_validate_decklist_check_legal_trainers():
     decklist = {
@@ -143,7 +164,9 @@ def test_validate_decklist_check_legal_trainers():
         }
     }
 
-    pokemon, trainers, energies = load_card_database(filename="tests/src/test_legal_cards.json")
+    pokemon, trainers, energies = load_card_database(
+        filename="tests/src/test_legal_cards.json"
+    )
     legalcards = {
         "pokemon": pokemon,
         "trainers": trainers,
@@ -152,6 +175,7 @@ def test_validate_decklist_check_legal_trainers():
     valid, error = validate_decklist(decklist, legal_cards=legalcards)
     assert valid is False
     assert error == "Trainer card boss orders is not legal."
+
 
 def test_validate_decklist_check_legal_enerigies():
     decklist = {
@@ -166,7 +190,9 @@ def test_validate_decklist_check_legal_enerigies():
         }
     }
 
-    pokemon, trainers, energies = load_card_database(filename="tests/src/test_legal_cards.json")
+    pokemon, trainers, energies = load_card_database(
+        filename="tests/src/test_legal_cards.json"
+    )
     legalcards = {
         "pokemon": pokemon,
         "trainers": trainers,
@@ -175,6 +201,7 @@ def test_validate_decklist_check_legal_enerigies():
     valid, error = validate_decklist(decklist, legal_cards=legalcards)
     assert valid is False
     assert error == "Energy card fake energy is not legal."
+
 
 def test_validate_decklist():
     decklist = {
@@ -188,7 +215,9 @@ def test_validate_decklist():
         }
     }
 
-    pokemon, trainers, energies = load_card_database(filename="tests/src/test_legal_cards.json")
+    pokemon, trainers, energies = load_card_database(
+        filename="tests/src/test_legal_cards.json"
+    )
     legalcards = {
         "pokemon": pokemon,
         "trainers": trainers,
@@ -198,6 +227,7 @@ def test_validate_decklist():
     assert valid
     assert error == ""
 
+
 def test_get_offset():
     assert get_offset("pokemon", 14) == 19
     assert get_offset("pokemon", 13) == 23
@@ -206,6 +236,7 @@ def test_get_offset():
     assert get_offset("trainer", 19) == 27
     assert get_offset("energy", 1) == 27
     assert get_offset("energy", 100) == 27
+
 
 def test_fill_sheet_not_png():
     try:

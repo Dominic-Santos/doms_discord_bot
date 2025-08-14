@@ -3,7 +3,11 @@ from unittest.mock import patch, mock_open
 
 
 @patch('main.Bot')
-@patch('builtins.open', new_callable=mock_open, read_data='{"app_token": "test_token"}')
+@patch(
+    'builtins.open',
+    new_callable=mock_open,
+    read_data='{"app_token": "test_token"}'
+)
 def test_main(mock_file_open, mock_bot):
     main()
 
@@ -16,6 +20,7 @@ def test_main(mock_file_open, mock_bot):
     # Check if the bot's run method was called
     mock_bot.return_value.run.assert_called_once()
 
+
 @patch('builtins.open', new_callable=mock_open)
 @patch('builtins.print')
 def test_main_no_config(mock_print, mock_file_open):
@@ -24,4 +29,6 @@ def test_main_no_config(mock_print, mock_file_open):
     main()
 
     # Check if the error message was printed
-    mock_print.assert_called_once_with("config.json not found. Please create it with the required fields.")
+    mock_print.assert_called_once_with(
+        "config.json not found. Please create it with the required fields."
+    )

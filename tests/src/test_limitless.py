@@ -7,7 +7,9 @@ def test_get_decklist_from_url(mock_driver):
     mock_driver_instance = MagicMock()
     mock_driver.return_value = mock_driver_instance
     table_mock = MagicMock()
-    mock_driver_instance.cdp.find_visible_elements.return_value = [table_mock, table_mock, table_mock, table_mock, table_mock]
+    mock_driver_instance.cdp.find_visible_elements.return_value = [
+        table_mock, table_mock, table_mock, table_mock, table_mock
+    ]
 
     table_children = [
         MagicMock(tag_name="tr", children=[

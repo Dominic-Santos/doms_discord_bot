@@ -26,7 +26,19 @@ class NewsfeedBot:
             self.newsfeed_channels[str(ctx.guild.id)] = {}
         self.newsfeed_channels[str(ctx.guild.id)]["channel_id"] = channel_id
         self.save_newsfeed_channels()
-        await ctx.respond(f"Newsfeed channel set to {ctx.channel.name}!", ephemeral=True)
+        await ctx.respond(
+            f"Newsfeed channel set to {ctx.channel.name}!",
+            ephemeral=True
+        )
+
+    async def disable_newsfeed(self, ctx):
+        if str(ctx.guild.id) not in self.newsfeed_channels:
+            await ctx.respond("Newsfeed already disabled!", ephemeral=True)
+            return
+
+        del self.newsfeed_channels[str(ctx.guild.id)]
+        self.save_newsfeed_channels()
+        await ctx.respond("Newsfeed disabled!", ephemeral=True)
 
     async def get_newsfeed(self, ctx):
         await ctx.defer(ephemeral=True)
@@ -64,7 +76,10 @@ class NewsfeedBot:
             channel = self.bot.get_channel(int(channel_id))
 
             if not channel:
-                self.logger.warning(f"Channel {channel_id} not found in guild {guild_id}. Skipping newsfeed post.")
+                self.logger.warning(
+                    f"Channel {channel_id} not found in guild {guild_id}. "
+                    "Skipping newsfeed post."
+                )
                 continue
 
             should_post = []
@@ -73,7 +88,7 @@ class NewsfeedBot:
                     break
 
                 should_post.append(post)
-                
+
             for post in should_post[::-1]:
                 await channel.send(post)
 

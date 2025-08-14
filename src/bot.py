@@ -91,6 +91,10 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot):
         async def update(ctx):
             await self.get_newsfeed(ctx)  # pragma: no cover
 
+        @newsfeed.command(description="Disable newsfeed updates")
+        async def disable(ctx):
+            await self.disable_newsfeed(ctx)  # pragma: no cover
+
         @self.bot.command(description="Get information about the bot")
         async def about(ctx):
             await ctx.respond(

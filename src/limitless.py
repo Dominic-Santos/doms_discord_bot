@@ -26,10 +26,10 @@ def get_decklist_from_url(link):
                 if cell_text in ["pokemon", "trainer", "energy"]:
                     mode = cell_text
                 break
-        
+
             if len(row.children) < 2:
                 break
-            
+
             if mode == "pokemon":
                 if i == 0:
                     card["quantity"] = int(cell.text)
@@ -60,4 +60,3 @@ def get_decklist_from_url(link):
                     energies[card_name]["quantity"] += card["quantity"]
     sb.quit()
     return {"pokemon": pokemon, "trainers": trainers, "energies": energies}
-

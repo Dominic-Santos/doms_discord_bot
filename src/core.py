@@ -4,6 +4,12 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 
+ENERGY_TYPES = [
+    "fire", "water", "grass", "lightning", "psychic",
+    "fighting", "darkness", "metal"
+]
+
+
 def get_offset(card_type, amount):
     if card_type == "pokemon":
         if amount > 13:
@@ -16,7 +22,12 @@ def get_offset(card_type, amount):
     return 27
 
 
-def fill_sheet(sheet_location="sign_up_sheet.png", player={}, cards={}, output_filename=None):
+def fill_sheet(
+    sheet_location="sign_up_sheet.png",
+    player={},
+    cards={},
+    output_filename=None
+):
 
     if not sheet_location.endswith(".png"):
         raise ValueError("Sheet location must be a PNG file.")
@@ -33,8 +44,18 @@ def fill_sheet(sheet_location="sign_up_sheet.png", player={}, cards={}, output_f
 
     player_name_font = ImageFont.truetype("arial.ttf", 24)
 
-    draw.text((170, 140), player.get("name", "Player Name"), (0,0,0), font=player_name_font)
-    draw.text((550, 140), player.get("id", "123456789"), (0,0,0), font=player_name_font)
+    draw.text(
+        (170, 140),
+        player.get("name", "Player Name"),
+        (0, 0, 0),
+        font=player_name_font
+    )
+    draw.text(
+        (550, 140),
+        player.get("id", "123456789"),
+        (0, 0, 0),
+        font=player_name_font
+    )
 
     quantity_x = 525
     card_name_x = 580
@@ -42,32 +63,69 @@ def fill_sheet(sheet_location="sign_up_sheet.png", player={}, cards={}, output_f
     set_nr_x = 1000
     set_letter_x = 1085
 
-    pokemon = sorted(cards.get("pokemon", []), key=lambda x: x.get("name", "zzzzzzzzzzzzz"))
+    pokemon = sorted(
+        cards.get("pokemon", []), key=lambda x: x.get("name", "zzzzzzzzzzzzz")
+    )
     offset = get_offset("pokemon", len(pokemon))
-    
+
     for i, card in enumerate(pokemon):
         y = 372 + i * offset - (1 * i // 1.5)
-        draw.text((quantity_x, y), str(card.get("quantity", 0)), (0,0,0), font=player_name_font)
-        draw.text((card_name_x, y), card.get("name", "card name"), (0,0,0), font=player_name_font)
-        draw.text((set_x, y),  card.get("set", "ABC"), (0,0,0), font=player_name_font)
-        draw.text((set_nr_x, y), str(card.get("number", 0)), (0,0,0), font=player_name_font)
-        draw.text((set_letter_x, y), card.get("letter", "ABC"), (0,0,0), font=player_name_font)
+        draw.text(
+            (quantity_x, y),
+            str(card.get("quantity", 0)),
+            (0, 0, 0),
+            font=player_name_font
+        )
+        draw.text(
+            (card_name_x, y),
+            card.get("name", "card name"),
+            (0, 0, 0),
+            font=player_name_font
+        )
+        draw.text(
+            (set_x, y),
+            card.get("set", "ABC"),
+            (0, 0, 0),
+            font=player_name_font
+        )
+        draw.text(
+            (set_nr_x, y),
+            str(card.get("number", 0)),
+            (0, 0, 0),
+            font=player_name_font
+        )
+        draw.text(
+            (set_letter_x, y),
+            card.get("letter", "ABC"),
+            (0, 0, 0),
+            font=player_name_font
+        )
 
     trainers = cards.get("trainers", {})
     offset = get_offset("trainer", len(trainers))
 
     for i, card in enumerate(sorted(trainers.keys())):
         y = 725 + i * offset - (1 * i // 1.5)
-        draw.text((quantity_x, y), str(trainers[card].get("quantity", 0)), (0,0,0), font=player_name_font)
-        draw.text((card_name_x, y), card, (0,0,0), font=player_name_font)
+        draw.text(
+            (quantity_x, y),
+            str(trainers[card].get("quantity", 0)),
+            (0, 0, 0),
+            font=player_name_font
+        )
+        draw.text((card_name_x, y), card, (0, 0, 0), font=player_name_font)
 
     energies = cards.get("energies", {})
     offset = get_offset("energy", len(energies))
 
     for i, card in enumerate(sorted(energies.keys())):
         y = 1288 + i * offset - (1 * i // 1.5)
-        draw.text((quantity_x, y), str(energies[card].get("quantity", 0)), (0,0,0), font=player_name_font)
-        draw.text((card_name_x, y), card, (0,0,0), font=player_name_font)
+        draw.text(
+            (quantity_x, y),
+            str(energies[card].get("quantity", 0)),
+            (0, 0, 0),
+            font=player_name_font
+        )
+        draw.text((card_name_x, y), card, (0, 0, 0), font=player_name_font)
 
     img.save(output_filename)
 
@@ -80,7 +138,7 @@ def load_card_database(filename="legal_cards.json"):
             data = json.load(f)
     except Exception:
         raise ValueError("Error loading JSON file.")
-    
+
     pokemon = {}
     trainers = {}
     energies = {}
@@ -88,10 +146,15 @@ def load_card_database(filename="legal_cards.json"):
     for set_name, cards in data.items():
         for card_number, card_info in cards.items():
             if card_info["type"].startswith("Pkmn"):
-                pokemon.setdefault(set_name, {})[str(int(card_number))] = card_info.copy()
+                pokemon.setdefault(set_name, {})[
+                    str(int(card_number))
+                ] = card_info.copy()
             elif card_info["type"].startswith("Trainer"):
                 trainers[card_info["name"]] = card_info.copy()
-            elif card_info["type"].startswith("Energy") and not card_info["type"].endswith("Basic"):
+            elif (
+                card_info["type"].startswith("Energy") and
+                not card_info["type"].endswith("Basic")
+            ):
                 energies[card_info["name"]] = card_info.copy()
 
     return pokemon, trainers, energies
@@ -99,13 +162,19 @@ def load_card_database(filename="legal_cards.json"):
 
 def validate_decklist(decklist, legal_cards=None):
     # check 60 card deck
-    pokemon_count = sum(card["quantity"] for card in decklist.get("pokemon", []))
-    trainer_count = sum(card["quantity"] for card in decklist.get("trainers", {}).values())
-    energy_count = sum(card["quantity"] for card in decklist.get("energies", {}).values())
+    pokemon_count = sum(
+        card["quantity"] for card in decklist.get("pokemon", [])
+    )
+    trainer_count = sum(
+        card["quantity"] for card in decklist.get("trainers", {}).values()
+    )
+    energy_count = sum(
+        card["quantity"] for card in decklist.get("energies", {}).values()
+    )
     count = pokemon_count + trainer_count + energy_count
     if count != 60:
         return False, "Decklist must contain exactly 60 cards."
-    
+
     # check if at least 1 pokemon
     if pokemon_count < 1:
         return False, "Decklist must contain at least 1 Pokémon."
@@ -113,40 +182,67 @@ def validate_decklist(decklist, legal_cards=None):
     # check max 4 copies of each card
     quantities_by_name = {}
     for card in decklist.get("pokemon", []):
-        quantities_by_name[card["name"].lower()] = quantities_by_name.get(card["name"].lower(), 0) + card["quantity"]
-    
+        quantities_by_name[card["name"].lower()] = quantities_by_name.get(
+            card["name"].lower(), 0
+        ) + card["quantity"]
+
     for card, data in decklist.get("trainers", {}).items():
-        quantities_by_name[card.lower()] = quantities_by_name.get(card.lower(), 0) + data["quantity"]
+        quantities_by_name[card.lower()] = quantities_by_name.get(
+            card.lower(), 0
+        ) + data["quantity"]
 
     for card, data in decklist.get("energies", {}).items():
-        quantities_by_name[card.lower()] = quantities_by_name.get(card.lower(), 0) + data["quantity"]
+        quantities_by_name[card.lower()] = quantities_by_name.get(
+            card.lower(), 0
+        ) + data["quantity"]
 
-    exemptions = [f"{t} energy" for t in ["fire", "water", "grass", "lightning", "psychic", "fighting", "darkness", "metal"]]
+    exemptions = [f"{t} energy" for t in ENERGY_TYPES]
     for name, quantity in quantities_by_name.items():
         if quantity > 4 and name not in exemptions:
             return False, f"Card {name} exceeds the maximum of 4 copies."
 
     if legal_cards is not None:
         # ace spec cards can only be included once
-        ace_spec_trainers = [card_name.lower() for card_name, card in legal_cards["trainers"].items() if card["rarity"] == "ACE SPEC Rare"]
-        ace_spec_energies = [card_name.lower() for card_name, card in legal_cards["energies"].items() if card["rarity"] == "ACE SPEC Rare"]
-        total_ace_specs = sum(quantities_by_name[card.lower()] for card in quantities_by_name.keys() if card.lower() in ace_spec_trainers or card.lower() in ace_spec_energies)
+        ace_spec_trainers = [
+            card_name.lower() for
+            card_name, card in legal_cards["trainers"].items()
+            if card["rarity"] == "ACE SPEC Rare"
+        ]
+        ace_spec_energies = [
+            card_name.lower() for
+            card_name, card in legal_cards["energies"].items()
+            if card["rarity"] == "ACE SPEC Rare"
+        ]
+        total_ace_specs = sum(
+            quantities_by_name[card.lower()] for
+            card in quantities_by_name.keys()
+            if card.lower() in ace_spec_trainers
+            or card.lower() in ace_spec_energies
+        )
         if total_ace_specs > 1:
             return False, "Decklist can only contain one Ace Spec card."
 
         # check if all pokemon cards are legal and at least 1 basic pokemon
         basic_pokemon_found = False
         for card in decklist.get("pokemon", []):
-            card_info = legal_cards["pokemon"].get(card["set"], {}).get(str(card["number"]), None)
+            card_info = legal_cards["pokemon"].get(
+                card["set"], {}
+            ).get(str(card["number"]), None)
             if card_info is None:
-                return False, f"Card {card['name']} from set {card['set']} is not legal."
+                return False, (
+                    f"Card {card['name']} from set {card['set']}"
+                    " is not legal."
+                )
 
-            if card_info["type"].startswith("Pkmn") and "Basic" in card_info["type"]:
+            if (
+                card_info["type"].startswith("Pkmn")
+                and "Basic" in card_info["type"]
+            ):
                 basic_pokemon_found = True
-        
+
         if not basic_pokemon_found:
             return False, "Decklist must contain at least one Basic Pokémon."
-            
+
         # check if all trainer cards are legal
         for card_name, quantity in decklist.get("trainers", {}).items():
             if card_name not in legal_cards["trainers"]:
@@ -154,7 +250,10 @@ def validate_decklist(decklist, legal_cards=None):
 
         # check if all energy cards are legal
         for card_name, quantity in decklist.get("energies", {}).items():
-            if card_name not in legal_cards["energies"] and card_name.lower() not in exemptions:
+            if (
+                card_name not in legal_cards["energies"]
+                and card_name.lower() not in exemptions
+            ):
                 return False, f"Energy card {card_name} is not legal."
-    
+
     return True, ""

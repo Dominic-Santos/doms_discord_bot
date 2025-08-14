@@ -1,5 +1,6 @@
 from seleniumbase import Driver
 
+
 def get_newsfeed() -> list[str]:
     posts = []
     sb = Driver(uc=True, locale_code="en", ad_block=True)
@@ -14,6 +15,7 @@ def get_newsfeed() -> list[str]:
             post_url = a_element["href"]
             posts.append(post_url)
         except Exception as e:
+            print(e)
             pass
     sb.quit()
     return posts

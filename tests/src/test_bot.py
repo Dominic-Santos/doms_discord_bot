@@ -1,6 +1,7 @@
 from unittest.mock import patch, MagicMock
 from src.bot import Bot
 
+
 @patch("src.bot.tasks")
 @patch("src.bot.create_logger")
 @patch("src.bot.discord")
@@ -25,7 +26,7 @@ def test_bot_init(
 
     mock_dl_json.load.assert_called_once()
     mock_nf_json.load.assert_called_once()
-    
+
     mock_discord.Bot.assert_called_once()
     assert mock_open.call_count == 2
     mock_logger.assert_called_once()

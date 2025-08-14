@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 from src.bot import Bot
 from src.helpers import MAINTENANCE_MODE_MESSAGE
 
+
 class MockCtx():
     def __init__(self):
         self.channel = MagicMock()
@@ -10,20 +11,20 @@ class MockCtx():
         self.channel.name = "test channel"
         self.guild = MagicMock()
         self.guild.id = 202
-    
+
     async def respond(self, message, ephemeral=False):
         self.last_response = message
 
     async def defer(self, ephemeral=False):
         return
-    
+
     async def send(self, post):
         self.last_response = post
-    
+
 
 async def mock_empty_func():
     return
-            
+
 
 class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
@@ -48,6 +49,7 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
+
         def raise_exception():
             raise Exception("test error")
         try:
@@ -60,7 +62,7 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         b = Bot("faketoken", False, "123")
 
         mock_dl_json.load.assert_called_once()
-        
+
         mock_discord.Bot.assert_called_once()
         assert mock_open.call_count == 2
         mock_logger.assert_called_once()
@@ -77,8 +79,12 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         mock_logger_instance.error.assert_called_once()
 
         mock_ctx = MockCtx()
+        b.newsfeed_channels = {}
         await b.set_newsfeed_channel(mock_ctx)
-        assert mock_ctx.last_response == "Newsfeed channel set to test channel!"
+        assert mock_ctx.last_response == (
+            "Newsfeed channel set to test channel!"
+        )
+        assert str(mock_ctx.guild.id) in b.newsfeed_channels
 
         b.do_get_newsfeed = mock_empty_func
         await b.get_newsfeed(mock_ctx)
@@ -87,7 +93,13 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         await b.get_newsfeed_task()
         assert mock_logger_instance.info.call_count == 4
 
-    
+        await b.disable_newsfeed(mock_ctx)
+        assert mock_ctx.last_response == "Newsfeed disabled!"
+        assert str(mock_ctx.guild.id) not in b.newsfeed_channels
+
+        await b.disable_newsfeed(mock_ctx)
+        assert mock_ctx.last_response == "Newsfeed already disabled!"
+
     @patch("src.bot_newsfeed.get_newsfeed")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
@@ -109,6 +121,7 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
+
         def raise_exception():
             raise Exception("test error")
         try:
@@ -132,7 +145,6 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
         await b.do_get_newsfeed()
         mock_logger_instance.warning.assert_called_once()
-
 
         mock_ctx = MockCtx()
         mock_bot.get_channel.return_value = mock_ctx
@@ -175,5 +187,3 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
         await b.get_newsfeed_task()
         assert mock_logger_instance.info.call_count == 2
-
-    

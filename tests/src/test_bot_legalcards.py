@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 from src.bot import Bot
 from src.helpers import MAINTENANCE_MODE_MESSAGE
 
+
 class MockCtx():
     def __init__(self):
         self.channel = MagicMock()
@@ -10,14 +11,14 @@ class MockCtx():
         self.channel.name = "test channel"
         self.guild = MagicMock()
         self.guild.id = 202
-    
+
     async def respond(self, message, ephemeral=False):
         self.last_response = message
 
     async def defer(self, ephemeral=False):
         return
 
- 
+
 class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
 
     @patch("src.bot_legalcards.get_legal_cards")
@@ -41,6 +42,7 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
+
         def raise_exception():
             raise Exception("test error")
         try:
@@ -51,7 +53,7 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
         mock_nf_json.load = raise_exception
 
         b = Bot("faketoken", False, "123")
-        
+
         assert mock_logger_instance.info.call_count == 2
 
         b.get_legal_cards_task()
@@ -84,7 +86,7 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
         mock_discord.Bot.return_value = mock_bot
 
         b = Bot("faketoken", True, "123")
-        
+
         assert mock_logger_instance.info.call_count == 1
         assert mock_legal_cards.call_count == 0
 

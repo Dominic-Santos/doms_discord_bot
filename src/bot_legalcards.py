@@ -1,18 +1,17 @@
-from .core import  load_card_database
+from .core import load_card_database
 from .pkmncards import get_legal_cards
 
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
 
 
 class LegalCardsBot:
-   
     def load_legal_cards(self):
         try:
-            legal_pokemon, legal_trainers, legal_energies = load_card_database()
+            pokemon, trainers, energies = load_card_database()
             self.legal_cards = {
-                "pokemon": legal_pokemon,
-                "trainers": legal_trainers,
-                "energies": legal_energies
+                "pokemon": pokemon,
+                "trainers": trainers,
+                "energies": energies
             }
         except Exception as e:
             self.logger.info(f"Error loading legal cards database: {e}")
@@ -21,7 +20,9 @@ class LegalCardsBot:
     def get_legal_cards_task(self):
         self.logger.info("Updating legal cards...")
         if self.maintenance:
-            self.logger.info("Won't update legal cards, Maintenance mode is active")
+            self.logger.info(
+                "Won't update legal cards, Maintenance mode is active"
+            )
             return
 
         self.do_get_legal_cards()

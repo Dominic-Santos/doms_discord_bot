@@ -10,7 +10,7 @@ class AdminBot:
         await ctx.defer(ephemeral=True)
 
         if password != self.password:
-            await ctx.respond(f"Invalid admin password", ephemeral=True)
+            await ctx.respond("Invalid admin password", ephemeral=True)
             return
 
         self.maintenance = not self.maintenance
