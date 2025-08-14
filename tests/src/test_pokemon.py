@@ -1,3 +1,4 @@
+import os
 from src.pokemon import get_decklist_png, get_decklist_pdf, convert_pdf_to_png
 from unittest.mock import patch, call
 
@@ -60,12 +61,12 @@ def test_get_decklist_pdf(
     elm.click.assert_called_once()
     mock_listdir.assert_called_once_with("downloaded_files")
     mock_exists.assert_has_calls([
-        call("downloaded_files\\decklist.pdf"),
+        call(f"downloaded_files{os.sep}decklist.pdf"),
         call("output.pdf")
     ])
     mock_remove.assert_called_once_with("output.pdf")
     mock_rename.assert_called_once_with(
-        "downloaded_files\\decklist.pdf", "output.pdf"
+        f"downloaded_files{os.sep}decklist.pdf", "output.pdf"
     )
     mock_rmtree.assert_called_once_with("downloaded_files", ignore_errors=True)
 
