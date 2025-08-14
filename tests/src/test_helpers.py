@@ -10,9 +10,10 @@ def test_check_dir(mock_makedirs):
     mock_makedirs.assert_called_once_with("test_dir")
 
 
+@patch('logging.FileHandler')
 @patch('logging.getLogger')
 @patch('os.makedirs')
-def test_create_logger(mock_makedirs, mock_logging):
+def test_create_logger(mock_makedirs, mock_logging, mock_filehandler):
     logger = create_logger("test_logger", "/logs/test_log.txt")
     logger.setLevel.assert_called_once_with(logging.DEBUG)
 
