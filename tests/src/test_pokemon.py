@@ -48,6 +48,18 @@ def test_get_decklist_pdf(mock_driver, mock_listdir, mock_exists, mock_remove, m
     mock_rename.assert_called_once_with("downloaded_files\\decklist.pdf", "output.pdf")
     mock_rmtree.assert_called_once_with("downloaded_files", ignore_errors=True)
 
+    mock_listdir.return_value = ["fakefile.png"]
+    try:
+        get_decklist_pdf("output.pdf")
+    except Exception as e:
+        assert str(e) == "No pdf in downloaded files"
+
+    mock_driver_instance.cdp.find_visible_elements.return_value[0].get_attribute.return_value = "Play! Pokémon Deck List (A2)"
+    try:
+        get_decklist_pdf("output.pdf")
+    except Exception as e:
+        assert str(e) == "Couldn't find sheet in page"
+
 @patch('src.pokemon.fitz.open')
 def test_convert_pdf_to_png(mock_fitz_open):
     mock_doc = mock_fitz_open.return_value

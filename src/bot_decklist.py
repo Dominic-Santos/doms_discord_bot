@@ -151,7 +151,7 @@ class DecklistBot:
         if error is None:
             self.logger.info("Sign-up sheet updated successfully.")
         else:
-            self.logger.error(f"Failed up update sign-up sheent. {error}")
+            self.logger.error(f"Failed up update sign-up sheet {error}")
 
     def do_update_sheet(self):
         t = CustomThread(get_sign_up_sheet)

@@ -20,10 +20,14 @@ def get_decklist_pdf(output_filename):
     sb.uc_activate_cdp_mode(POKEMON_RULES_URL)
     sb.sleep(5)
     a_elements = sb.cdp.find_visible_elements("a")
+
     for a in a_elements:
         if a.get_attribute("innerHTML").strip() == "Play! Pokémon Deck List (A4)":
             a.click()
-            sb.sleep(1)
+            sb.sleep(5)
+            break
+    else:
+        raise Exception("Couldn't find sheet in page")
 
     for file in os.listdir("downloaded_files"):
         if file.endswith(".pdf"):
@@ -33,6 +37,9 @@ def get_decklist_pdf(output_filename):
                     os.remove(output_filename)  # Remove existing file if it exists
                 os.rename(pdf_path, output_filename)
             break
+    else:
+        raise Exception("No pdf in downloaded files")
+    
     sb.quit()
     shutil.rmtree('downloaded_files', ignore_errors=True)  # Clean up the directory
 
