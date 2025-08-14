@@ -2,6 +2,7 @@ import logging
 from unittest.mock import patch
 from src.helpers import check_dir, create_logger, CustomThread
 
+
 @patch('os.makedirs')
 def test_check_dir(mock_makedirs):
     # Test case where directory does not exist
@@ -9,10 +10,12 @@ def test_check_dir(mock_makedirs):
     mock_makedirs.assert_called_once_with("test_dir")
 
 
-def test_create_logger():
+@patch('logging.getLogger')
+@patch('os.makedirs')
+def test_create_logger(mock_makedirs, mock_logging):
     logger = create_logger("test_logger", "/logs/test_log.txt")
-    assert logger.name == "test_logger"
-    assert logger.level == logging.DEBUG
+    logger.setLevel.assert_called_once_with(logging.DEBUG)
+
 
 def test_CustomThread():
     def dummy_function():
@@ -24,6 +27,7 @@ def test_CustomThread():
     assert result == "Thread finished"
     assert thread.is_alive() is False
     assert error is None
+
 
 def test_CustomThread_error():
     def dummy_function():

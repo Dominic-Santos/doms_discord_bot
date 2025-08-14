@@ -11,7 +11,8 @@ def check_dir(directory: str):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-def create_logger(name: str, filename: str ="log.txt"):
+
+def create_logger(name: str, filename: str = "log.txt"):
     formatter = logging.Formatter(
         fmt='%(asctime)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
@@ -36,7 +37,7 @@ class CustomThread(Thread):
         self.daemon = True  # Set the thread as a daemon thread
         self.return_value = None
         self.error = None
-    
+
     def run(self):
         self.error = None
         try:
