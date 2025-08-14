@@ -78,8 +78,9 @@ Some commands are intended for server administrators only. It’s recommended to
 * /newsfeed
 
 **User Commands:**
-* /about  
-* /decklist  
+* /help
+* /about
+* /decklist
 * /tournament
 
 ## Commands
