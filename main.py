@@ -4,13 +4,16 @@ from src.bot import Bot
 DEFAULT_MAINTENANCE_MODE = True
 DEFAULT_ADMIN_PASSWRD = "abc123"
 
+
 def main():
     # load config
     try:
         with open("config.json", "r") as f:
             config = json.load(f)
     except FileNotFoundError:
-        print("config.json not found. Please create it with the required fields.")
+        print(
+            "config.json not found. Please create it with the required fields."
+        )
         return
 
     # create bot instance
