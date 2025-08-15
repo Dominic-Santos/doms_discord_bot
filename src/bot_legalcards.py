@@ -25,7 +25,10 @@ class LegalCardsBot:
             )
             return
 
-        self.do_get_legal_cards()
+        error = self.do_get_legal_cards()
+        if error is not None:
+            self.logger.error(f"Legal cards update failed. {error}")
+            return
         self.logger.info("Legal cards updated successfully.")
 
     async def get_legal_cards(self, ctx):
@@ -35,11 +38,19 @@ class LegalCardsBot:
             await ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
             return
 
-        self.do_get_legal_cards()
+        error = self.do_get_legal_cards()
+        if error is not None:
+            await ctx.respond(
+                f"Legal cards update failed! {error}",
+                ephemeral=True
+            )
+            return
+
         await ctx.respond("Legal cards list has been updated!", ephemeral=True)
 
     def do_get_legal_cards(self):
         t = CustomThread(get_legal_cards)
         t.start()
-        t.join()
+        _, error = t.join()
         self.load_legal_cards()
+        return error

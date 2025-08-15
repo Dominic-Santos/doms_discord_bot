@@ -19,7 +19,7 @@ def get_legal_card_list():
     sb = Driver(uc=True, locale_code="en", ad_block=True)
 
     sb.uc_activate_cdp_mode(CURRENT_FORMAT)
-    sb.sleep(1)
+    sb.sleep(2)
 
     headers = ["set", "number", "name", "type", "color", "rarity"]
 
@@ -33,13 +33,24 @@ def get_legal_card_list():
             card_details["link"] = card_base[2].children[0]["href"]
             legal_cards.append(card_details)
 
-        try:
-            next_link_element = sb.cdp.find_visible_elements("li.next-link a")
-        except Exception as e:
-            print(e)
+        current_range = sb.cdp.find_visible_elements("span.range-current")[0]
+        total = sb.cdp.find_visible_elements("span.out-of")[0]
+
+        range_max = current_range.text.replace(",", "")
+        range_max = range_max.split("thru")[1].strip()
+        clean_total = total.children[0].text.replace(",", "")
+        clean_total = clean_total.replace("/", "").strip()
+
+        print(range_max, clean_total)
+
+        # check if last page
+        if range_max == clean_total:
             break
+
+        # trigger next page
+        next_link_element = sb.cdp.find_visible_elements("li.next-link a")
         next_link_element[0].click()
-        sb.sleep(1)
+        sb.sleep(2)
     sb.quit()
     return legal_cards
 
@@ -72,8 +83,7 @@ def get_card_text(card_link):
     sb = Driver(uc=True, locale_code="en", ad_block=True)
     sb.uc_activate_cdp_mode(card_link)
     sb.sleep(1)
-    card_text = sb.cdp.find_visible_elements(
-        'div.card-text-area div.card-tabs div.tab div.text'
-    )[0].text.strip()
+    query = 'div.card-text-area div.card-tabs div.tab div.text'
+    card_text = sb.cdp.find_visible_elements(query)[0].text.strip()
     sb.quit()
     return card_text.strip()

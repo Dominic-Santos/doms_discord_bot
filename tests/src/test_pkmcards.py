@@ -94,6 +94,7 @@ def test_get_legal_card_list(mock_driver):
     class MockFindVisibleElements:
         def __init__(self):
             self.counter = 0
+            self.v_max = 262
 
         def __call__(self, selector):
             if selector == "article.type-pkmn_card":
@@ -101,11 +102,26 @@ def test_get_legal_card_list(mock_driver):
                     return pokemon_card_mock()
                 return []
             elif selector == "li.next-link a":
-                if self.counter == 0:
-                    self.counter += 1
-                    return [MagicMock()]
-                else:
-                    raise Exception("No more pages")
+                return [MagicMock()]
+            elif selector == "span.range-current":
+                v_from = 200 * self.counter
+                v_to = min(200 * (self.counter + 1), self.v_max)
+                self.counter += 1
+                return [
+                    MagicMock(
+                        text=f"{v_from} thru {v_to}"
+                    )
+                ]
+            elif selector == "span.out-of":
+                return [
+                    MagicMock(
+                        children=[
+                            MagicMock(
+                                text=f"/ {self.v_max}"
+                            )
+                        ]
+                    )
+                ]
 
     mock_elements = MockFindVisibleElements()
     mock_driver_instance = mock_driver.return_value
@@ -127,4 +143,4 @@ def test_get_legal_card_list(mock_driver):
     mock_driver_instance.uc_activate_cdp_mode.assert_called_once()
     assert mock_driver_instance.sleep.call_count == 2
     mock_driver_instance.quit.assert_called_once()
-    assert mock_elements.counter == 1
+    assert mock_elements.counter == 2

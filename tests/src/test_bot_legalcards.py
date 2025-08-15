@@ -28,7 +28,7 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot_decklist.json")
     @patch("builtins.open")
     @patch("src.bot_legalcards.load_card_database")
-    async def test_bot_newsfeed(
+    async def test_bot_legal_cards(
         self,
         mock_load,
         mock_open,
@@ -63,6 +63,19 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
         await b.get_legal_cards(mock_ctx)
         assert mock_ctx.last_response == "Legal cards list has been updated!"
 
+        def return_error():
+            return Exception("test error")
+
+        b.do_get_legal_cards = return_error
+        b.get_legal_cards_task()
+        assert mock_logger_instance.info.call_count == 7
+        assert mock_logger_instance.error.call_count == 1
+
+        await b.get_legal_cards(mock_ctx)
+        assert mock_ctx.last_response == (
+            "Legal cards update failed! test error"
+        )
+
     @patch("src.bot_legalcards.get_legal_cards")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
@@ -70,7 +83,7 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot_decklist.json")
     @patch("builtins.open")
     @patch("src.bot_legalcards.load_card_database")
-    async def test_bot_newsfeed_maintenance(
+    async def test_bot_legal_cards_maintenance(
         self,
         mock_load,
         mock_open,
