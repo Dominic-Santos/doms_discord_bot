@@ -41,8 +41,6 @@ def get_legal_card_list():
         clean_total = total.children[0].text.replace(",", "")
         clean_total = clean_total.replace("/", "").strip()
 
-        print(range_max, clean_total)
-
         # check if last page
         if range_max == clean_total:
             break

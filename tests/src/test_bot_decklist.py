@@ -58,7 +58,6 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         mock_discord.Bot.return_value = mock_bot
 
         def raise_exception():
-            print("raise exception as run")
             raise Exception("test error")
         try:
             raise_exception()
