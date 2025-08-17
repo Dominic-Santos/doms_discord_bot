@@ -219,3 +219,16 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         b.maintenance = True
         await b.sync_events(mock_ctx)
         assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
+
+        for event in guildevents:
+            event.canceled = False
+        b.event_channels["123"] = 1234
+        await b.delete_all_events(mock_ctx)
+        assert mock_ctx.last_response == "Events deleted successfully!"
+        for event in guildevents:
+            assert event.canceled
+
+        send_calls = send_mock.call_count
+        b.event_channels = {}
+        await b.delete_all_events(mock_ctx)
+        assert send_mock.call_count == send_calls
