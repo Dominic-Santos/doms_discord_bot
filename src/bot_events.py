@@ -219,7 +219,7 @@ class EventsBot:
                 if channel is None:
                     continue
 
-                event_text = self._print_event(event, with_url=False)
+                event_text = self.print_event(event, with_url=False)
                 await channel.send(
                     "An event was canceled!\n" + event_text
                 )
@@ -316,7 +316,7 @@ class EventsBot:
             if channel is None:
                 continue
 
-            event_text = self._print_event(new_event)
+            event_text = self.print_event(new_event)
             await channel.send(
                 "An event was created!\n" + event_text
             )
@@ -337,13 +337,13 @@ class EventsBot:
             if channel is None:
                 continue
 
-            event_text = self._print_event(event, with_url=False)
+            event_text = self.print_event(event, with_url=False)
             await channel.send(
                 "An event was canceled!\n" + event_text
             )
 
     @staticmethod
-    def _print_event(event, with_url=True):
+    def print_event(event, with_url=True):
         text = f"{event.name}\n{event.location}\n"
 
         start_date = event.start_time.date()
