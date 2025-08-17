@@ -24,16 +24,12 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot_legalcards.get_legal_cards")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
-    @patch("src.bot_newsfeed.json")
-    @patch("src.bot_decklist.json")
     @patch("builtins.open")
     @patch("src.bot_legalcards.load_card_database")
     async def test_bot_legal_cards(
         self,
         mock_load,
         mock_open,
-        mock_dl_json,
-        mock_nf_json,
         mock_discord,
         mock_logger,
         mock_legal_cards
@@ -43,21 +39,11 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
 
-        def raise_exception():
-            raise Exception("test error")
-        try:
-            raise_exception()
-        except Exception as e:
-            assert str(e) == "test error"
-
-        mock_nf_json.load = raise_exception
-
         b = Bot("faketoken", False, "123")
 
-        assert mock_logger_instance.info.call_count == 2
-
+        inf_calls = mock_logger_instance.info.call_count
         b.get_legal_cards_task()
-        assert mock_logger_instance.info.call_count == 5
+        assert mock_logger_instance.info.call_count == inf_calls + 2
 
         mock_ctx = MockCtx()
         await b.get_legal_cards(mock_ctx)
@@ -66,10 +52,12 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
         def return_error():
             return Exception("test error")
 
+        inf_calls = mock_logger_instance.info.call_count
+        err_calls = mock_logger_instance.error.call_count
         b.do_get_legal_cards = return_error
         b.get_legal_cards_task()
-        assert mock_logger_instance.info.call_count == 7
-        assert mock_logger_instance.error.call_count == 1
+        assert mock_logger_instance.info.call_count == inf_calls + 1
+        assert mock_logger_instance.error.call_count == err_calls + 1
 
         await b.get_legal_cards(mock_ctx)
         assert mock_ctx.last_response == (
@@ -79,16 +67,12 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot_legalcards.get_legal_cards")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
-    @patch("src.bot_newsfeed.json")
-    @patch("src.bot_decklist.json")
     @patch("builtins.open")
     @patch("src.bot_legalcards.load_card_database")
     async def test_bot_legal_cards_maintenance(
         self,
         mock_load,
         mock_open,
-        mock_dl_json,
-        mock_nf_json,
         mock_discord,
         mock_logger,
         mock_legal_cards
@@ -100,11 +84,11 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
 
         b = Bot("faketoken", True, "123")
 
-        assert mock_logger_instance.info.call_count == 1
         assert mock_legal_cards.call_count == 0
 
+        inf_calls = mock_logger_instance.info.call_count
         b.get_legal_cards_task()
-        assert mock_logger_instance.info.call_count == 3
+        assert mock_logger_instance.info.call_count == inf_calls + 2
         assert mock_legal_cards.call_count == 0
 
         mock_ctx = MockCtx()

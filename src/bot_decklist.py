@@ -15,7 +15,7 @@ class DecklistBot:
             with open("output_channels.json", "r") as f:
                 self.output_channels = json.load(f)
         except Exception as e:
-            self.logger.info(f"Error loading output_channels.json: {e}")
+            self.logger.warning(f"Error loading output_channels.json: {e}")
             self.output_channels = {}
 
     def save_output_channels(self):
@@ -24,6 +24,58 @@ class DecklistBot:
                 json.dump(self.output_channels, f, indent=4)
         except Exception as e:
             self.logger.error(f"Error saving output_channels.json: {e}")
+
+    def add_decklist_commands(self):
+        tournament = self.bot.create_group(
+            "tournament", "Manage tournament sign-ups"
+        )
+        decklist = self.bot.create_group("decklist", "Manage your deck")
+
+        @decklist.command(description="Check your decklist is standard legal")
+        async def check(
+            ctx,
+            limitless_url: discord.Option(
+                str, "Limitless URL of the decklist"
+            ),  # type: ignore
+        ):
+            await self.decklist_check(ctx, limitless_url)  # pragma: no cover
+
+        @tournament.command(description="Sign up for a tournament")
+        async def signup(
+            ctx,
+            name: discord.Option(
+                str, "Full name of the player"
+            ),  # type: ignore
+            pokemon_id: discord.Option(
+                int, "Pokemon ID of the player"
+            ),  # type: ignore
+            year_of_birth: discord.Option(
+                int, "Year of birth of the player"
+            ),  # type: ignore
+            limitless_url: str = discord.Option(
+                str,
+                "Limitless URL of the decklist"
+            ),
+        ):
+            await self.tournament_signup(
+                ctx, name, pokemon_id, year_of_birth, limitless_url
+            )  # pragma: no cover
+
+        @self.admin.command(description="Update the sign-up sheet")
+        async def update_signup_sheet(ctx):
+            await self.update_signup_sheet(ctx)  # pragma: no cover
+
+        @self.admin.command(
+            description="Set the output channel for tournament sign-ups"
+        )
+        async def set_tournament_channel(ctx):
+            await self.set_output_channel(ctx)  # pragma: no cover
+
+        @self.admin.command(
+            description="Test output channel for tournament sign-ups"
+        )
+        async def test_output_channel(ctx):
+            await self.test_output_channel(ctx)  # pragma: no cover
 
     async def set_output_channel(self, ctx):
         channel_id = ctx.channel.id

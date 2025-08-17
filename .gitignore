@@ -212,6 +212,7 @@ legal_cards.json
 config.json
 newsfeed_channels.json
 sign_up_sheet.png
+events_data.json
 
 # artifacts from chrome headless browser
 downloaded_files/

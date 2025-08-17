@@ -76,6 +76,7 @@ Some commands are intended for server administrators only. It’s recommended to
 **Admin Commands:**
 * /admin
 * /newsfeed
+* /events
 
 **User Commands:**
 * /help
@@ -101,7 +102,7 @@ Some commands are intended for server administrators only. It’s recommended to
 
 > Toggles maintenance mode on or off. Requires the bot admin password.
 
-### /admin set_output_channel
+### /admin set_tournament_channel
 
 > Set the current channel as the output for tournament sign-up messages.
 > It’s recommended to use a hidden channel visible only to staff.
@@ -117,6 +118,44 @@ Some commands are intended for server administrators only. It’s recommended to
 ### /admin update_signup_sheet
 
 > Updates the tournament sign-up sheet.
+
+### /events delete_all
+
+> Delete all discord events created by the bot
+
+### /events follow_premier
+
+> Follow big events and tournaments like the world cup
+
+### /events unfollow_premier
+
+> Stop following big events and tournament
+
+### /events follow_store <guid>
+
+> Follow events of a store.
+> * `guid`: find the store in the [pokemon event finder](https://events.pokemon.com/EventLocator/), and copy the guid from the url
+
+### /events unfollow_store <guid>
+
+> Stop following events of a store.
+> * `guid`: find the store in the [pokemon event finder](https://events.pokemon.com/EventLocator/), and copy the guid from the url
+
+### /events unfollow_all
+
+> Stop following all premier and store events.
+
+### /events sync
+
+> Sync all followed events with discord events.
+
+### /events set_channel
+
+> Set the current channel to receive event update notifications.
+
+### /events remove_channel
+
+> Stop receiving event update notifications.
 
 ### /newsfeed set_channel
 
@@ -154,6 +193,10 @@ The bot also includes scheduled tasks that run automatically at set intervals.
 ### Check for New Newsfeed Articles
 
 > Runs every 6 hours to fetch the latest articles from the newsfeed.
+
+### Event Sync
+
+> Runs daily at 9 AM, checks for changes in premier and store events and creates them as discord events.
 
 ## Create Your Own Bot
 

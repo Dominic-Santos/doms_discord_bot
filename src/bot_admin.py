@@ -1,5 +1,23 @@
+import discord
+
 
 class AdminBot:
+    def add_admin_commands(self):
+        @self.admin.command(
+            description="Check if the bot is in maintenance mode"
+        )
+        async def check_maintenance(ctx):
+            await self.maintenance_status(ctx)  # pragma: no cover
+
+        @self.admin.command(description="Toggle bot maintenance mode")
+        async def toggle_maintenance(
+            ctx,
+            password: discord.Option(
+                str, "Bot admin password"
+            ),  # type: ignore
+        ):
+            await self.toggle_maintenance(ctx, password)  # pragma: no cover
+
     async def maintenance_status(self, ctx):
         await ctx.defer(ephemeral=True)
 

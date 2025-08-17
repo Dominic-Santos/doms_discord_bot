@@ -10,7 +10,7 @@ class NewsfeedBot:
             with open("newsfeed_channels.json", "r") as f:
                 self.newsfeed_channels = json.load(f)
         except Exception as e:
-            self.logger.info(f"Error loading newsfeed_channels.json: {e}")
+            self.logger.warning(f"Error loading newsfeed_channels.json: {e}")
             self.newsfeed_channels = {}
 
     def save_newsfeed_channels(self):
@@ -19,6 +19,21 @@ class NewsfeedBot:
                 json.dump(self.newsfeed_channels, f, indent=4)
         except Exception as e:
             self.logger.error(f"Error saving newsfeed_channels.json: {e}")
+
+    def add_newsfeed_commands(self):
+        newsfeed = self.bot.create_group("newsfeed", "Manage newsfeed posts")
+
+        @newsfeed.command(description="Set the newsfeed channel")
+        async def set_channel(ctx):
+            await self.set_newsfeed_channel(ctx)  # pragma: no cover
+
+        @newsfeed.command(description="Check for newsfeed updates")
+        async def update(ctx):
+            await self.get_newsfeed(ctx)  # pragma: no cover
+
+        @newsfeed.command(description="Disable newsfeed updates")
+        async def disable(ctx):
+            await self.disable_newsfeed(ctx)  # pragma: no cover
 
     async def set_newsfeed_channel(self, ctx):
         channel_id = ctx.channel.id

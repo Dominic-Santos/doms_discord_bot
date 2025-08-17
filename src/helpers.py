@@ -33,7 +33,7 @@ def create_logger(name: str, filename: str = "log.txt"):
 
 class CustomThread(Thread):
     def __init__(self, target, args=[], kwargs={}):
-        super().__init__(target=target, args=args, **kwargs)
+        super().__init__(target=target, args=args, kwargs=kwargs)
         self.daemon = True  # Set the thread as a daemon thread
         self.return_value = None
         self.error = None

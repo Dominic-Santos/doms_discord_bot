@@ -8,9 +8,10 @@ from .bot_decklist import DecklistBot
 from .bot_legalcards import LegalCardsBot
 from .bot_newsfeed import NewsfeedBot
 from .bot_admin import AdminBot
+from .bot_events import EventsBot
 
 
-class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot):
+class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot, EventsBot):
     def __init__(self, token: str, maintenance_mode: bool, password: str):
         self.bot = discord.Bot()
         self.token = token
@@ -21,79 +22,16 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot):
         self.load_legal_cards()
         self.load_output_channels()
         self.load_newsfeed_channels()
+        self.load_events_data()
         self.add_commands()
 
     def add_commands(self):
-        decklist = self.bot.create_group("decklist", "Manage your deck")
-        newsfeed = self.bot.create_group("newsfeed", "Manage newsfeed posts")
-        tournament = self.bot.create_group(
-            "tournament", "Manage tournament sign-ups"
-        )
-        admin = self.bot.create_group("admin", "Admin commands")
-
-        @decklist.command(description="Check your decklist is standard legal")
-        async def check(
-            ctx,
-            limitless_url: discord.Option(
-                str, "Limitless URL of the decklist"
-            ),  # type: ignore
-        ):
-            await self.decklist_check(ctx, limitless_url)  # pragma: no cover
-
-        @tournament.command(description="Sign up for a tournament")
-        async def signup(
-            ctx,
-            name: discord.Option(
-                str, "Full name of the player"
-            ),  # type: ignore
-            pokemon_id: discord.Option(
-                int, "Pokemon ID of the player"
-            ),  # type: ignore
-            year_of_birth: discord.Option(
-                int, "Year of birth of the player"
-            ),  # type: ignore
-            limitless_url: str = discord.Option(
-                str,
-                "Limitless URL of the decklist"
-            ),
-        ):
-            await self.tournament_signup(
-                ctx, name, pokemon_id, year_of_birth, limitless_url
-            )  # pragma: no cover
-
-        @admin.command(description="Update the sign-up sheet")
-        async def update_signup_sheet(ctx):
-            await self.update_signup_sheet(ctx)  # pragma: no cover
-
-        @admin.command(
-            description="Sync the legal cards list for deck validation"
-        )
-        async def update_legal_cards(ctx):
-            await self.get_legal_cards(ctx)  # pragma: no cover
-
-        @admin.command(
-            description="Set the output channel for tournament sign-ups"
-        )
-        async def set_output_channel(ctx):
-            await self.set_output_channel(ctx)  # pragma: no cover
-
-        @admin.command(
-            description="Test output channel for tournament sign-ups"
-        )
-        async def test_output_channel(ctx):
-            await self.test_output_channel(ctx)  # pragma: no cover
-
-        @newsfeed.command(description="Set the newsfeed channel")
-        async def set_channel(ctx):
-            await self.set_newsfeed_channel(ctx)  # pragma: no cover
-
-        @newsfeed.command(description="Check for newsfeed updates")
-        async def update(ctx):
-            await self.get_newsfeed(ctx)  # pragma: no cover
-
-        @newsfeed.command(description="Disable newsfeed updates")
-        async def disable(ctx):
-            await self.disable_newsfeed(ctx)  # pragma: no cover
+        self.admin = self.bot.create_group("admin", "Admin commands")
+        self.add_event_commands()
+        self.add_newsfeed_commands()
+        self.add_legal_cards_commands()
+        self.add_decklist_commands()
+        self.add_admin_commands()
 
         @self.bot.command(description="Get information about the bot")
         async def about(ctx):
@@ -119,19 +57,6 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot):
                 ephemeral=True
             )  # pragma: no cover
 
-        @admin.command(description="Check if the bot is in maintenance mode")
-        async def check_maintenance(ctx):
-            await self.maintenance_status(ctx)  # pragma: no cover
-
-        @admin.command(description="Toggle bot maintenance mode")
-        async def toggle_maintenance(
-            ctx,
-            password: discord.Option(
-                str, "Bot admin password"
-            ),  # type: ignore
-        ):
-            await self.toggle_maintenance(ctx, password)  # pragma: no cover
-
         @self.bot.listen(once=True)
         async def on_ready():
             self.logger.info(
@@ -143,6 +68,7 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot):
     def add_tasks(self):
         time_update_legal_cards = datetime.time(hour=7)
         time_update_signup_sheet = datetime.time(hour=8)
+        time_update_events = datetime.time(hour=9)
         interval_update_newsfeed = {"hours": 6}
 
         @tasks.loop(time=time_update_legal_cards)
@@ -157,9 +83,14 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot):
         async def update_newsfeed():
             await self.get_newsfeed_task()  # pragma: no cover
 
+        @tasks.loop(time=time_update_events)
+        async def update_events():
+            await self.sync_events_task()   # pragma: no cover
+
         update_legal_cards.start()
         update_signup_sheet.start()
         update_newsfeed.start()
+        update_events.start()
         self.logger.info("Scheduled tasks started.")
 
     def run(self):

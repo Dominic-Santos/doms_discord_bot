@@ -26,20 +26,22 @@ async def mock_empty_func():
     return
 
 
+def raise_exception():
+    raise Exception("test error")
+
+
 class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
     @patch("src.bot.tasks")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
     @patch("src.bot_newsfeed.json")
-    @patch("src.bot_decklist.json")
     @patch("builtins.open")
     @patch("src.bot_legalcards.load_card_database")
     async def test_bot_newsfeed(
         self,
         mock_load,
         mock_open,
-        mock_dl_json,
         mock_nf_json,
         mock_discord,
         mock_logger,
@@ -49,9 +51,6 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
-
-        def raise_exception():
-            raise Exception("test error")
         try:
             raise_exception()
         except Exception as e:
@@ -61,12 +60,10 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
         b = Bot("faketoken", False, "123")
 
-        mock_dl_json.load.assert_called_once()
-
         mock_discord.Bot.assert_called_once()
-        assert mock_open.call_count == 2
+        assert mock_open.call_count > 1
         mock_logger.assert_called_once()
-        assert mock_logger_instance.info.call_count == 1
+        assert mock_logger_instance.warning.call_count > 1
         assert b.newsfeed_channels == {}
 
         b.add_tasks()
@@ -90,8 +87,9 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         await b.get_newsfeed(mock_ctx)
         assert mock_ctx.last_response == "Newsfeed posts have been updated!"
 
+        calls = mock_logger_instance.info.call_count
         await b.get_newsfeed_task()
-        assert mock_logger_instance.info.call_count == 4
+        assert mock_logger_instance.info.call_count == calls + 2
 
         await b.disable_newsfeed(mock_ctx)
         assert mock_ctx.last_response == "Newsfeed disabled!"
@@ -103,16 +101,12 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot_newsfeed.get_newsfeed")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
-    @patch("src.bot_newsfeed.json")
-    @patch("src.bot_decklist.json")
     @patch("builtins.open")
     @patch("src.bot_legalcards.load_card_database")
     async def test_bot_do_getnewsfeed(
         self,
         mock_load,
         mock_open,
-        mock_dl_json,
-        mock_nf_json,
         mock_discord,
         mock_logger,
         mock_newsfeed
@@ -122,29 +116,21 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
 
-        def raise_exception():
-            raise Exception("test error")
-        try:
-            raise_exception()
-        except Exception as e:
-            assert str(e) == "test error"
-
-        mock_nf_json.load = raise_exception
-
         b = Bot("faketoken", False, "123")
 
         mock_newsfeed.return_value = False
 
         await b.do_get_newsfeed()
 
-        assert mock_logger_instance.info.call_count == 2
+        assert mock_logger_instance.info.call_count == 1
 
         mock_newsfeed.return_value = ["this is a post"]
         b.newsfeed_channels = {"1234": {"channel_id": "2345"}}
         mock_bot.get_channel.return_value = None
 
+        warning_calls = mock_logger_instance.warning.call_count
         await b.do_get_newsfeed()
-        mock_logger_instance.warning.assert_called_once()
+        assert mock_logger_instance.warning.call_count == warning_calls + 1
 
         mock_ctx = MockCtx()
         mock_bot.get_channel.return_value = mock_ctx
@@ -160,16 +146,12 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot.tasks")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
-    @patch("src.bot_newsfeed.json")
-    @patch("src.bot_decklist.json")
     @patch("builtins.open")
     @patch("src.bot_legalcards.load_card_database")
     async def test_bot_newsfeed_maintenance(
         self,
         mock_load,
         mock_open,
-        mock_dl_json,
-        mock_nf_json,
         mock_discord,
         mock_logger,
         mock_tasks

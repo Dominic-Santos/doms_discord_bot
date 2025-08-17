@@ -14,8 +14,15 @@ class LegalCardsBot:
                 "energies": energies
             }
         except Exception as e:
-            self.logger.info(f"Error loading legal cards database: {e}")
+            self.logger.warning(f"Error loading legal cards database: {e}")
             self.legal_cards = None
+
+    def add_legal_cards_commands(self):
+        @self.admin.command(
+            description="Sync the legal cards list for deck validation"
+        )
+        async def update_legal_cards(ctx):
+            await self.get_legal_cards(ctx)  # pragma: no cover
 
     def get_legal_cards_task(self):
         self.logger.info("Updating legal cards...")

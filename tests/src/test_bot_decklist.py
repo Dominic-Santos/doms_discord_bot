@@ -25,6 +25,10 @@ class MockCtx():
         self.last_send = message
 
 
+def raise_exception():
+    raise Exception("test error")
+
+
 class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
 
     @patch("src.bot_decklist.os.remove")
@@ -34,7 +38,6 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot_decklist.get_sign_up_sheet")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
-    @patch("src.bot_newsfeed.json")
     @patch("src.bot_decklist.json")
     @patch("builtins.open")
     @patch("src.bot_legalcards.load_card_database")
@@ -43,7 +46,6 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         mock_load,
         mock_open,
         mock_dl_json,
-        mock_nf_json,
         mock_discord,
         mock_logger,
         mock_sign_sheet,
@@ -57,8 +59,6 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
 
-        def raise_exception():
-            raise Exception("test error")
         try:
             raise_exception()
         except Exception as e:
@@ -68,7 +68,6 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
 
         b = Bot("faketoken", False, "123")
 
-        assert mock_logger_instance.info.call_count == 2
         assert b.output_channels == {}
 
         mock_dl_json.dump = raise_exception
@@ -106,9 +105,9 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
             "y.limitlesstcg.com/builder?i=abc123abc"
         ) is False
 
+        inf_calls = mock_logger_instance.info.call_count
         b.update_signup_sheet_task()
-
-        assert mock_logger_instance.info.call_count == 4
+        assert mock_logger_instance.info.call_count == inf_calls + 2
 
         await b.update_signup_sheet(mock_ctx)
         assert mock_ctx.last_response == "Sheet has been updated!"
@@ -201,16 +200,12 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot_decklist.get_sign_up_sheet")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
-    @patch("src.bot_newsfeed.json")
-    @patch("src.bot_decklist.json")
     @patch("builtins.open")
     @patch("src.bot_legalcards.load_card_database")
     async def test_bot_singup_sheet_errors(
         self,
         mock_load,
         mock_open,
-        mock_dl_json,
-        mock_nf_json,
         mock_discord,
         mock_logger,
         mock_sign_sheet,
@@ -224,14 +219,6 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
 
-        def raise_exception():
-            raise Exception("test error")
-        try:
-            raise_exception()
-        except Exception as e:
-            assert str(e) == "test error"
-
-        mock_dl_json.load = raise_exception
         mock_sign_sheet.raiseError.side_effect = raise_exception
 
         def mock_do_update_sheet():
@@ -249,16 +236,12 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
 
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
-    @patch("src.bot_newsfeed.json")
-    @patch("src.bot_decklist.json")
     @patch("builtins.open")
     @patch("src.bot_legalcards.load_card_database")
     async def test_bot_signup_sheet_maintenance(
         self,
         mock_load,
         mock_open,
-        mock_dl_json,
-        mock_nf_json,
         mock_discord,
         mock_logger,
     ):
@@ -286,6 +269,6 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         await b.update_signup_sheet(mock_ctx)
         assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
 
-        assert mock_logger_instance.info.call_count == 1
+        inf_calls = mock_logger_instance.info.call_count
         b.update_signup_sheet_task()
-        assert mock_logger_instance.info.call_count == 3
+        assert mock_logger_instance.info.call_count == inf_calls + 2
