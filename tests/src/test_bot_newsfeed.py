@@ -32,22 +32,17 @@ def raise_exception():
 
 class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
-    @patch("src.bot.tasks")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
     @patch("src.bot_newsfeed.json")
     @patch("builtins.open")
-    @patch("src.bot_legalcards.load_card_database")
     async def test_bot_newsfeed(
         self,
-        mock_load,
         mock_open,
         mock_nf_json,
         mock_discord,
         mock_logger,
-        mock_tasks
     ):
-        mock_load.return_value = ({}, {}, {})
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
@@ -102,16 +97,13 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
     @patch("builtins.open")
-    @patch("src.bot_legalcards.load_card_database")
     async def test_bot_do_getnewsfeed(
         self,
-        mock_load,
         mock_open,
         mock_discord,
         mock_logger,
         mock_newsfeed
     ):
-        mock_load.return_value = ({}, {}, {})
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
@@ -143,20 +135,15 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         await b.do_get_newsfeed()
         assert mock_ctx.last_response == "nothing"
 
-    @patch("src.bot.tasks")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
     @patch("builtins.open")
-    @patch("src.bot_legalcards.load_card_database")
     async def test_bot_newsfeed_maintenance(
         self,
-        mock_load,
         mock_open,
         mock_discord,
         mock_logger,
-        mock_tasks
     ):
-        mock_load.return_value = ({}, {}, {})
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot

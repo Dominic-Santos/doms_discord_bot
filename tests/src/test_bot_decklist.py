@@ -40,10 +40,8 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot.discord")
     @patch("src.bot_decklist.json")
     @patch("builtins.open")
-    @patch("src.bot_legalcards.load_card_database")
     async def test_bot_signup_sheet(
         self,
-        mock_load,
         mock_open,
         mock_dl_json,
         mock_discord,
@@ -54,7 +52,6 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         mock_fill,
         mock_remove
     ):
-        mock_load.return_value = ({}, {})
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
@@ -201,10 +198,8 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
     @patch("builtins.open")
-    @patch("src.bot_legalcards.load_card_database")
     async def test_bot_singup_sheet_errors(
         self,
-        mock_load,
         mock_open,
         mock_discord,
         mock_logger,
@@ -214,7 +209,6 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         mock_fill,
         mock_remove
     ):
-        mock_load.return_value = ({}, {})
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
@@ -237,15 +231,12 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
     @patch("builtins.open")
-    @patch("src.bot_legalcards.load_card_database")
     async def test_bot_signup_sheet_maintenance(
         self,
-        mock_load,
         mock_open,
         mock_discord,
         mock_logger,
     ):
-        mock_load.return_value = ({}, {})
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
         mock_logger_instance = mock_logger.return_value

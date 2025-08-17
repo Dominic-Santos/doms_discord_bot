@@ -21,20 +21,20 @@ class MockCtx():
 
 class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
 
+    @patch("src.bot_legalcards.load_card_database")
     @patch("src.bot_legalcards.get_legal_cards")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
     @patch("builtins.open")
-    @patch("src.bot_legalcards.load_card_database")
     async def test_bot_legal_cards(
         self,
-        mock_load,
         mock_open,
         mock_discord,
         mock_logger,
-        mock_legal_cards
+        mock_legal_cards,
+        mock_load
     ):
-        mock_load.return_value = ({}, {})
+        mock_load.return_value = ({}, {}, {})
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
@@ -68,16 +68,13 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
     @patch("builtins.open")
-    @patch("src.bot_legalcards.load_card_database")
     async def test_bot_legal_cards_maintenance(
         self,
-        mock_load,
         mock_open,
         mock_discord,
         mock_logger,
         mock_legal_cards
     ):
-        mock_load.return_value = ({}, {})
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot

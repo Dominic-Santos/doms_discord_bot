@@ -416,6 +416,7 @@ class EventsBot:
 
             if len(s_events) == 0:
                 self.logger.info(f"Skipping events for {server}.")
+                continue
 
             self.logger.info(f"Syncing events for {server}.")
             await self.update_guild_events(int(server), s_events)
