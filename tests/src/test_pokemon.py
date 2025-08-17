@@ -1,6 +1,9 @@
 import os
-from src.pokemon import get_decklist_png, get_decklist_pdf, convert_pdf_to_png
-from unittest.mock import patch, call
+from src.pokemon import (
+    get_decklist_png, get_decklist_pdf, convert_pdf_to_png,
+    get_premier_events, get_store_events, extract_event_info
+)
+from unittest.mock import patch, call, MagicMock
 
 
 @patch('src.pokemon.get_decklist_pdf')
@@ -97,3 +100,116 @@ def test_convert_pdf_to_png(mock_fitz_open):
 
     assert mock_doc.get_pixmap.call_count == 1
     mock_pix.save.assert_called_once_with("output.png")
+
+
+class MockEventDiv:
+    def __init__(self, data={}, store=False):
+        img_head = MagicMock()
+        base_head = MagicMock()
+        self.children = [base_head, img_head]
+
+        img_children = 2
+        if store:
+            img_children += 1
+
+        for _ in range(img_children):
+            img_head.children = [MagicMock()]
+            img_head = img_head.children[0]
+        img_head.children = [{"src": data.get("logo", "logo")}]
+
+        base_children = 4
+        for _ in range(base_children):
+            base_head.children = [MagicMock()]
+            base_head = base_head.children[0]
+
+        base_head.children = [
+            MagicMock(children=[MagicMock(text=data.get("type", "type"))]),
+            MagicMock(children=[MagicMock(text=data.get("name", "name"))]),
+            MagicMock(children=[
+                None,
+                MagicMock(children=[
+                    MagicMock(text=data.get("location", "location"))
+                ])
+            ]),
+            MagicMock(children=[
+                None,
+                MagicMock(children=[
+                    MagicMock(text=data.get("date", "date"))
+                ])
+            ])
+        ]
+
+
+MOCK_EVENT_DATA = {
+    "logo": "test.png",
+    "type": "friendly",
+    "name": "test event",
+    "location": "hell",
+    "date": "January 14-16,2025"
+}
+
+
+def test_extract_event_info():
+    mock_e_div = MockEventDiv(MOCK_EVENT_DATA, store=True)
+    event = extract_event_info(mock_e_div, store=True)
+    for k in MOCK_EVENT_DATA.keys():
+        assert event[k] == MOCK_EVENT_DATA[k]
+
+
+@patch('src.pokemon.extract_event_info')
+@patch('src.pokemon.Driver')
+def test_get_store_events(
+    mock_driver,
+    mock_extract
+):
+    mock_extract.return_value = MOCK_EVENT_DATA
+
+    result = get_store_events()
+    assert len(result) == 0
+
+    mock_driver_instance = mock_driver.return_value
+    mock = [MagicMock(
+        children=[
+            MagicMock(
+                children=[MagicMock()]
+            )
+        ]
+    )]
+    mock_driver_instance.cdp.find_visible_elements.return_value = mock
+    result = get_store_events(["fake_guid"])
+    mock_driver_instance.uc_activate_cdp_mode.assert_called_once()
+    mock_driver_instance.sleep.assert_called_once()
+    mock_driver_instance.quit.assert_called_once()
+
+
+@patch('src.pokemon.extract_event_info')
+@patch('src.pokemon.Driver')
+def test_get_premier_events(
+    mock_driver,
+    mock_extract
+):
+    mock_extract.return_value = MOCK_EVENT_DATA
+    mock_driver_instance = mock_driver.return_value
+    mock_driver_instance.cdp.find_visible_elements.return_value = [
+        MagicMock(), MagicMock()
+    ]
+
+    try:
+        _ = get_premier_events()
+    except Exception as e:
+        assert str(e) == "Failed to load events page"
+
+    mock_driver_instance.uc_activate_cdp_mode.assert_called_once()
+    mock_driver_instance.sleep.assert_called_once()
+
+    mock_driver_instance.cdp.find_visible_elements.return_value = [
+        MagicMock(), MagicMock(), MagicMock()
+    ]
+
+    results = get_premier_events()
+
+    assert mock_driver_instance.sleep.call_count == 3
+    assert mock_extract.call_count == 3
+    mock_driver_instance.quit.assert_called_once()
+    assert len(results) == 3
+    assert results[0] == MOCK_EVENT_DATA

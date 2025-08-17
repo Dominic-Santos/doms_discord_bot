@@ -79,7 +79,7 @@ def get_premier_events():
 
     event_divs = sb.cdp.find_visible_elements("div.map-location-card")
     for div in event_divs:
-        event_info = _extract_event_info(div)
+        event_info = extract_event_info(div)
         events.append(event_info)
 
     sb.quit()
@@ -104,14 +104,14 @@ def get_store_events(guids=[]):
         )[0].children[0].children
         for event in events_div:
             div = event.children[0].children[0].children[0].children[0]
-            event_info = _extract_event_info(div, store=True)
+            event_info = extract_event_info(div, store=True)
             events[guid].append(event_info)
 
     sb.quit()
     return events
 
 
-def _extract_event_info(div, store=False):
+def extract_event_info(div, store=False):
     img = div.children[1].children[0].children[0].children[0]
     if store:
         img = img.children[0]
