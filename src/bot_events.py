@@ -171,7 +171,7 @@ class EventsBot:
     async def sync_events(self, ctx):
         await ctx.defer(ephemeral=True)
         if self.maintenance:
-            ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
+            await ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
             return
 
         guild_id = str(ctx.guild.id)

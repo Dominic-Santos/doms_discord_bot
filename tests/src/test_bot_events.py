@@ -1,14 +1,14 @@
 import unittest
-from datetime import datetime
-from unittest.mock import patch, MagicMock
+from datetime import datetime, timedelta
+from unittest.mock import patch, MagicMock, AsyncMock
 from src.bot import Bot
+from src.helpers import MAINTENANCE_MODE_MESSAGE
 
 
 class MockCtx():
     def __init__(self):
-        self.guild = MagicMock(
-            id=123
-        )
+        self.guild = MagicMock(id=123)
+        self.channel = MagicMock(id=234)
 
     async def respond(self, message, ephemeral=False):
         self.last_response = message
@@ -22,17 +22,34 @@ def raise_exception():
 
 
 class MockEvent():
-    def __init__(self):
-        self.name = "test event"
+    def __init__(self, name="test event", old=True):
+        self.name = name
         self.location = "hell"
         date_format = "%b %d,%Y"
-        self.start_time = datetime.strptime("Jan 14,2025", date_format)
-        self.end_time = datetime.strptime("Jan 16,2025", date_format)
+        if old:
+            self.start_time = datetime.strptime("Jan 14,2025", date_format)
+            self.end_time = datetime.strptime("Jan 17,2025", date_format)
+        else:
+            mock_year = datetime.now().year + 1
+            self.start_time = datetime.strptime(
+                f"Jan 14,{mock_year}", date_format
+            )
+            self.end_time = datetime.strptime(
+                f"Jan 17,{mock_year}", date_format
+            )
         self.url = "www.test.com"
+        self.creator_id = "im_a_bot"
+        self.canceled = False
+
+    async def cancel(self):
+        self.canceled = True
 
 
 class TestBotEvents(unittest.IsolatedAsyncioTestCase):
 
+    @patch("src.bot_events.requests")
+    @patch("src.bot_events.get_store_events")
+    @patch("src.bot_events.get_premier_events")
     @patch("src.bot_events.json")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
@@ -42,11 +59,23 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         mock_open,
         mock_discord,
         mock_logger,
-        mock_json
+        mock_json,
+        mock_premier_events,
+        mock_store_events,
+        mock_requests
     ):
+        mock_store_events.return_value = {
+            "abc-123": [
+                "event1"
+            ]
+        }
+        mock_requests.get.return_value = MagicMock(
+            status_code=200,
+            content="content"
+        )
         mock_logger_instance = mock_logger.return_value
         mock_json.load.return_value = {}
-        mock_bot = MagicMock()
+        mock_bot = MagicMock(user=MagicMock(id="im_a_bot"))
         mock_discord.Bot.return_value = mock_bot
 
         try:
@@ -104,6 +133,89 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         mock_event = MockEvent()
         event_text = b.print_event(mock_event)
         assert event_text == (
-            "test event\nhell\n2025-01-14/2025-01-15"
+            "test event\nhell\n2025-01-14/2025-01-16"
             "\n\nwww.test.com"
         )
+
+        assert b.event_channels == {}
+        await b.set_events_channel(mock_ctx)
+        assert b.event_channels.get("123", None) == 234
+        assert mock_ctx.last_response == "Events channel set successfully!"
+
+        await b.remove_events_channel(mock_ctx)
+        assert b.event_channels.get("123", None) is None
+        assert mock_ctx.last_response == "Events channel removed successfully!"
+
+        guildevents = [
+            MockEvent("event1"),
+            MockEvent("event2", old=False),
+            MockEvent("event3", old=False)
+        ]
+        b.event_channels["123"] = 1234
+        mock_guild = MagicMock()
+        mock_guild.create_scheduled_event = AsyncMock()
+        send_mock = AsyncMock()
+        mock_bot.get_channel.return_value = MagicMock(
+            send=send_mock
+        )
+        mock_bot.fetch_guild = AsyncMock()
+        mock_bot.fetch_guild.return_value = mock_guild
+        mock_guild.fetch_scheduled_events = AsyncMock()
+        mock_guild.fetch_scheduled_events.return_value = guildevents
+        mock_year = datetime.now().date().year + 1
+        mock_old_year = mock_year - 2
+        eventlist = [
+            {
+                "logo": "test.png",
+                "type": "friendly",
+                "name": "e1",
+                "location": "hell",
+                "date": f"January 14-16,{mock_year}"
+            },
+            {
+                "logo": "test.png",
+                "type": "friendly",
+                "name": "e2",
+                "location": "hell",
+                "date": f"January 20,{mock_year}"
+            },
+            {
+                "logo": "test.png",
+                "type": "friendly",
+                "name": "e3",
+                "location": "hell",
+                "date": f"January 20,{mock_old_year}"
+            },
+            {
+                "logo": "test.png",
+                "type": "friendly",
+                "name": "event2",
+                "location": "hell",
+                "date": f"January 14-16,{mock_year}"
+            },
+        ]
+        b.print_event = MagicMock()
+        b.print_event.return_value = "printed"
+        await b.update_guild_events(123, eventlist)
+        assert guildevents[0].canceled is False
+        assert guildevents[1].canceled is False
+        assert guildevents[2].canceled
+        assert send_mock.call_count == 3
+
+        b.event_channels = {}
+        await b.update_guild_events(123, eventlist)
+        assert send_mock.call_count == 3
+
+        b.update_guild_events = AsyncMock()
+
+        await b.sync_events(mock_ctx)
+        assert mock_ctx.last_response == "Nothing to sync"
+
+        b.premier_following["123"] = True
+        b.events_following["123"] = ["abc-123"]
+        await b.sync_events(mock_ctx)
+        assert mock_ctx.last_response == "Events synced successfully!"
+
+        b.maintenance = True
+        await b.sync_events(mock_ctx)
+        assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
