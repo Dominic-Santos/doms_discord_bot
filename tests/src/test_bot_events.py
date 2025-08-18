@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime, timedelta
+from datetime import datetime
 from unittest.mock import patch, MagicMock, AsyncMock
 from src.bot import Bot
 from src.helpers import MAINTENANCE_MODE_MESSAGE
@@ -45,6 +45,17 @@ class MockEvent():
         self.canceled = True
 
 
+class MockUpdateGuildEvent():
+    def __init__(self):
+        self.calls = []
+
+    async def update(self, guild_id, events):
+        self.calls.append({
+            "guild_id": guild_id,
+            "events": events
+        })
+
+
 class TestBotEvents(unittest.IsolatedAsyncioTestCase):
 
     @patch("src.bot_events.requests")
@@ -64,9 +75,15 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         mock_store_events,
         mock_requests
     ):
+        mock_premier_events.return_value = [
+            "e1", "e2", "e3"
+        ]
         mock_store_events.return_value = {
             "abc-123": [
                 "event1"
+            ],
+            "xyz-123": [
+                "event2"
             ]
         }
         mock_requests.get.return_value = MagicMock(
@@ -206,15 +223,21 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         await b.update_guild_events(123, eventlist)
         assert send_mock.call_count == 3
 
-        b.update_guild_events = AsyncMock()
+        mock_updater = MockUpdateGuildEvent()
+        b.update_guild_events = mock_updater.update
 
         await b.sync_events(mock_ctx)
         assert mock_ctx.last_response == "Nothing to sync"
+        assert len(mock_updater.calls) == 0
 
         b.premier_following["123"] = True
         b.events_following["123"] = ["abc-123"]
         await b.sync_events(mock_ctx)
         assert mock_ctx.last_response == "Events synced successfully!"
+        assert len(mock_updater.calls) == 1
+        firstcall = mock_updater.calls[0]
+        assert firstcall["guild_id"] == 123
+        assert len(firstcall["events"]) == 4
 
         b.maintenance = True
         await b.sync_events(mock_ctx)
@@ -232,3 +255,20 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         b.event_channels = {}
         await b.delete_all_events(mock_ctx)
         assert send_mock.call_count == send_calls
+
+        b.premier_following = {
+            "123": True,
+            "234": True,
+            "345": False
+        }
+        b.events_following = {
+            "234": ["abc-123"],
+            "345": ["not-found"]
+        }
+        mock_updater.calls = []
+        await b.sync_events_task()
+        assert len(mock_updater.calls) == 0
+
+        b.maintenance = False
+        await b.sync_events_task()
+        assert len(mock_updater.calls) == 2
