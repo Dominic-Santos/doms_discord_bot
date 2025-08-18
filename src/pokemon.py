@@ -69,7 +69,7 @@ def get_premier_events():
     sb.sleep(5)
     tabs = sb.cdp.find_visible_elements("button.osui-tabs__header-item")
 
-    if len(tabs) != 3:
+    if len(tabs) < 2:
         raise Exception("Failed to load events page")
 
     tabs[1].click()

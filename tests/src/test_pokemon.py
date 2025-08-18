@@ -191,7 +191,7 @@ def test_get_premier_events(
     mock_extract.return_value = MOCK_EVENT_DATA
     mock_driver_instance = mock_driver.return_value
     mock_driver_instance.cdp.find_visible_elements.return_value = [
-        MagicMock(), MagicMock()
+        MagicMock()
     ]
 
     try:
