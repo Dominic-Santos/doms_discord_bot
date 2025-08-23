@@ -107,7 +107,7 @@ Some commands are intended for server administrators only. It’s recommended to
 > Set the current channel as the output for tournament sign-up messages.
 > It’s recommended to use a hidden channel visible only to staff.
 
-### /admin send_output_channel
+### /admin test_tournament_channel
 
 > Send a generic message to the tournament sign-up output channel.
 

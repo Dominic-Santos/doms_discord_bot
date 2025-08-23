@@ -2,6 +2,10 @@ import unittest
 from unittest.mock import patch, MagicMock
 from src.bot import Bot
 from src.helpers import MAINTENANCE_MODE_MESSAGE
+from src.bot_decklist import (
+    OUTPUT_CHANNEL_NOT_SET_ERROR,
+    OUTPUT_CHANNEL_NOT_FOUND_ERROR
+)
 
 
 class MockCtx():
@@ -65,29 +69,25 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
 
         b = Bot("faketoken", False, "123")
 
-        assert b.output_channels == {}
+        assert b.tournament_channels == {}
 
         mock_dl_json.dump = raise_exception
-        b.save_output_channels()
+        b.save_tournament_channels()
         mock_logger_instance.error.assert_called_once()
 
         mock_ctx = MockCtx()
-        await b.test_output_channel(mock_ctx)
-        assert mock_ctx.last_response == (
-            "Output channel is not set for this server."
-        )
+        await b.test_tournament_channel(mock_ctx)
+        assert mock_ctx.last_response == OUTPUT_CHANNEL_NOT_SET_ERROR
 
-        await b.set_output_channel(mock_ctx)
+        await b.set_tournament_channel(mock_ctx)
         assert mock_ctx.last_response == "Output channel set to test channel!"
 
         mock_bot.get_channel.return_value = None
-        await b.test_output_channel(mock_ctx)
-        assert mock_ctx.last_response == (
-            "Output channel not found. Please set it again."
-        )
+        await b.test_tournament_channel(mock_ctx)
+        assert mock_ctx.last_response == OUTPUT_CHANNEL_NOT_FOUND_ERROR
 
         mock_bot.get_channel.return_value = mock_ctx
-        await b.test_output_channel(mock_ctx)
+        await b.test_tournament_channel(mock_ctx)
         assert mock_ctx.last_response == (
             "Test message sent to the output channel!"
         )
@@ -142,9 +142,7 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
             1990,
             "https://my.limitlesstcg.com/builder?i=abc123abc"
         )
-        assert mock_ctx.last_response == (
-            "Output channel not found. Please set it again."
-        )
+        assert mock_ctx.last_response == OUTPUT_CHANNEL_NOT_FOUND_ERROR
 
         mock_bot.get_channel.return_value = mock_ctx
         mock_sign_up_sheet = MagicMock()

@@ -8,22 +8,29 @@ from .pokemon import get_decklist_png as get_sign_up_sheet
 
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
 
+OUTPUT_CHANNEL_NOT_SET_ERROR = (
+    "Tournament output channel is not set for this server."
+)
+OUTPUT_CHANNEL_NOT_FOUND_ERROR = (
+    "Tournament output channel not found. Please set it again."
+)
+
 
 class DecklistBot:
-    def load_output_channels(self):
+    def load_tournament_channels(self):
         try:
-            with open("output_channels.json", "r") as f:
-                self.output_channels = json.load(f)
+            with open("tournament_channels.json", "r") as f:
+                self.tournament_channels = json.load(f)
         except Exception as e:
-            self.logger.warning(f"Error loading output_channels.json: {e}")
-            self.output_channels = {}
+            self.logger.warning(f"Error loading tournament_channels.json: {e}")
+            self.tournament_channels = {}
 
-    def save_output_channels(self):
+    def save_tournament_channels(self):
         try:
-            with open("output_channels.json", "w") as f:
-                json.dump(self.output_channels, f, indent=4)
+            with open("tournament_channels.json", "w") as f:
+                json.dump(self.tournament_channels, f, indent=4)
         except Exception as e:
-            self.logger.error(f"Error saving output_channels.json: {e}")
+            self.logger.error(f"Error saving tournament_channels.json: {e}")
 
     def add_decklist_commands(self):
         tournament = self.bot.create_group(
@@ -69,25 +76,25 @@ class DecklistBot:
             description="Set the output channel for tournament sign-ups"
         )
         async def set_tournament_channel(ctx):
-            await self.set_output_channel(ctx)  # pragma: no cover
+            await self.set_tournament_channel(ctx)  # pragma: no cover
 
         @self.admin.command(
             description="Test output channel for tournament sign-ups"
         )
-        async def test_output_channel(ctx):
-            await self.test_output_channel(ctx)  # pragma: no cover
+        async def test_tournament_channel(ctx):
+            await self.test_tournament_channel(ctx)  # pragma: no cover
 
-    async def set_output_channel(self, ctx):
+    async def set_tournament_channel(self, ctx):
         channel_id = ctx.channel.id
-        self.output_channels[str(ctx.guild.id)] = channel_id
-        self.save_output_channels()
+        self.tournament_channels[str(ctx.guild.id)] = channel_id
+        self.save_tournament_channels()
         await ctx.respond(
             f"Output channel set to {ctx.channel.name}!",
             ephemeral=True
         )
 
-    async def test_output_channel(self, ctx):
-        channel, error = self.get_output_channel(str(ctx.guild.id))
+    async def test_tournament_channel(self, ctx):
+        channel, error = self.get_tournament_channel(str(ctx.guild.id))
 
         if channel is None:
             await ctx.respond(error, ephemeral=True)
@@ -99,18 +106,18 @@ class DecklistBot:
             ephemeral=True
         )
 
-    def get_output_channel(self, guild_id: str) -> tuple[
+    def get_tournament_channel(self, guild_id: str) -> tuple[
         discord.TextChannel | None, str
     ]:
-        if guild_id not in self.output_channels:
-            return None, "Output channel is not set for this server."
+        if guild_id not in self.tournament_channels:
+            return None, OUTPUT_CHANNEL_NOT_SET_ERROR
 
-        channel_id = self.output_channels[guild_id]
+        channel_id = self.tournament_channels[guild_id]
         channel = self.bot.get_channel(channel_id)
         if channel:
             return channel, ""
 
-        return None, "Output channel not found. Please set it again."
+        return None, OUTPUT_CHANNEL_NOT_FOUND_ERROR
 
     async def decklist_check(self, ctx, deck):
         await ctx.defer(ephemeral=True)
@@ -159,7 +166,7 @@ class DecklistBot:
             )
             return
 
-        channel, error = self.get_output_channel(str(ctx.guild.id))
+        channel, error = self.get_tournament_channel(str(ctx.guild.id))
         if channel is None:
             await ctx.respond(error, ephemeral=True)
             return
