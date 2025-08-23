@@ -14,6 +14,10 @@ OUTPUT_CHANNEL_NOT_SET_ERROR = (
 OUTPUT_CHANNEL_NOT_FOUND_ERROR = (
     "Tournament output channel not found. Please set it again."
 )
+TEST_MESSAGE = "This is a test message from the bot!"
+SIGN_UP_SHEET_MISSING_ERROR = (
+    "Sign-up sheet is not available. Please try again later."
+)
 
 
 class DecklistBot:
@@ -89,7 +93,7 @@ class DecklistBot:
         self.tournament_channels[str(ctx.guild.id)] = channel_id
         self.save_tournament_channels()
         await ctx.respond(
-            f"Output channel set to {ctx.channel.name}!",
+            f"Tournament output channel set to {ctx.channel.name}!",
             ephemeral=True
         )
 
@@ -100,7 +104,7 @@ class DecklistBot:
             await ctx.respond(error, ephemeral=True)
             return
 
-        await channel.send("This is a test message from the bot!")
+        await channel.send(TEST_MESSAGE)
         await ctx.respond(
             "Test message sent to the output channel!",
             ephemeral=True
@@ -119,7 +123,7 @@ class DecklistBot:
 
         return None, OUTPUT_CHANNEL_NOT_FOUND_ERROR
 
-    async def decklist_check(self, ctx, deck):
+    async def decklist_check(self, ctx, deck: str):
         await ctx.defer(ephemeral=True)
 
         if self.maintenance:
@@ -173,7 +177,7 @@ class DecklistBot:
 
         if not self.check_sign_up_sheet():
             await ctx.respond(
-                "Sign-up sheet is not available. Please try again later.",
+                SIGN_UP_SHEET_MISSING_ERROR,
                 ephemeral=True
             )
             return

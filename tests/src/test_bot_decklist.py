@@ -4,7 +4,9 @@ from src.bot import Bot
 from src.helpers import MAINTENANCE_MODE_MESSAGE
 from src.bot_decklist import (
     OUTPUT_CHANNEL_NOT_SET_ERROR,
-    OUTPUT_CHANNEL_NOT_FOUND_ERROR
+    OUTPUT_CHANNEL_NOT_FOUND_ERROR,
+    TEST_MESSAGE,
+    SIGN_UP_SHEET_MISSING_ERROR
 )
 
 
@@ -80,7 +82,9 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         assert mock_ctx.last_response == OUTPUT_CHANNEL_NOT_SET_ERROR
 
         await b.set_tournament_channel(mock_ctx)
-        assert mock_ctx.last_response == "Output channel set to test channel!"
+        assert mock_ctx.last_response == (
+            "Tournament output channel set to test channel!"
+        )
 
         mock_bot.get_channel.return_value = None
         await b.test_tournament_channel(mock_ctx)
@@ -91,7 +95,7 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         assert mock_ctx.last_response == (
             "Test message sent to the output channel!"
         )
-        assert mock_ctx.last_send == "This is a test message from the bot!"
+        assert mock_ctx.last_send == TEST_MESSAGE
 
         assert b.check_sign_up_sheet() in [True, False]
 
@@ -155,9 +159,7 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
             1990,
             "https://my.limitlesstcg.com/builder?i=abc123abc"
         )
-        assert mock_ctx.last_response == (
-            "Sign-up sheet is not available. Please try again later."
-        )
+        assert mock_ctx.last_response == SIGN_UP_SHEET_MISSING_ERROR
 
         mock_sign_up_sheet.return_value = True
         await b.tournament_signup(
