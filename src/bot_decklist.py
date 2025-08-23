@@ -250,7 +250,7 @@ class DecklistBot:
         else:
             self.logger.error(f"Failed up update sign-up sheet {error}")
 
-    def do_update_sheet(self):
+    def do_update_sheet(self) -> Exception | None:
         t = CustomThread(get_sign_up_sheet)
         t.start()
         _, error = t.join()
@@ -262,5 +262,5 @@ class DecklistBot:
             return True
         return False
 
-    def check_sign_up_sheet(self):
+    def check_sign_up_sheet(self) -> bool:
         return os.path.exists("sign_up_sheet.png")

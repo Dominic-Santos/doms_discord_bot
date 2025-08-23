@@ -1,7 +1,7 @@
 from seleniumbase import Driver
 
 
-def get_decklist_from_url(link):
+def get_decklist_from_url(link: str) -> dict:
     pokemon = []
     trainers = {}
     energies = {}

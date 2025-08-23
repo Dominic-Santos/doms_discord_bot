@@ -10,7 +10,7 @@ ENERGY_TYPES = [
 ]
 
 
-def get_offset(card_type, amount):
+def get_offset(card_type: str, amount: int) -> int:
     if card_type == "pokemon":
         if amount > 13:
             return 19
@@ -23,10 +23,10 @@ def get_offset(card_type, amount):
 
 
 def fill_sheet(
-    sheet_location="sign_up_sheet.png",
-    player={},
-    cards={},
-    output_filename=None
+    sheet_location: str = "sign_up_sheet.png",
+    player: dict = {},
+    cards: dict = {},
+    output_filename: str | None = None
 ):
 
     if not sheet_location.endswith(".png"):
@@ -130,7 +130,9 @@ def fill_sheet(
     img.save(output_filename)
 
 
-def load_card_database(filename="legal_cards.json"):
+def load_card_database(filename: str = "legal_cards.json") -> tuple[
+    dict, dict, dict
+]:
     if not filename.endswith(".json"):
         raise ValueError("Filename must be a JSON file.")
     try:
@@ -160,7 +162,9 @@ def load_card_database(filename="legal_cards.json"):
     return pokemon, trainers, energies
 
 
-def validate_decklist(decklist, legal_cards=None):
+def validate_decklist(
+    decklist: dict, legal_cards: dict | None = None
+) -> tuple[bool, str]:
     # check 60 card deck
     pokemon_count = sum(
         card["quantity"] for card in decklist.get("pokemon", [])

@@ -4,11 +4,10 @@ import requests
 from datetime import datetime, timedelta
 
 from .pokemon import (
-    get_store_events, get_premier_events, POKEMON_EVENTS_BASE_URL
+    get_store_events, get_premier_events,
+    POKEMON_EVENTS_BASE_URL, Pokemon_Event
 )
 from .helpers import MAINTENANCE_MODE_MESSAGE, CustomThread
-
-EVENT_DATE_FORMAT = "%b %d,%Y"
 
 
 class EventsBot:
@@ -119,7 +118,7 @@ class EventsBot:
             ephemeral=True
         )
 
-    async def follow_events(self, ctx, guid):
+    async def follow_events(self, ctx, guid: str):
         guild_id = str(ctx.guild.id)
         if guild_id not in self.events_following:
             self.events_following[guild_id] = []
@@ -138,7 +137,7 @@ class EventsBot:
             ephemeral=True
         )
 
-    async def unfollow_events(self, ctx, guid):
+    async def unfollow_events(self, ctx, guid: str):
         guild_id = str(ctx.guild.id)
         if guild_id not in self.events_following:
             self.events_following[guild_id] = []
@@ -239,7 +238,11 @@ class EventsBot:
         await self.do_sync_events()
         self.logger.info("Events updated successfully.")
 
-    async def update_guild_events(self, guild_id: int, events: list):
+    async def update_guild_events(
+        self,
+        guild_id: int,
+        events: list[Pokemon_Event]
+    ):
         guild = await self.bot.fetch_guild(guild_id)
         channel = self.event_channels.get(str(guild_id), None)
         if channel is not None:
@@ -252,41 +255,7 @@ class EventsBot:
         keep_events = []
 
         for event in events:
-            privacy = discord.ScheduledEventPrivacyLevel.guild_only
-            e_date = event["date"].replace(", ", ",")
-            e_date = e_date[:3] + " " + e_date.split(" ")[1]
-
-            kwargs = {
-                "name": event["name"],
-                "location": event["location"],
-                "privacy_level": privacy,
-                "description": event["type"]
-            }
-
-            if "-" in event["date"]:
-                start_str = e_date[:6] + e_date[9:]
-                end_str = e_date[0:4] + e_date[7:]
-                start_date = datetime.strptime(
-                    start_str, EVENT_DATE_FORMAT
-                )
-                end_date = datetime.strptime(
-                    end_str, EVENT_DATE_FORMAT
-                )
-                kwargs.update({
-                    "start_time": start_date,
-                    "end_time": end_date + timedelta(days=1),
-                })
-            else:
-                event_date = datetime.strptime(
-                    e_date,
-                    EVENT_DATE_FORMAT
-                )
-                kwargs.update({
-                    "start_time": event_date,
-                    "end_time": event_date + timedelta(days=1),
-                })
-
-            if kwargs["start_time"] < datetime.now():
+            if event.start_date < datetime.now():
                 continue
 
             already_exists = False
@@ -294,9 +263,9 @@ class EventsBot:
                 g_start = g_event.start_time.replace(tzinfo=None)
                 g_end = g_event.end_time.replace(tzinfo=None)
                 if (
-                    g_event.name == kwargs["name"] and
-                    g_start == kwargs["start_time"] and
-                    g_end == kwargs["end_time"]
+                    g_event.name == event.name and
+                    g_start == event.start_date and
+                    g_end == event.end_date
                 ):
                     keep_events.append(g_event)
                     already_exists = True
@@ -305,7 +274,16 @@ class EventsBot:
             if already_exists:
                 continue
 
-            url = f"{POKEMON_EVENTS_BASE_URL}{event['logo']}"
+            kwargs = {
+                "name": event.name,
+                "location": event.location,
+                "privacy_level": discord.ScheduledEventPrivacyLevel.guild_only,
+                "description": event.type,
+                "start_time": event.start_date,
+                "end_time": event.end_date
+            }
+
+            url = f"{POKEMON_EVENTS_BASE_URL}{event.logo}"
             response = requests.get(url)
 
             if response.status_code == 200:
@@ -343,7 +321,7 @@ class EventsBot:
             )
 
     @staticmethod
-    def print_event(event, with_url=True):
+    def print_event(event, with_url: bool = True) -> str:
         text = f"{event.name}\n{event.location}\n"
 
         start_date = event.start_time.date()

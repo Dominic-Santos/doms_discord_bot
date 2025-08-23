@@ -152,8 +152,16 @@ MOCK_EVENT_DATA = {
 def test_extract_event_info():
     mock_e_div = MockEventDiv(MOCK_EVENT_DATA, store=True)
     event = extract_event_info(mock_e_div, store=True)
-    for k in MOCK_EVENT_DATA.keys():
-        assert event[k] == MOCK_EVENT_DATA[k]
+    event.logo == MOCK_EVENT_DATA["logo"]
+    event.name == MOCK_EVENT_DATA["name"]
+    event.type == MOCK_EVENT_DATA["type"]
+    event.location == MOCK_EVENT_DATA["location"]
+    event.start_date.day == 14
+    event.start_date.month == 1
+    event.start_date.year == 2025
+    event.end_date.day == 17
+    event.end_date.month == 1
+    event.end_date.year == 2025
 
 
 @patch('src.pokemon.extract_event_info')

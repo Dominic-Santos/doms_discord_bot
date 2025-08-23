@@ -14,7 +14,7 @@ REPLACE_CHARACTERS = {
 }
 
 
-def get_legal_card_list():
+def get_legal_card_list() -> list[dict]:
     legal_cards = []
     sb = Driver(uc=True, locale_code="en", ad_block=True)
 
@@ -53,7 +53,7 @@ def get_legal_card_list():
     return legal_cards
 
 
-def save_cards_to_file(cards, filename="legal_cards.json"):
+def save_cards_to_file(cards: list[dict], filename: str = "legal_cards.json"):
     final_cards = {}
     for card in cards:
         for k in card.keys():
@@ -72,12 +72,12 @@ def save_cards_to_file(cards, filename="legal_cards.json"):
     json.dump(final_cards, open(filename, "w"), indent=4)
 
 
-def get_legal_cards(filename="legal_cards.json"):
+def get_legal_cards(filename: str = "legal_cards.json"):
     legal_cards = get_legal_card_list()
     save_cards_to_file(legal_cards, filename)
 
 
-def get_card_text(card_link):
+def get_card_text(card_link: str) -> str:
     sb = Driver(uc=True, locale_code="en", ad_block=True)
     sb.uc_activate_cdp_mode(card_link)
     sb.sleep(1)

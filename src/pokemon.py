@@ -1,6 +1,7 @@
 import fitz  # PyMuPDF
 import os
 from seleniumbase import Driver
+from datetime import datetime, timedelta
 import shutil
 
 POKEMON_EVENTS_BASE_URL = "https://events.pokemon.com"
@@ -10,9 +11,51 @@ POKEMON_RULES_URL = (
 )
 POKEMON_EVENTS_URL = f"{POKEMON_EVENTS_BASE_URL}/EventLocator/LocationDetail"
 POKEMON_PREMIER_EVENTS_URL = f"{POKEMON_EVENTS_BASE_URL}/EventLocator/Home"
+EVENT_DATE_FORMAT = "%b %d,%Y"
 
 
-def convert_pdf_to_png(in_file, out_file):
+class Pokemon_Event():
+    def __init__(
+        self,
+        name: str,
+        type: str,
+        location: str,
+        date: str,
+        logo: str,
+        premier: bool
+    ):
+        self.name = name
+        self.type = type
+        self.location = location
+        self.logo = logo
+        self.premier = premier
+
+        self._parse_date(date)
+
+    def _parse_date(self, date: str):
+        e_date = date.replace(", ", ",")
+        e_date = e_date[:3] + " " + e_date.split(" ")[1]
+
+        if "-" in e_date:
+            start_str = e_date[:6] + e_date[9:]
+            end_str = e_date[0:4] + e_date[7:]
+            self.start_date = datetime.strptime(
+                start_str, EVENT_DATE_FORMAT
+            )
+            self.end_date = datetime.strptime(
+                end_str, EVENT_DATE_FORMAT
+            ) + timedelta(days=1)
+            return
+
+        event_date = datetime.strptime(
+            e_date,
+            EVENT_DATE_FORMAT
+        )
+        self.start_date = event_date
+        self.end_date = event_date + timedelta(days=1)
+
+
+def convert_pdf_to_png(in_file: str, out_file: str):
     doc = fitz.open(in_file)  # open document
     for page in doc:  # iterate through the pages
         pix = page.get_pixmap(
@@ -21,7 +64,7 @@ def convert_pdf_to_png(in_file, out_file):
         pix.save(out_file)
 
 
-def get_decklist_pdf(output_filename):
+def get_decklist_pdf(output_filename: str):
     sb = Driver(uc=True, locale_code="en", ad_block=True, external_pdf=True)
     sb.uc_activate_cdp_mode(POKEMON_RULES_URL)
     sb.sleep(5)
@@ -56,14 +99,14 @@ def get_decklist_pdf(output_filename):
     shutil.rmtree('downloaded_files', ignore_errors=True)
 
 
-def get_decklist_png(output_filename="sign_up_sheet.png"):
+def get_decklist_png(output_filename: str = "sign_up_sheet.png"):
     get_decklist_pdf("tmp.pdf")
     convert_pdf_to_png("tmp.pdf", output_filename)
     # Clean up temporary files if necessary
     os.remove("tmp.pdf")
 
 
-def get_premier_events():
+def get_premier_events() -> list[Pokemon_Event]:
     sb = Driver(uc=True, locale_code="en", ad_block=True)
     sb.uc_activate_cdp_mode(POKEMON_PREMIER_EVENTS_URL)
     sb.sleep(5)
@@ -86,7 +129,7 @@ def get_premier_events():
     return events
 
 
-def get_store_events(guids=[]):
+def get_store_events(guids: list[str] = []) -> list[Pokemon_Event]:
     if len(guids) == 0:
         return []
 
@@ -111,7 +154,7 @@ def get_store_events(guids=[]):
     return events
 
 
-def extract_event_info(div, store=False):
+def extract_event_info(div, store: bool = False) -> Pokemon_Event:
     img = div.children[1].children[0].children[0].children[0]
     if store:
         img = img.children[0]
@@ -122,10 +165,12 @@ def extract_event_info(div, store=False):
     event_name = base.children[1].children[0].text
     event_loca = base.children[2].children[1].children[0].text
     event_date = base.children[3].children[1].children[0].text
-    return {
-        "logo": logo,
-        "type": event_type,
-        "name": event_name,
-        "location": event_loca,
-        "date": event_date
-    }
+    premier = not store
+    return Pokemon_Event(
+        event_name,
+        event_type,
+        event_loca,
+        event_date,
+        logo,
+        premier
+    )

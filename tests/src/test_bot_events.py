@@ -3,6 +3,7 @@ from datetime import datetime
 from unittest.mock import patch, MagicMock, AsyncMock
 from src.bot import Bot
 from src.helpers import MAINTENANCE_MODE_MESSAGE
+from src.pokemon import Pokemon_Event
 
 
 class MockCtx():
@@ -76,14 +77,36 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         mock_requests
     ):
         mock_premier_events.return_value = [
-            "e1", "e2", "e3"
+            Pokemon_Event(
+                e_name,
+                "e_type",
+                "e_location",
+                "January 1, 2025",
+                "e_logo",
+                True
+            )
+            for e_name in ["e1", "e2", "e3"]
         ]
         mock_store_events.return_value = {
             "abc-123": [
-                "event1"
+                Pokemon_Event(
+                    "event1",
+                    "e_type",
+                    "e_location",
+                    "January 1, 2025",
+                    "e_logo",
+                    False
+                )
             ],
             "xyz-123": [
-                "event2"
+                Pokemon_Event(
+                    "event2",
+                    "e_type",
+                    "e_location",
+                    "January 1, 2025",
+                    "e_logo",
+                    False
+                )
             ]
         }
         mock_requests.get.return_value = MagicMock(
@@ -182,34 +205,32 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         mock_year = datetime.now().date().year + 1
         mock_old_year = mock_year - 2
         eventlist = [
-            {
-                "logo": "test.png",
-                "type": "friendly",
-                "name": "e1",
-                "location": "hell",
-                "date": f"January 14-16,{mock_year}"
-            },
-            {
-                "logo": "test.png",
-                "type": "friendly",
-                "name": "e2",
-                "location": "hell",
-                "date": f"January 20,{mock_year}"
-            },
-            {
-                "logo": "test.png",
-                "type": "friendly",
-                "name": "e3",
-                "location": "hell",
-                "date": f"January 20,{mock_old_year}"
-            },
-            {
-                "logo": "test.png",
-                "type": "friendly",
-                "name": "event2",
-                "location": "hell",
-                "date": f"January 14-16,{mock_year}"
-            },
+            Pokemon_Event(
+                e["name"],
+                "friendly",
+                "hell",
+                e["date"],
+                "logo.png",
+                False
+            )
+            for e in [
+                {
+                    "name": "e1",
+                    "date": f"January 14-16,{mock_year}"
+                },
+                {
+                    "name": "e2",
+                    "date": f"January 20,{mock_year}"
+                },
+                {
+                    "name": "e3",
+                    "date": f"January 20,{mock_old_year}"
+                },
+                {
+                    "name": "event2",
+                    "date": f"January 14-16,{mock_year}"
+                }
+            ]
         ]
         b.print_event = MagicMock()
         b.print_event.return_value = "printed"

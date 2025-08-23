@@ -24,7 +24,7 @@ class AdminBot:
         status = "on" if self.maintenance else "off"
         await ctx.respond(f"Maintenance mode: {status}", ephemeral=True)
 
-    async def toggle_maintenance(self, ctx, password):
+    async def toggle_maintenance(self, ctx, password: str):
         await ctx.defer(ephemeral=True)
 
         if password != self.password:
