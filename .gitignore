@@ -213,6 +213,7 @@ config.json
 newsfeed_channels.json
 sign_up_sheet.png
 events_data.json
+user_decklists.json
 
 # artifacts from chrome headless browser
 downloaded_files/

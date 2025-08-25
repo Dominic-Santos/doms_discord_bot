@@ -215,7 +215,7 @@ class DecklistBot:
                 trainers = deck_data["deck"]["trainers"]
                 sorted_trainers = sorted(trainers.keys())
                 deck_info += "\n".join(
-                    f"\t{trainers[t]}x {t}"
+                    f"\t{trainers[t]['quantity']}x {t}"
                     for t in sorted_trainers
                 )
             if (
@@ -226,7 +226,7 @@ class DecklistBot:
                 energies = deck_data["deck"]["energies"]
                 sorted_energies = sorted(energies.keys())
                 deck_info += "\n".join(
-                    f"\t{energies[t]}x {t}"
+                    f"\t{energies[t]['quantity']}x {t}"
                     for t in sorted_energies
                 )
 

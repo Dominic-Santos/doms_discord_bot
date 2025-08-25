@@ -385,10 +385,14 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
                             }
                         ],
                         "trainers": {
-                            "switch": 3
+                            "switch": {
+                                "quantity": 3
+                            }
                         },
                         "energies": {
-                            "lightning": 2
+                            "lightning": {
+                                "quantity": 2
+                            }
                         }
                     }
                 }
