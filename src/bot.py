@@ -20,6 +20,7 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot, EventsBot):
         self.logger = create_logger("decklist_bot", filename="logs/bot.log")
 
         self.load_legal_cards()
+        self.load_user_decklists()
         self.load_tournament_channels()
         self.load_newsfeed_channels()
         self.load_events_data()

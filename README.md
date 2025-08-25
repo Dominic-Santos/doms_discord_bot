@@ -98,9 +98,10 @@ Some commands are intended for server administrators only. It’s recommended to
 
 > Check whether the bot is currently in maintenance mode.
 
-### /admin toggle_maintenance <password>
+### /admin toggle_maintenance {password}
 
 > Toggles maintenance mode on or off. Requires the bot admin password.
+> * `password`: defined in the config file
 
 ### /admin set_tournament_channel
 
@@ -131,12 +132,12 @@ Some commands are intended for server administrators only. It’s recommended to
 
 > Stop following big events and tournament
 
-### /events follow_store <guid>
+### /events follow_store {guid}
 
 > Follow events of a store.
 > * `guid`: find the store in the [pokemon event finder](https://events.pokemon.com/EventLocator/), and copy the guid from the url
 
-### /events unfollow_store <guid>
+### /events unfollow_store {guid}
 
 > Stop following events of a store.
 > * `guid`: find the store in the [pokemon event finder](https://events.pokemon.com/EventLocator/), and copy the guid from the url
@@ -165,18 +166,46 @@ Some commands are intended for server administrators only. It’s recommended to
 
 > Check for and fetch new newsfeed articles.
 
-### /decklist check <deck_url>
+### /decklist check_url {limitless_url}
 
-> Validates whether a decklist is Standard legal.
-> * `deck_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**.
+> Validates whether a limitless url decklist is Standard legal.
+> * `limitless_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**.
 
-### /tournament signup <name> <pokemon_id> <year_of_birth> <deck_url>
+### /decklist create {name} {limitless_url}
+> Save a deck to be used later, can be used for tournament signups, if a deck with the same name exists, its overwritten.
+> * `name`: User defined deck name
+> * `limitless_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**.
+
+### /decklist delete {name}
+> Delete a saved deck.
+> * `name`: The deck to delete
+
+### /decklist info {name}
+> Show information on a saved deck, if it's standard legal, last time it was checked, cards in the deck and any errors the deck may have.
+> * `name`: The deck to show info
+
+### /decklist check {name}
+> Check if a saved game is standard legal.
+> * `name`: The deck to check
+
+### /decklist list
+> List all saved decks.
+
+### /tournament signup {name} {pokemon_id} {year_of_birth} {deck_name}
 
 > Sign up for a tournament. If the deck is Standard legal, the sign-up info is posted to the tournament output channel.
 > * `name`: User’s first and last name  
 > * `pokemon_id`: User’s Pokémon ID  
 > * `year_of_birth`: User’s year of birth  
-> * `deck_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**
+> * `deck_name`: Name of the saved deck
+
+### /tournament signup_url {name} {pokemon_id} {year_of_birth} {limitless_url}
+
+> Sign up for a tournament. If the deck is Standard legal, the sign-up info is posted to the tournament output channel.
+> * `name`: User’s first and last name  
+> * `pokemon_id`: User’s Pokémon ID  
+> * `year_of_birth`: User’s year of birth  
+> * `limitless_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**
 
 ## Timed Tasks
 
