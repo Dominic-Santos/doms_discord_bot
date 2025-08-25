@@ -422,9 +422,7 @@ class DecklistBot:
             )
             return
 
-        valid, error = await self.tournament_signup_response(
-            ctx, channel, full_name, pokemon_id, year_of_birth, limitless_url
-        )
+        valid, error = validate_decklist(deck_data["deck"], self.legal_cards)
 
         self.user_decklists[user_id][deck_name].update(
             {
@@ -433,25 +431,31 @@ class DecklistBot:
                 "last_checked": str(datetime.now().date())
             }
         )
+
         self.save_user_decklists()
 
-    async def tournament_signup_response(
-        self,
-        ctx,
-        channel,
-        full_name: str,
-        pokemon_id: int,
-        year_of_birth: int,
-        limitless_url: str,
-    ) -> tuple[bool, str]:
-        valid, deck_data, error = self.do_decklist_check(limitless_url)
         if not valid:
             await ctx.respond(
                 f"Decklist is not valid: {error}",
                 ephemeral=True
             )
-            return valid, error
+            return
 
+        await self.tournament_signup_response(
+            ctx, channel, deck_data["deck"], full_name,
+            pokemon_id, year_of_birth, limitless_url
+        )
+
+    async def tournament_signup_response(
+        self,
+        ctx,
+        channel,
+        deck_data,
+        full_name: str,
+        pokemon_id: int,
+        year_of_birth: int,
+        limitless_url: str,
+    ):
         output_filename = f"sign_up_sheet_{ctx.guild.id}_{ctx.author.id}.png"
 
         fill_sheet(
@@ -482,7 +486,6 @@ class DecklistBot:
         )
 
         os.remove(output_filename)  # Clean up the temporary file
-        return True, ""
 
     async def tournament_signup_url(
         self,
@@ -516,8 +519,17 @@ class DecklistBot:
             )
             return
 
-        valid, error = await self.tournament_signup_response(
-            ctx, channel, full_name, pokemon_id, year_of_birth, limitless_url
+        valid, deck_data, error = self.do_decklist_check(limitless_url)
+        if not valid:
+            await ctx.respond(
+                f"Decklist is not valid: {error}",
+                ephemeral=True
+            )
+            return valid, error
+
+        await self.tournament_signup_response(
+            ctx, channel, deck_data, full_name, pokemon_id,
+            year_of_birth, limitless_url
         )
 
     async def update_signup_sheet(self, ctx):

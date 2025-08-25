@@ -442,10 +442,17 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
 
         mock_sign_up_sheet.return_value = True
         b.tournament_signup_response = AsyncMock()
-        b.tournament_signup_response.return_value = (False, "the error")
+        mock_validate.return_value = (False, "the error")
         await b.tournament_signup(mock_ctx, "first last", 12, 2000, "deckname")
         assert b.user_decklists["303"]["deckname"]["valid"] is False
         assert b.user_decklists["303"]["deckname"]["error"] == "the error"
         assert b.user_decklists["303"]["deckname"]["last_checked"] == (
             str(datetime.now().date())
         )
+        assert b.tournament_signup_response.call_count == 0
+
+        mock_validate.return_value = (True, "")
+        await b.tournament_signup(mock_ctx, "first last", 12, 2000, "deckname")
+        assert b.user_decklists["303"]["deckname"]["valid"]
+        assert b.user_decklists["303"]["deckname"]["error"] == ""
+        assert b.tournament_signup_response.call_count == 1
