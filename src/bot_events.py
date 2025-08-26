@@ -258,6 +258,9 @@ class EventsBot:
             if event.start_date < datetime.now():
                 continue
 
+            if event.type.lower().strip().startswith("league"):
+                continue
+
             already_exists = False
             for g_event in bot_events:
                 g_start = g_event.start_time.replace(tzinfo=None)

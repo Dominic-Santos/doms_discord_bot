@@ -207,7 +207,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         eventlist = [
             Pokemon_Event(
                 e["name"],
-                "friendly",
+                e["type"],
                 "hell",
                 e["date"],
                 "logo.png",
@@ -216,19 +216,28 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
             for e in [
                 {
                     "name": "e1",
+                    "type": "friendly",
                     "date": f"January 14-16,{mock_year}"
                 },
                 {
                     "name": "e2",
+                    "type": "friendly",
                     "date": f"January 20,{mock_year}"
                 },
                 {
                     "name": "e3",
+                    "type": "friendly",
                     "date": f"January 20,{mock_old_year}"
                 },
                 {
                     "name": "event2",
+                    "type": "friendly",
                     "date": f"January 14-16,{mock_year}"
+                },
+                {
+                    "name": "event2",
+                    "date": f"January 14-16,{mock_year}",
+                    "type": "League"
                 }
             ]
         ]
