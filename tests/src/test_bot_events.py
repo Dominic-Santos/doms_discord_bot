@@ -3,7 +3,7 @@ from datetime import datetime
 from unittest.mock import patch, MagicMock, AsyncMock
 from src.bot import Bot
 from src.helpers import MAINTENANCE_MODE_MESSAGE
-from src.pokemon import Pokemon_Event
+from src.pokemon import PokemonEvent
 
 
 class MockCtx():
@@ -16,10 +16,6 @@ class MockCtx():
 
     async def defer(self, ephemeral=False):
         return
-
-
-def raise_exception():
-    raise Exception("testing")
 
 
 class MockEvent():
@@ -59,7 +55,7 @@ class MockUpdateGuildEvent():
 
 class TestBotEvents(unittest.IsolatedAsyncioTestCase):
 
-    @patch("src.bot_events.requests")
+    @patch("src.pokemon.requests")
     @patch("src.bot_events.get_store_events")
     @patch("src.bot_events.get_premier_events")
     @patch("src.bot_events.json")
@@ -77,7 +73,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         mock_requests
     ):
         mock_premier_events.return_value = [
-            Pokemon_Event(
+            PokemonEvent(
                 e_name,
                 "e_type",
                 "e_location",
@@ -89,7 +85,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         ]
         mock_store_events.return_value = {
             "abc-123": [
-                Pokemon_Event(
+                PokemonEvent(
                     "event1",
                     "e_type",
                     "e_location",
@@ -99,7 +95,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
                 )
             ],
             "xyz-123": [
-                Pokemon_Event(
+                PokemonEvent(
                     "event2",
                     "e_type",
                     "e_location",
@@ -118,18 +114,13 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         mock_bot = MagicMock(user=MagicMock(id="im_a_bot"))
         mock_discord.Bot.return_value = mock_bot
 
-        try:
-            raise_exception()
-        except Exception as e:
-            assert str(e) == "testing"
-
         b = Bot("faketoken", False, "123")
         mock_json.load.assert_called_once()
 
         b.save_events_data()
         mock_json.dump.assert_called_once()
 
-        mock_json.dump = raise_exception
+        mock_json.dump.side_effect = Exception("failed")
         b.save_events_data()
         mock_logger_instance.error.assert_called_once()
 
@@ -205,7 +196,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         mock_year = datetime.now().date().year + 1
         mock_old_year = mock_year - 2
         eventlist = [
-            Pokemon_Event(
+            PokemonEvent(
                 e["name"],
                 e["type"],
                 "hell",
@@ -262,6 +253,22 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
 
         b.premier_following["123"] = True
         b.events_following["123"] = ["abc-123"]
+
+        mock_premier_events.side_effect = Exception("error1")
+        mock_store_events.side_effect = Exception("error2")
+
+        await b.sync_events(mock_ctx)
+        assert mock_ctx.last_response.startswith(
+            "Error fetching premier events: error1"
+        )
+
+        mock_premier_events.side_effect = None
+        await b.sync_events(mock_ctx)
+        assert mock_ctx.last_response.startswith(
+            "Error fetching store events: error2"
+        )
+
+        mock_store_events.side_effect = None
         await b.sync_events(mock_ctx)
         assert mock_ctx.last_response == "Events synced successfully!"
         assert len(mock_updater.calls) == 1
@@ -302,3 +309,17 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         b.maintenance = False
         await b.sync_events_task()
         assert len(mock_updater.calls) == 2
+
+        mock_updater.calls = []
+        mock_premier_events.side_effect = Exception("error1")
+        mock_store_events.side_effect = Exception("error2")
+        error_calls = mock_logger_instance.error.call_count
+        await b.sync_events_task()
+        assert len(mock_updater.calls) == 0
+        assert mock_logger_instance.error.call_count == error_calls + 1
+
+        mock_premier_events.side_effect = None
+        error_calls = mock_logger_instance.error.call_count
+        await b.sync_events_task()
+        assert len(mock_updater.calls) == 0
+        assert mock_logger_instance.error.call_count == error_calls + 1

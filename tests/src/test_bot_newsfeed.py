@@ -26,10 +26,6 @@ async def mock_empty_func():
     return
 
 
-def raise_exception():
-    raise Exception("test error")
-
-
 class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
     @patch("src.bot.create_logger")
@@ -46,12 +42,7 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
-        try:
-            raise_exception()
-        except Exception as e:
-            assert str(e) == "test error"
-
-        mock_nf_json.load = raise_exception
+        mock_nf_json.load.side_effect = Exception("failed")
 
         b = Bot("faketoken", False, "123")
 
@@ -66,7 +57,7 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
         mock_bot.run.assert_called_once()
 
-        mock_nf_json.dump = raise_exception
+        mock_nf_json.dump.side_effect = Exception("failed")
         b.save_newsfeed_channels()
         mock_logger_instance.error.assert_called_once()
 

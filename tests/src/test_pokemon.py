@@ -1,7 +1,8 @@
 import os
 from src.pokemon import (
     get_decklist_png, get_decklist_pdf, convert_pdf_to_png,
-    get_premier_events, get_store_events, extract_event_info
+    get_premier_events, get_store_events, extract_event_info,
+    PokemonEvent, get_logo
 )
 from unittest.mock import patch, call, MagicMock
 
@@ -148,6 +149,15 @@ MOCK_EVENT_DATA = {
     "date": "January 14-16,2025"
 }
 
+MOCK_EVENT = PokemonEvent(
+    MOCK_EVENT_DATA["name"],
+    MOCK_EVENT_DATA["type"],
+    MOCK_EVENT_DATA["location"],
+    MOCK_EVENT_DATA["date"],
+    MOCK_EVENT_DATA["logo"],
+    False
+)
+
 
 def test_extract_event_info():
     mock_e_div = MockEventDiv(MOCK_EVENT_DATA, store=True)
@@ -196,7 +206,7 @@ def test_get_premier_events(
     mock_driver,
     mock_extract
 ):
-    mock_extract.return_value = MOCK_EVENT_DATA
+    mock_extract.return_value = MOCK_EVENT
     mock_driver_instance = mock_driver.return_value
     mock_driver_instance.cdp.find_visible_elements.return_value = [
         MagicMock()
@@ -216,8 +226,29 @@ def test_get_premier_events(
 
     results = get_premier_events()
 
-    assert mock_driver_instance.sleep.call_count == 3
-    assert mock_extract.call_count == 3
     mock_driver_instance.quit.assert_called_once()
     assert len(results) == 3
-    assert results[0] == MOCK_EVENT_DATA
+    assert results[0].name == MOCK_EVENT.name
+
+
+@patch('builtins.open')
+@patch('src.pokemon.urlretrieve')
+@patch('src.pokemon.requests.get')
+def test_get_logo(mock_get, mock_retrieve, mock_open):
+    vector_img = "data:image/gif;base64,randomstringofletters"
+    other_img = "logo.png"
+
+    mock_retrieve.return_value = ("filename", None)
+    mock_get.return_value = MagicMock(
+        content="contenttest",
+        status_code=200
+    )
+    mock_open.return_value = MagicMock(
+        read=MagicMock(return_value="readtest")
+    )
+
+    logo = get_logo(vector_img)
+    assert logo == "readtest"
+
+    logo = get_logo(other_img)
+    assert logo == "contenttest"

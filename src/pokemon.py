@@ -3,6 +3,8 @@ import os
 from seleniumbase import Driver
 from datetime import datetime, timedelta
 import shutil
+from urllib.request import urlretrieve
+import requests
 
 POKEMON_EVENTS_BASE_URL = "https://events.pokemon.com"
 POKEMON_RULES_URL = (
@@ -14,7 +16,7 @@ POKEMON_PREMIER_EVENTS_URL = f"{POKEMON_EVENTS_BASE_URL}/EventLocator/Home"
 EVENT_DATE_FORMAT = "%b %d,%Y"
 
 
-class Pokemon_Event():
+class PokemonEvent():
     def __init__(
         self,
         name: str,
@@ -106,10 +108,11 @@ def get_decklist_png(output_filename: str = "sign_up_sheet.png"):
     os.remove("tmp.pdf")
 
 
-def get_premier_events() -> list[Pokemon_Event]:
+def get_premier_events() -> list[PokemonEvent]:
     sb = Driver(uc=True, locale_code="en", ad_block=True)
     sb.uc_activate_cdp_mode(POKEMON_PREMIER_EVENTS_URL)
-    sb.sleep(5)
+    sb.sleep(10)
+
     tabs = sb.cdp.find_visible_elements("button.osui-tabs__header-item")
 
     if len(tabs) < 2:
@@ -117,6 +120,22 @@ def get_premier_events() -> list[Pokemon_Event]:
 
     tabs[1].click()
     sb.sleep(2)
+
+    # scroll to end of page to let more events load
+    prev_event = None
+    while True:
+        events = sb.cdp.find_visible_elements("div.map-location-card")
+        last_event = events[-1]
+        event_info = extract_event_info(last_event)
+        if prev_event is not None and event_info.name == prev_event.name:
+            break
+        prev_event = event_info
+        last_event.scroll_into_view()
+        sb.sleep(1)
+        sb.cdp.scroll_up(amount=25)
+        sb.sleep(1)
+        sb.cdp.scroll_down(amount=25)
+        sb.sleep(5)
 
     events = []
 
@@ -129,7 +148,7 @@ def get_premier_events() -> list[Pokemon_Event]:
     return events
 
 
-def get_store_events(guids: list[str] = []) -> list[Pokemon_Event]:
+def get_store_events(guids: list[str] = []) -> list[PokemonEvent]:
     if len(guids) == 0:
         return []
 
@@ -138,7 +157,7 @@ def get_store_events(guids: list[str] = []) -> list[Pokemon_Event]:
 
     for guid in guids:
         sb.uc_activate_cdp_mode(f"{POKEMON_EVENTS_URL}?guid={guid}")
-        sb.sleep(5)
+        sb.sleep(10)
 
         events[guid] = []
 
@@ -154,7 +173,7 @@ def get_store_events(guids: list[str] = []) -> list[Pokemon_Event]:
     return events
 
 
-def extract_event_info(div, store: bool = False) -> Pokemon_Event:
+def extract_event_info(div, store: bool = False) -> PokemonEvent:
     img = div.children[1].children[0].children[0].children[0]
     if store:
         img = img.children[0]
@@ -166,7 +185,7 @@ def extract_event_info(div, store: bool = False) -> Pokemon_Event:
     event_loca = base.children[2].children[1].children[0].text
     event_date = base.children[3].children[1].children[0].text
     premier = not store
-    return Pokemon_Event(
+    return PokemonEvent(
         event_name,
         event_type,
         event_loca,
@@ -174,3 +193,16 @@ def extract_event_info(div, store: bool = False) -> Pokemon_Event:
         logo,
         premier
     )
+
+
+def get_logo(url: str) -> bytes:
+    if ";base64," in url:
+        filename, _ = urlretrieve(url)
+        f = open(filename, "rb")
+        return f.read()
+
+    full_url = f"{POKEMON_EVENTS_BASE_URL}{url}"
+    response = requests.get(full_url)
+
+    if response.status_code == 200:
+        return response.content

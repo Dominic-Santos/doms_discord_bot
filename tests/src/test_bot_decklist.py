@@ -32,10 +32,6 @@ class MockCtx():
         self.last_send = message
 
 
-def raise_exception():
-    raise Exception("test error")
-
-
 class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
 
     @patch("src.bot_decklist.os.remove")
@@ -63,18 +59,13 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
 
-        try:
-            raise_exception()
-        except Exception as e:
-            assert str(e) == "test error"
-
-        mock_dl_json.load = raise_exception
+        mock_dl_json.load.side_effect = Exception("failed")
 
         b = Bot("faketoken", False, "123")
 
         assert b.tournament_channels == {}
 
-        mock_dl_json.dump = raise_exception
+        mock_dl_json.dump.side_effect = Exception("failed")
         b.save_tournament_channels()
         mock_logger_instance.error.assert_called_once()
         b.save_user_decklists()
@@ -212,7 +203,7 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
 
-        mock_sign_sheet.raiseError.side_effect = raise_exception
+        mock_sign_sheet.side_effect = Exception("failed")
 
         def mock_do_update_sheet():
             return Exception("Test")
@@ -288,8 +279,8 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
     ):
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
-        mock_dl_json.load = raise_exception
-        mock_dl_json.dump = raise_exception
+        mock_dl_json.load.side_effect = Exception("failed")
+        mock_dl_json.dump.side_effect = Exception("failed")
 
         mock_ctx = MockCtx()
         b = Bot("faketoken", False, "123")

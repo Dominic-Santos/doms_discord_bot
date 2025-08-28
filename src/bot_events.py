@@ -1,11 +1,10 @@
 import json
 import discord
-import requests
 from datetime import datetime, timedelta
 
 from .pokemon import (
     get_store_events, get_premier_events,
-    POKEMON_EVENTS_BASE_URL, Pokemon_Event
+    PokemonEvent, get_logo
 )
 from .helpers import MAINTENANCE_MODE_MESSAGE, CustomThread
 
@@ -185,13 +184,21 @@ class EventsBot:
         if premier:
             t = CustomThread(get_premier_events)
             t.start()
-            data, _ = t.join()
-            events += data
+            premier_events, error = t.join()
+            if error is not None:
+                await ctx.respond(f"Error fetching premier events: {error}")
+                return
+            events += premier_events
 
         if len(stores) > 0:
             t = CustomThread(get_store_events, kwargs={"guids": stores})
             t.start()
-            store_events, _ = t.join()
+            store_events, error = t.join()
+
+            if error is not None:
+                await ctx.respond(f"Error fetching store events: {error}")
+                return
+
             for store in stores:
                 for event in store_events[store]:
                     events.append(event)
@@ -241,7 +248,7 @@ class EventsBot:
     async def update_guild_events(
         self,
         guild_id: int,
-        events: list[Pokemon_Event]
+        events: list[PokemonEvent]
     ):
         guild = await self.bot.fetch_guild(guild_id)
         channel = self.event_channels.get(str(guild_id), None)
@@ -286,11 +293,9 @@ class EventsBot:
                 "end_time": event.end_date
             }
 
-            url = f"{POKEMON_EVENTS_BASE_URL}{event.logo}"
-            response = requests.get(url)
-
-            if response.status_code == 200:
-                kwargs["image"] = response.content
+            logo_bytes = get_logo(event.logo)
+            if logo_bytes is not None:
+                kwargs["image"] = logo_bytes
 
             new_event = await guild.create_scheduled_event(**kwargs)
 
@@ -372,14 +377,21 @@ class EventsBot:
         if get_premier:
             t = CustomThread(get_premier_events)
             t.start()
-            data, _ = t.join()
-            premier_events = data
+            premier_events, error = t.join()
+
+            if error is not None:
+                self.logger.error(f"Error fetching premier events: {error}")
+                return
 
         store_events = {}
         if len(unique_guids) > 0:
             t = CustomThread(get_store_events, kwargs={"guids": unique_guids})
             t.start()
-            store_events, _ = t.join()
+            store_events, error = t.join()
+
+            if error is not None:
+                self.logger.error(f"Error fetching store events: {error}")
+                return
 
         premier_servers = list(self.premier_following.keys())
         store_servers = list(self.events_following.keys())
