@@ -81,7 +81,7 @@ Some commands are intended for server administrators only. It’s recommended to
 **User Commands:**
 * /help
 * /about
-* /decklist
+* /deck
 * /tournament
 
 ## Commands
