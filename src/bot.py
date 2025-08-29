@@ -28,6 +28,9 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot, EventsBot):
 
     def add_commands(self):
         self.admin = self.bot.create_group("admin", "Admin commands")
+        self.admin_pokemon = self.admin.create_subgroup(
+            "pokemon", "pokemon tcg"
+        )
         self.add_event_commands()
         self.add_newsfeed_commands()
         self.add_legal_cards_commands()

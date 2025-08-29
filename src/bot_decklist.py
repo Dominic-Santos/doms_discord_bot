@@ -56,9 +56,19 @@ class DecklistBot:
         tournament = self.bot.create_group(
             "tournament", "Manage tournament sign-ups"
         )
-        decklist = self.bot.create_group("decklist", "Manage your deck")
+        decklist = self.bot.create_group(
+            "deck", "Manage your decks"
+        )
+        pokemon_tournament = tournament.create_subgroup(
+            "pokemon", "Manage Pokémon tournaments"
+        )
+        pokemon_decklist = decklist.create_subgroup(
+            "pokemon", "Manage Pokémon decklists"
+        )
 
-        @decklist.command(description="Check a decklist is standard legal")
+        @pokemon_decklist.command(
+            description="Check a limitless decklist is standard legal"
+        )
         async def check_url(
             ctx,
             limitless_url: discord.Option(
@@ -69,7 +79,9 @@ class DecklistBot:
                 ctx, limitless_url
             )  # pragma: no cover
 
-        @decklist.command(description="Check a decklist is standard legal")
+        @pokemon_decklist.command(
+            description="Check a saved deck is standard legal"
+        )
         async def check(
             ctx,
             name: discord.Option(
@@ -78,7 +90,7 @@ class DecklistBot:
         ):
             await self.decklist_check(ctx, name)  # pragma: no cover
 
-        @decklist.command(description="Create a decklist")
+        @pokemon_decklist.command(description="Create a deck")
         async def create(
             ctx,
             name: discord.Option(
@@ -92,7 +104,7 @@ class DecklistBot:
                 ctx, name, limitless_url
             )  # pragma: no cover
 
-        @decklist.command(description="Create a decklist")
+        @pokemon_decklist.command(description="Delete a saved deck")
         async def delete(
             ctx,
             name: discord.Option(
@@ -101,11 +113,11 @@ class DecklistBot:
         ):
             await self.decklist_delete(ctx, name)  # pragma: no cover
 
-        @decklist.command(name="list", description="Create a decklist")
+        @pokemon_decklist.command(name="list", description="List saved decks")
         async def list_all(ctx):
             await self.decklist_list(ctx)  # pragma: no cover
 
-        @decklist.command(description="Create a decklist")
+        @pokemon_decklist.command(description="Show deck info")
         async def info(
             ctx,
             name: discord.Option(
@@ -114,7 +126,7 @@ class DecklistBot:
         ):
             await self.decklist_info(ctx, name)  # pragma: no cover
 
-        @tournament.command(
+        @pokemon_tournament.command(
             description="Sign up for a tournament with a limitless url"
         )
         async def signup_url(
@@ -136,8 +148,8 @@ class DecklistBot:
                 ctx, name, pokemon_id, year_of_birth, limitless_url
             )  # pragma: no cover
 
-        @tournament.command(
-            description="Sign up for a tournament with a saved decklist"
+        @pokemon_tournament.command(
+            description="Sign up for a tournament with a saved deck"
         )
         async def signup(
             ctx,
@@ -158,17 +170,17 @@ class DecklistBot:
                 ctx, name, pokemon_id, year_of_birth, deck_name
             )  # pragma: no cover
 
-        @self.admin.command(description="Update the sign-up sheet")
+        @self.admin_pokemon.command(description="Update the sign-up sheet")
         async def update_signup_sheet(ctx):
             await self.update_signup_sheet(ctx)  # pragma: no cover
 
-        @self.admin.command(
+        @self.admin_pokemon.command(
             description="Set the output channel for tournament sign-ups"
         )
         async def set_tournament_channel(ctx):
             await self.set_tournament_channel(ctx)  # pragma: no cover
 
-        @self.admin.command(
+        @self.admin_pokemon.command(
             description="Test output channel for tournament sign-ups"
         )
         async def test_tournament_channel(ctx):

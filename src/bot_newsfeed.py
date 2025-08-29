@@ -22,16 +22,17 @@ class NewsfeedBot:
 
     def add_newsfeed_commands(self):
         newsfeed = self.bot.create_group("newsfeed", "Manage newsfeed posts")
+        pokemon = newsfeed.create_subgroup("pokemon", "pokemon tcg")
 
-        @newsfeed.command(description="Set the newsfeed channel")
+        @pokemon.command(description="Set the newsfeed channel")
         async def set_channel(ctx):
             await self.set_newsfeed_channel(ctx)  # pragma: no cover
 
-        @newsfeed.command(description="Check for newsfeed updates")
+        @pokemon.command(description="Check for newsfeed updates")
         async def update(ctx):
             await self.get_newsfeed(ctx)  # pragma: no cover
 
-        @newsfeed.command(description="Disable newsfeed updates")
+        @pokemon.command(description="Disable newsfeed updates")
         async def disable(ctx):
             await self.disable_newsfeed(ctx)  # pragma: no cover
 

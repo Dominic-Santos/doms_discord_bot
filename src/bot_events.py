@@ -37,26 +37,27 @@ class EventsBot:
 
     def add_event_commands(self):
         events = self.bot.create_group("events", "Events commands")
+        pokemon = events.create_subgroup("pokemon", "pokemon tcg")
 
-        @events.command(
+        @pokemon.command(
             name="follow_premier",
             description="Follow premier events"
         )
         async def follow_premier_events(ctx):
             await self.follow_premier_events(ctx)  # pragma: no cover
 
-        @events.command(
+        @pokemon.command(
             name="unfollow_premier",
             description="Unfollow premier events"
         )
         async def unfollow_premier_events(ctx):
             await self.unfollow_premier_events(ctx)  # pragma: no cover
 
-        @events.command(description="Unfollow all store events")
+        @pokemon.command(description="Unfollow all store events")
         async def unfollow_all(ctx):
             await self.unfollow_all_events(ctx)  # pragma: no cover
 
-        @events.command(
+        @pokemon.command(
             name="follow_store",
             description="Follow store events"
         )
@@ -68,7 +69,7 @@ class EventsBot:
         ):
             await self.follow_events(ctx, guid)  # pragma: no cover
 
-        @events.command(
+        @pokemon.command(
             name="unfollow_store",
             description="Unfollow store events"
         )
@@ -80,22 +81,22 @@ class EventsBot:
         ):
             await self.unfollow_events(ctx, guid)  # pragma: no cover
 
-        @events.command(
+        @pokemon.command(
             name="sync",
             description="Sync events"
         )
         async def sync_events(ctx):
             await self.sync_events(ctx)  # pragma: no cover
 
-        @events.command(description="Cancel all events")
+        @pokemon.command(description="Cancel all events")
         async def delete_all(ctx):
             await self.delete_all_events(ctx)  # pragma: no cover
 
-        @events.command(description="Set event updates channel")
+        @pokemon.command(description="Set event updates channel")
         async def set_channel(ctx):
             await self.set_events_channel(ctx)  # pragma: no cover
 
-        @events.command(description="Remove event updates channel")
+        @pokemon.command(description="Remove event updates channel")
         async def remove_channel(ctx):
             await self.remove_events_channel(ctx)  # pragma: no cover
 

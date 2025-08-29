@@ -94,104 +94,104 @@ Some commands are intended for server administrators only. It’s recommended to
 
 > Information about the bot and its creator — me! 😊
 
-### /admin check_maintenance
+### /admin maintenance check
 
 > Check whether the bot is currently in maintenance mode.
 
-### /admin toggle_maintenance {password}
+### /admin maintenance toggle {password}
 
 > Toggles maintenance mode on or off. Requires the bot admin password.
 > * `password`: defined in the config file
 
-### /admin set_tournament_channel
+### /admin pokemon set_tournament_channel
 
 > Set the current channel as the output for tournament sign-up messages.
 > It’s recommended to use a hidden channel visible only to staff.
 
-### /admin test_tournament_channel
+### /admin pokemon test_tournament_channel
 
 > Send a generic message to the tournament sign-up output channel.
 
-### /admin update_legal_cards
+### /admin pokemon update_legal_cards
 
 > Updates the standard legal card data. This is used for deck checks and tournament sign-ups.
 
-### /admin update_signup_sheet
+### /admin pokemon update_signup_sheet
 
 > Updates the tournament sign-up sheet.
 
-### /events delete_all
+### /events pokemon delete_all
 
 > Delete all discord events created by the bot
 
-### /events follow_premier
+### /events pokemon follow_premier
 
 > Follow big events and tournaments like the world cup
 
-### /events unfollow_premier
+### /events pokemon unfollow_premier
 
 > Stop following big events and tournament
 
-### /events follow_store {guid}
+### /events pokemon follow_store {guid}
 
 > Follow events of a store.
 > * `guid`: find the store in the [pokemon event finder](https://events.pokemon.com/EventLocator/), and copy the guid from the url
 
-### /events unfollow_store {guid}
+### /events pokemon unfollow_store {guid}
 
 > Stop following events of a store.
 > * `guid`: find the store in the [pokemon event finder](https://events.pokemon.com/EventLocator/), and copy the guid from the url
 
-### /events unfollow_all
+### /events pokemon unfollow_all
 
 > Stop following all premier and store events.
 
-### /events sync
+### /events pokemon sync
 
 > Sync all followed events with discord events.
 
-### /events set_channel
+### /events pokemon set_channel
 
 > Set the current channel to receive event update notifications.
 
-### /events remove_channel
+### /events pokemon remove_channel
 
 > Stop receiving event update notifications.
 
-### /newsfeed set_channel
+### /newsfeed pokemon set_channel
 
 > Set the current channel to receive newsfeed updates.
 
-### /newsfeed update
+### /newsfeed pokemon update
 
 > Check for and fetch new newsfeed articles.
 
-### /decklist check_url {limitless_url}
+### /deck pokemon check_url {limitless_url}
 
 > Validates whether a limitless url decklist is Standard legal.
 > * `limitless_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**.
 
-### /decklist create {name} {limitless_url}
+### /deck pokemon create {name} {limitless_url}
 > Save a deck to be used later, can be used for tournament signups, if a deck with the same name exists, its overwritten.
 > * `name`: User defined deck name
 > * `limitless_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**.
 
-### /decklist delete {name}
+### /deck pokemon delete {name}
 > Delete a saved deck.
 > * `name`: The deck to delete
 
-### /decklist info {name}
+### /deck pokemon info {name}
 > Show information on a saved deck, if it's standard legal, last time it was checked, cards in the deck and any errors the deck may have.
 > * `name`: The deck to show info
 
-### /decklist check {name}
+### /deck pokemon check {name}
 > Check if a saved game is standard legal.
 > * `name`: The deck to check
 
-### /decklist list
+### /deck pokemon list
 > List all saved decks.
 
-### /tournament signup {name} {pokemon_id} {year_of_birth} {deck_name}
+### /tournament pokemon signup {name} {pokemon_id} {year_of_birth} {deck_name}
 
 > Sign up for a tournament. If the deck is Standard legal, the sign-up info is posted to the tournament output channel.
 > * `name`: User’s first and last name  
@@ -199,7 +199,7 @@ Some commands are intended for server administrators only. It’s recommended to
 > * `year_of_birth`: User’s year of birth  
 > * `deck_name`: Name of the saved deck
 
-### /tournament signup_url {name} {pokemon_id} {year_of_birth} {limitless_url}
+### /tournament pokemon signup_url {name} {pokemon_id} {year_of_birth} {limitless_url}
 
 > Sign up for a tournament. If the deck is Standard legal, the sign-up info is posted to the tournament output channel.
 > * `name`: User’s first and last name  

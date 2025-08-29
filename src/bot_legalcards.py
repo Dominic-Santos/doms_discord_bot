@@ -18,7 +18,7 @@ class LegalCardsBot:
             self.legal_cards = None
 
     def add_legal_cards_commands(self):
-        @self.admin.command(
+        @self.admin_pokemon.command(
             description="Sync the legal cards list for deck validation"
         )
         async def update_legal_cards(ctx):
