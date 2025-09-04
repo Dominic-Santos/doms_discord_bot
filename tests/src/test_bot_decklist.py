@@ -1,14 +1,7 @@
 import unittest
-from datetime import datetime
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, MagicMock
 from src.bot import Bot
 from src.helpers import MAINTENANCE_MODE_MESSAGE
-from src.bot_decklist import (
-    OUTPUT_CHANNEL_NOT_SET_ERROR,
-    OUTPUT_CHANNEL_NOT_FOUND_ERROR,
-    TEST_MESSAGE,
-    SIGN_UP_SHEET_MISSING_ERROR
-)
 
 
 class MockCtx():
@@ -28,32 +21,23 @@ class MockCtx():
     async def defer(self, ephemeral=False):
         return
 
-    async def send(self, message, *args, **kwargs):
-        self.last_send = message
-
 
 class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
 
-    @patch("src.bot_decklist.os.remove")
-    @patch("src.bot_decklist.fill_sheet")
     @patch("src.bot_decklist.validate_decklist")
     @patch("src.bot_decklist.get_decklist_from_url")
-    @patch("src.bot_decklist.get_sign_up_sheet")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
     @patch("src.bot_decklist.json")
     @patch("builtins.open")
-    async def test_bot_signup_sheet(
+    async def test_bot_decklist(
         self,
         mock_open,
         mock_dl_json,
         mock_discord,
         mock_logger,
-        mock_sign_sheet,
         mock_decklist,
         mock_validate,
-        mock_fill,
-        mock_remove
     ):
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
@@ -66,32 +50,10 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         assert b.tournament_channels == {}
 
         mock_dl_json.dump.side_effect = Exception("failed")
-        b.save_tournament_channels()
-        mock_logger_instance.error.assert_called_once()
         b.save_user_decklists()
-        assert mock_logger_instance.error.call_count == 2
+        mock_logger_instance.error.assert_called_once()
 
         mock_ctx = MockCtx()
-        await b.test_tournament_channel(mock_ctx)
-        assert mock_ctx.last_response == OUTPUT_CHANNEL_NOT_SET_ERROR
-
-        await b.set_tournament_channel(mock_ctx)
-        assert mock_ctx.last_response == (
-            "Tournament output channel set to test channel!"
-        )
-
-        mock_bot.get_channel.return_value = None
-        await b.test_tournament_channel(mock_ctx)
-        assert mock_ctx.last_response == OUTPUT_CHANNEL_NOT_FOUND_ERROR
-
-        mock_bot.get_channel.return_value = mock_ctx
-        await b.test_tournament_channel(mock_ctx)
-        assert mock_ctx.last_response == (
-            "Test message sent to the output channel!"
-        )
-        assert mock_ctx.last_send == TEST_MESSAGE
-
-        assert b.check_sign_up_sheet() in [True, False]
 
         assert b.check_limitless_url(
             "https://my.limitlesstcg.com/builder?i=abc123abc"
@@ -100,167 +62,50 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
             "y.limitlesstcg.com/builder?i=abc123abc"
         ) is False
 
-        inf_calls = mock_logger_instance.info.call_count
-        b.update_signup_sheet_task()
-        assert mock_logger_instance.info.call_count == inf_calls + 2
-
-        await b.update_signup_sheet(mock_ctx)
-        assert mock_ctx.last_response == "Sheet has been updated!"
-
         mock_decklist.return_value = {}
         mock_validate.return_value = (True, "")
         await b.decklist_check_url(
             mock_ctx, "https://my.com/builder?i=abc123abc"
         )
         assert mock_ctx.last_response == (
-            "Decklist is not valid: Invalid Limitless URL."
+            "Error checking deck: Invalid Limitless URL."
         )
 
         await b.decklist_check_url(
             mock_ctx,
             "https://my.limitlesstcg.com/builder?i=abc123abc"
         )
-        assert mock_ctx.last_response == "Decklist is valid!"
-
-        await b.tournament_signup_url(
-            mock_ctx,
-            "test person",
-            1234,
-            1990,
-            "https://my.limitlesstcg.com/builder?i=abc123abc"
-        )
         assert mock_ctx.last_response == (
-            "Legal cards are not loaded. Please try again later."
+            "Deck check complete:\n- standard valid!\n- expanded valid!"
         )
 
-        b.legal_cards = {"something": "here"}
-        mock_bot.get_channel.return_value = None
-        await b.tournament_signup_url(
-            mock_ctx,
-            "test person",
-            1234,
-            1990,
-            "https://my.limitlesstcg.com/builder?i=abc123abc"
-        )
-        assert mock_ctx.last_response == OUTPUT_CHANNEL_NOT_FOUND_ERROR
-
-        mock_bot.get_channel.return_value = mock_ctx
-        mock_sign_up_sheet = MagicMock()
-        mock_sign_up_sheet.return_value = False
-        b.check_sign_up_sheet = mock_sign_up_sheet
-        await b.tournament_signup_url(
-            mock_ctx,
-            "test person",
-            1234,
-            1990,
-            "https://my.limitlesstcg.com/builder?i=abc123abc"
-        )
-        assert mock_ctx.last_response == SIGN_UP_SHEET_MISSING_ERROR
-
-        mock_sign_up_sheet.return_value = True
-        await b.tournament_signup_url(
-            mock_ctx,
-            "test person",
-            1234,
-            1990,
-            "https://limitlesstcg.com/builder?i=abc123abc"
-        )
-        assert mock_ctx.last_response == (
-            "Decklist is not valid: Invalid Limitless URL."
-        )
-        await b.tournament_signup_url(
-            mock_ctx,
-            "test person",
-            1234,
-            1990,
-            "https://my.limitlesstcg.com/builder?i=abc123abc"
-        )
-        mock_fill.assert_called_once()
-        assert mock_ctx.last_send == (
-            "New tournament signup:\n- Name: test person (testuser)\n-"
-            " Pokémon ID: 1234\n- Year of Birth: 1990\n-"
-            " Decklist: https://my.limitlesstcg.com/builder?i=abc123abc"
-        )
-        assert mock_ctx.last_response == (
-            "Tournament signup has been processed!"
-        )
-        mock_remove.assert_called_once()
-
-    @patch("src.bot_decklist.os.remove")
-    @patch("src.bot_decklist.get_sign_up_sheet")
-    @patch("src.bot.create_logger")
-    @patch("src.bot.discord")
-    @patch("builtins.open")
-    async def test_bot_singup_sheet_errors(
-        self,
-        mock_open,
-        mock_discord,
-        mock_logger,
-        mock_sign_sheet,
-        mock_remove
-    ):
-        mock_logger_instance = mock_logger.return_value
-        mock_bot = MagicMock()
-        mock_discord.Bot.return_value = mock_bot
-
-        mock_sign_sheet.side_effect = Exception("failed")
-
-        def mock_do_update_sheet():
-            return Exception("Test")
-
-        b = Bot("faketoken", False, "123")
-        b.do_update_sheet = mock_do_update_sheet
-
-        mock_ctx = MockCtx()
-        await b.update_signup_sheet(mock_ctx)
-        assert mock_ctx.last_response.startswith("Failed")
-
-        b.update_signup_sheet_task()
-        assert mock_logger_instance.error.call_count == 1
-
-    @patch("src.bot.create_logger")
-    @patch("src.bot.discord")
-    @patch("builtins.open")
-    async def test_bot_signup_sheet_maintenance(
-        self,
-        mock_open,
-        mock_discord,
-        mock_logger,
-    ):
-        mock_bot = MagicMock()
-        mock_discord.Bot.return_value = mock_bot
-        mock_logger_instance = mock_logger.return_value
-
-        b = Bot("faketoken", True, "123")
-
-        mock_ctx = MockCtx()
-
+        mock_validate.return_value = (False, "err")
         await b.decklist_check_url(
-            mock_ctx, "https://my.com/builder?i=abc123abc"
-        )
-        assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
-
-        await b.tournament_signup_url(
             mock_ctx,
-            "test person",
-            1234,
-            1990,
             "https://my.limitlesstcg.com/builder?i=abc123abc"
         )
+        assert mock_ctx.last_response == (
+            "Deck check complete:\n"
+            "- standard not valid! err\n"
+            "- expanded not valid! err"
+        )
+
+        mock_decklist.side_effect = Exception("failed")
+        valid, deck, error = b.do_decklist_check(
+            "https://my.limitlesstcg.com/builder?i=abc123abc"
+        )
+        assert valid == {}
+        assert deck == {}
+        assert error == "failed"
+
+        b.maintenance = True
+        await b.decklist_check_url(
+            mock_ctx, "https://my.limitlesstcg.com/builder?i=abc123abc"
+        )
         assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
 
-        await b.update_signup_sheet(mock_ctx)
-        assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
-
-        inf_calls = mock_logger_instance.info.call_count
-        b.update_signup_sheet_task()
-        assert mock_logger_instance.info.call_count == inf_calls + 2
-
-    @patch("src.bot_decklist.os.remove")
-    @patch("src.bot_decklist.fill_sheet")
     @patch("src.bot_decklist.validate_decklist")
     @patch("src.bot_decklist.get_decklist_from_url")
-    @patch("src.bot_decklist.get_sign_up_sheet")
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
     @patch("src.bot_decklist.json")
@@ -271,11 +116,8 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         mock_dl_json,
         mock_discord,
         mock_logger,
-        mock_sign_sheet,
         mock_decklist,
         mock_validate,
-        mock_fill,
-        mock_remove
     ):
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
@@ -287,7 +129,7 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         assert b.user_decklists == {}
 
         valid, error = b.do_user_decklist_check("123", "noname")
-        assert valid is False
+        assert valid is None
         assert error == "Deck not found"
 
         b.user_decklists = {
@@ -301,26 +143,76 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         mock_validate.return_value = (True, "")
 
         valid, error = b.do_user_decklist_check("123", "deckname")
-        assert valid
-        assert error == ""
-        assert b.user_decklists["123"]["deckname"]["valid"]
+        assert valid is not None
+        assert error is None
+        for format in ("standard", "expanded"):
+            assert b.user_decklists["123"]["deckname"][format]["valid"]
+            assert b.user_decklists["123"]["deckname"][format]["error"] == ""
         assert b.user_decklists["123"]["deckname"]["last_checked"] != ""
         assert b.user_decklists["123"]["deckname"]["deck"] == {}
-        assert b.user_decklists["123"]["deckname"]["error"] == ""
+
+        b.user_decklists = {
+            "123": {
+                "deckname": {
+                    "url": "https://my.lsstcg.com/builder?i=abc123abc"
+                }
+            }
+        }
+        valid, error = b.do_user_decklist_check("123", "deckname")
+        assert valid == {}
+        assert error == "Invalid Limitless URL."
+        for format in ("standard", "expanded"):
+            deck_data = b.user_decklists["123"]["deckname"][format]
+            assert deck_data["valid"] is False
+            assert deck_data["error"] == "Invalid Limitless URL."
 
         b.user_decklists = {}
         b.do_user_decklist_check = MagicMock()
-        b.do_user_decklist_check.return_value = (True, "")
+        b.do_user_decklist_check.return_value = ({
+            "standard": {
+                "valid": True,
+                "error": ""
+            },
+            "expanded": {
+                "valid": True,
+                "error": ""
+            }
+        }, None)
         await b.decklist_create(
             mock_ctx,
             "deckname",
             "https://my.limitlesstcg.com/builder?i=abc123abc"
         )
-        assert mock_ctx.last_response == "Deck saved, decklist is valid!"
+        assert mock_ctx.last_response == (
+            "Deck saved, deck is:\n"
+            "- standard valid!\n"
+            "- expanded valid!"
+        )
         assert "303" in b.user_decklists
         assert "deckname" in b.user_decklists["303"]
         assert b.user_decklists["303"]["deckname"]["url"] == (
             "https://my.limitlesstcg.com/builder?i=abc123abc"
+        )
+
+        b.do_user_decklist_check.return_value = ({
+            "standard": {
+                "valid": False,
+                "error": "err"
+            },
+            "expanded": {
+                "valid": False,
+                "error": "err2"
+            }
+        }, None)
+        await b.decklist_create(
+            mock_ctx,
+            "deckname",
+            "https://my.limitlesstcg.com/builder?i=abc123abc"
+        )
+        assert mock_ctx.last_response == (
+            "Deck saved, deck is:\n"
+            "- standard not valid! err\n"
+            "- expanded not valid! err2"
         )
 
         b.do_user_decklist_check.return_value = (False, "err")
@@ -330,17 +222,45 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
             "https://my.limitlesstcg.com/builder?i=abc123abc"
         )
         assert mock_ctx.last_response == (
-            "Deck saved, decklist is not valid! err"
+            "Deck saved, error checking deck: err"
         )
 
         await b.decklist_check(mock_ctx, "deckname2")
         assert mock_ctx.last_response == (
-            "Decklist is not valid! err"
+            "Error checking deck: err"
         )
 
-        b.do_user_decklist_check.return_value = (True, "")
+        b.do_user_decklist_check.return_value = ({
+            "standard": {
+                "valid": True,
+                "error": ""
+            },
+            "expanded": {
+                "valid": True,
+                "error": ""
+            }
+        }, None)
         await b.decklist_check(mock_ctx, "deckname2")
-        assert mock_ctx.last_response == "Decklist is valid!"
+        assert mock_ctx.last_response == (
+            "Deck is:\n- standard valid!\n- expanded valid!"
+        )
+
+        b.do_user_decklist_check.return_value = ({
+            "standard": {
+                "valid": False,
+                "error": "err"
+            },
+            "expanded": {
+                "valid": False,
+                "error": "err2"
+            }
+        }, None)
+        await b.decklist_check(mock_ctx, "deckname2")
+        assert mock_ctx.last_response == (
+            "Deck is:\n"
+            "- standard not valid! err\n"
+            "- expanded not valid! err2"
+        )
 
         await b.decklist_delete(mock_ctx, "fakename")
         assert mock_ctx.last_response == "Deck not found"
@@ -363,9 +283,15 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
             "303": {
                 "deckname": {
                     "url": "https://my.limitlesstcg.com/builder?i=abc123abc",
-                    "valid": False,
+                    "standard": {
+                        "valid": False,
+                        "error": "not 60 cards"
+                    },
+                    "expanded": {
+                        "valid": False,
+                        "error": "not 60 cards"
+                    },
                     "last_checked": "2025-12-25",
-                    "error": "not 60 cards",
                     "deck": {
                         "pokemon": [
                             {
@@ -391,59 +317,22 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         }
         await b.decklist_info(mock_ctx, "deckname")
         expected_deck = (
-            "deckname\nStandard Legal: :x: (2025-12-25)\nError: not 60 cards\n"
+            "deckname\n"
+            "Standard Legal: :x: - not 60 cards\n"
+            "Expanded Legal: :x: - not 60 cards\n"
+            "Last Checked: 2025-12-25\n"
             "Pokemon:\n\t4x Pikachu JTG-25\nTrainers:\n\t3x switch\n"
             "Energies:\n\t2x lightning"
         )
         assert mock_ctx.last_response == expected_deck
 
-        b.user_decklists["303"]["deckname"]["valid"] = True
+        b.user_decklists["303"]["deckname"]["standard"]["valid"] = True
+        b.user_decklists["303"]["deckname"]["expanded"]["valid"] = True
         expected_deck = expected_deck.replace(
             ":x:", ":white_check_mark:"
         )
         expected_deck = expected_deck.replace(
-            "\nError: not 60 cards", ""
+            " - not 60 cards", ""
         )
         await b.decklist_info(mock_ctx, "deckname")
         assert mock_ctx.last_response == expected_deck
-
-        await b.tournament_signup(mock_ctx, "first last", 12, 2000, "baddeck")
-        assert mock_ctx.last_response == "Deck not found"
-
-        b.maintenance = True
-        await b.tournament_signup(mock_ctx, "first last", 12, 2000, "deckname")
-        assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
-
-        b.maintenance = False
-        await b.tournament_signup(mock_ctx, "first last", 12, 2000, "deckname")
-        assert mock_ctx.last_response == (
-            "Legal cards are not loaded. Please try again later."
-        )
-
-        b.legal_cards = {"something": "here"}
-        await b.tournament_signup(mock_ctx, "first last", 12, 2000, "deckname")
-        assert mock_ctx.last_response == OUTPUT_CHANNEL_NOT_SET_ERROR
-
-        b.tournament_channels = {"202": "123"}
-        mock_sign_up_sheet = MagicMock()
-        mock_sign_up_sheet.return_value = False
-        b.check_sign_up_sheet = mock_sign_up_sheet
-        await b.tournament_signup(mock_ctx, "first last", 12, 2000, "deckname")
-        assert mock_ctx.last_response == SIGN_UP_SHEET_MISSING_ERROR
-
-        mock_sign_up_sheet.return_value = True
-        b.tournament_signup_response = AsyncMock()
-        mock_validate.return_value = (False, "the error")
-        await b.tournament_signup(mock_ctx, "first last", 12, 2000, "deckname")
-        assert b.user_decklists["303"]["deckname"]["valid"] is False
-        assert b.user_decklists["303"]["deckname"]["error"] == "the error"
-        assert b.user_decklists["303"]["deckname"]["last_checked"] == (
-            str(datetime.now().date())
-        )
-        assert b.tournament_signup_response.call_count == 0
-
-        mock_validate.return_value = (True, "")
-        await b.tournament_signup(mock_ctx, "first last", 12, 2000, "deckname")
-        assert b.user_decklists["303"]["deckname"]["valid"]
-        assert b.user_decklists["303"]["deckname"]["error"] == ""
-        assert b.tournament_signup_response.call_count == 1

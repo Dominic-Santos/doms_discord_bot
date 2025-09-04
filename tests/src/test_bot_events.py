@@ -313,13 +313,13 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         mock_updater.calls = []
         mock_premier_events.side_effect = Exception("error1")
         mock_store_events.side_effect = Exception("error2")
-        error_calls = mock_logger_instance.error.call_count
+        mock_logger_instance.reset_mock()
         await b.sync_events_task()
         assert len(mock_updater.calls) == 0
-        assert mock_logger_instance.error.call_count == error_calls + 1
+        mock_logger_instance.error.assert_called_once()
 
         mock_premier_events.side_effect = None
-        error_calls = mock_logger_instance.error.call_count
+        mock_logger_instance.reset_mock()
         await b.sync_events_task()
         assert len(mock_updater.calls) == 0
-        assert mock_logger_instance.error.call_count == error_calls + 1
+        mock_logger_instance.error.assert_called_once()

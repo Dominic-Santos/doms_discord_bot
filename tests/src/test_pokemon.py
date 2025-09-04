@@ -2,7 +2,7 @@ import os
 from src.pokemon import (
     get_decklist_png, get_decklist_pdf, convert_pdf_to_png,
     get_premier_events, get_store_events, extract_event_info,
-    PokemonEvent, get_logo
+    PokemonEvent, get_logo, get_banned_cards
 )
 from unittest.mock import patch, call, MagicMock
 
@@ -99,7 +99,7 @@ def test_convert_pdf_to_png(mock_fitz_open):
     mock_fitz_open.assert_called_once_with("input.pdf")
     mock_doc.__iter__.assert_called_once()
 
-    assert mock_doc.get_pixmap.call_count == 1
+    mock_doc.get_pixmap.assert_called_once()
     mock_pix.save.assert_called_once_with("output.png")
 
 
@@ -252,3 +252,39 @@ def test_get_logo(mock_get, mock_retrieve, mock_open):
 
     logo = get_logo(other_img)
     assert logo == "contenttest"
+
+
+@patch('src.pokemon.Driver')
+def test_get_banned_cards(mock_driver):
+    mock_driver_instance = mock_driver.return_value
+    mock_driver_instance.cdp.find_visible_elements.return_value = [
+        MagicMock(
+            children=[
+                MagicMock(
+                    children=[
+                        MagicMock(
+                            text="No cards are currently banned"
+                        )
+                    ]
+                )
+            ]
+        ),
+        MagicMock(
+            children=[
+                MagicMock(
+                    children=[
+                        MagicMock(
+                            text=(
+                                "Delinquent (XY—BREAKpoint, 98/122,"
+                                " 98a/122, and 98b/122)"
+                            )
+                        )
+                    ]
+                )
+            ]
+        )
+    ]
+
+    result = get_banned_cards()
+    assert len(result["standard"]) == 0
+    assert len(result["expanded"]) == 3

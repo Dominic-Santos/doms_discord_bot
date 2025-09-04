@@ -21,6 +21,9 @@ class MockCtx():
 
 class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
 
+    @patch("src.bot_legalcards.json.dump")
+    @patch("src.bot_legalcards.get_pokemon_sets")
+    @patch("src.bot_legalcards.get_banned_cards")
     @patch("src.bot_legalcards.load_card_database")
     @patch("src.bot_legalcards.get_legal_cards")
     @patch("src.bot.create_logger")
@@ -32,37 +35,74 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
         mock_discord,
         mock_logger,
         mock_legal_cards,
-        mock_load
+        mock_load,
+        mock_banned_cards,
+        mock_sets,
+        mock_json_dump
     ):
         mock_load.return_value = ({}, {}, {})
         mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
+        mock_banned_cards.return_value = {
+            "standard": [],
+            "expanded": []
+        }
+        mock_sets.return_value = {}
 
         b = Bot("faketoken", False, "123")
 
-        inf_calls = mock_logger_instance.info.call_count
+        mock_logger_instance.reset_mock()
         b.get_legal_cards_task()
-        assert mock_logger_instance.info.call_count == inf_calls + 2
+        assert mock_logger_instance.info.call_count == 2
 
         mock_ctx = MockCtx()
         await b.get_legal_cards(mock_ctx)
         assert mock_ctx.last_response == "Legal cards list has been updated!"
 
-        def return_error():
-            return Exception("test error")
+        mock_sets.side_effect = Exception("sets fail")
+        await b.get_legal_cards(mock_ctx)
+        assert mock_ctx.last_response == "Pokemon sets update failed! sets fail"
 
-        inf_calls = mock_logger_instance.info.call_count
-        err_calls = mock_logger_instance.error.call_count
-        b.do_get_legal_cards = return_error
+        mock_logger_instance.reset_mock()
+        b.legal_cards = {}
+        b.legal_expanded_cards = {}
+        mock_legal_cards.side_effect = Exception("legal fail")
         b.get_legal_cards_task()
-        assert mock_logger_instance.info.call_count == inf_calls + 1
-        assert mock_logger_instance.error.call_count == err_calls + 1
+        mock_logger_instance.info.assert_called_once()
+        mock_logger_instance.error.assert_called_once()
 
         await b.get_legal_cards(mock_ctx)
         assert mock_ctx.last_response == (
-            "Legal cards update failed! test error"
+            "Legal cards update failed! legal fail"
         )
+
+        await b.get_banned_cards(mock_ctx)
+        assert mock_ctx.last_response == (
+            "Banned cards list has been updated!"
+        )
+
+        mock_logger_instance.reset_mock()
+        mock_legal_cards.side_effect = None
+        mock_banned_cards.side_effect = Exception("ban fail")
+        b.get_legal_cards_task()
+        mock_logger_instance.info.assert_called_once()
+        mock_logger_instance.error.assert_called_once()
+
+        await b.get_banned_cards(mock_ctx)
+        assert mock_ctx.last_response == (
+            "Banned cards update failed! ban fail"
+        )
+
+        mock_logger_instance.reset_mock()
+        b.get_banned_cards_task()
+        mock_logger_instance.info.assert_called_once()
+        mock_logger_instance.error.assert_called_once()
+
+        mock_logger_instance.reset_mock()
+        mock_banned_cards.side_effect = None
+        b.get_banned_cards_task()
+        assert mock_logger_instance.info.call_count == 2
 
     @patch("src.bot_legalcards.get_legal_cards")
     @patch("src.bot.create_logger")
@@ -83,11 +123,51 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
 
         assert mock_legal_cards.call_count == 0
 
-        inf_calls = mock_logger_instance.info.call_count
+        mock_logger_instance.reset_mock()
         b.get_legal_cards_task()
-        assert mock_logger_instance.info.call_count == inf_calls + 2
+        assert mock_logger_instance.info.call_count == 2
         assert mock_legal_cards.call_count == 0
 
         mock_ctx = MockCtx()
         await b.get_legal_cards(mock_ctx)
         assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
+
+        mock_logger_instance.reset_mock()
+        b.get_banned_cards_task()
+        assert mock_logger_instance.info.call_count == 2
+        mock_logger_instance.info.assert_called_with(
+            "Won't update banned cards, Maintenance mode is active"
+        )
+
+        await b.get_banned_cards(mock_ctx)
+        assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
+
+    @patch("src.bot.create_logger")
+    @patch("src.bot_legalcards.load_card_database")
+    @patch("src.bot.discord")
+    @patch("src.bot_legalcards.json")
+    @patch("builtins.open")
+    async def test_load_save(
+        self,
+        mock_open,
+        mock_json,
+        mock_discord,
+        mock_card_db,
+        mock_logger
+    ):
+        mock_logger_instance = mock_logger.return_value
+        mock_json.dump.side_effect = Exception("test")
+        mock_card_db.return_value = ({}, {}, {}, 0)
+        mock_bot = MagicMock()
+        mock_discord.Bot.return_value = mock_bot
+
+        b = Bot("faketoken", True, "123")
+
+        b.load_legal_cards()
+        assert b.legal_cards is not None
+        assert b.legal_expanded_cards is not None
+        assert b.raw_standard_cards != {}
+        assert b.raw_expanded_cards != {}
+
+        b.save_banned_cards()
+        mock_logger_instance.error.assert_called_once()

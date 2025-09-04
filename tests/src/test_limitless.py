@@ -44,10 +44,10 @@ def test_get_decklist_from_url(mock_driver):
 
     result = get_decklist_from_url("https://example.com/decklist")
 
-    assert mock_driver_instance.uc_activate_cdp_mode.call_count == 1
+    mock_driver_instance.uc_activate_cdp_mode.assert_called_once()
     assert mock_driver_instance.sleep.call_count == 3
     assert mock_driver_instance.cdp.find_visible_elements.call_count == 3
-    assert mock_driver_instance.quit.call_count == 1
+    mock_driver_instance.quit.assert_called_once()
     assert len(result["pokemon"]) == 1
     assert result["pokemon"][0]["name"] == "Pikachu"
     assert len(result["trainers"]) == 1

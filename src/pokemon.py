@@ -13,7 +13,16 @@ POKEMON_RULES_URL = (
 )
 POKEMON_EVENTS_URL = f"{POKEMON_EVENTS_BASE_URL}/EventLocator/LocationDetail"
 POKEMON_PREMIER_EVENTS_URL = f"{POKEMON_EVENTS_BASE_URL}/EventLocator/Home"
+POKEMON_BANNED_CARDS_URL = (
+    "https://www.pokemon.com/us/play-pokemon/"
+    "about/pokemon-tcg-banned-card-list"
+)
 EVENT_DATE_FORMAT = "%b %d,%Y"
+
+REPLACE_CHARACTERS = {
+    "’": "'",
+    "›": ">",
+}
 
 
 class PokemonEvent():
@@ -206,3 +215,57 @@ def get_logo(url: str) -> bytes:
 
     if response.status_code == 200:
         return response.content
+
+
+def get_banned_cards() -> dict[str, list]:
+    sb = Driver(uc=True, locale_code="en", ad_block=True)
+    sb.uc_activate_cdp_mode(POKEMON_BANNED_CARDS_URL)
+    sb.sleep(10)
+
+    card_elements = sb.cdp.find_visible_elements("ul.list")
+    standard_elms = card_elements[0].children
+    expanded_elms = card_elements[1].children
+
+    standard_cards = []
+    expanded_cards = []
+
+    for cards, elms in (
+        (standard_cards, standard_elms),
+        (expanded_cards, expanded_elms)
+    ):
+        for li in elms:
+            p = li.children[0]
+            p_text = p.text.strip()
+            if p_text.startswith("No cards are currently banned"):
+                break
+
+            card_name, card_sets = p_text.split("(")
+            card_name = card_name.strip()
+            for old, new in REPLACE_CHARACTERS.items():
+                card_name = card_name.replace(old, new)
+            card_sets = card_sets.replace(")", "").strip()
+
+            all_sets = card_sets.split(";")
+
+            for each_set in all_sets:
+                set_text = each_set.replace("and", ",")
+                for old, new in REPLACE_CHARACTERS.items():
+                    set_text = set_text.replace(old, new)
+
+                if "—" in set_text:
+                    set_text = set_text.split("—")[1]
+                parts = set_text.split(",")
+                set_name = parts[0].strip()
+                for part in parts[1:]:
+                    set_nr = part.strip()
+                    if set_nr == "":
+                        continue
+                    if "/" in set_nr:
+                        set_nr = set_nr.split("/")[0].strip()
+                    cards.append((card_name, set_name, set_nr))
+
+    sb.quit()
+    return {
+        "standard": standard_cards,
+        "expanded": expanded_cards
+    }

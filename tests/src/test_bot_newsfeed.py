@@ -73,9 +73,9 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         await b.get_newsfeed(mock_ctx)
         assert mock_ctx.last_response == "Newsfeed posts have been updated!"
 
-        calls = mock_logger_instance.info.call_count
+        mock_logger_instance.reset_mock()
         await b.get_newsfeed_task()
-        assert mock_logger_instance.info.call_count == calls + 2
+        assert mock_logger_instance.info.call_count == 2
 
         await b.disable_newsfeed(mock_ctx)
         assert mock_ctx.last_response == "Newsfeed disabled!"
@@ -105,15 +105,15 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
         await b.do_get_newsfeed()
 
-        assert mock_logger_instance.info.call_count == 1
+        mock_logger_instance.info.assert_called_once()
 
         mock_newsfeed.return_value = ["this is a post"]
         b.newsfeed_channels = {"1234": {"channel_id": "2345"}}
         mock_bot.get_channel.return_value = None
 
-        warning_calls = mock_logger_instance.warning.call_count
+        mock_logger_instance.reset_mock()
         await b.do_get_newsfeed()
-        assert mock_logger_instance.warning.call_count == warning_calls + 1
+        mock_logger_instance.warning.assert_called_once()
 
         mock_ctx = MockCtx()
         mock_bot.get_channel.return_value = mock_ctx

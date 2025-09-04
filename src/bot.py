@@ -9,9 +9,12 @@ from .bot_legalcards import LegalCardsBot
 from .bot_newsfeed import NewsfeedBot
 from .bot_admin import AdminBot
 from .bot_events import EventsBot
+from .bot_tournament import TournamentBot
 
 
-class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot, EventsBot):
+class Bot(
+    DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot, EventsBot, TournamentBot
+):
     def __init__(self, token: str, maintenance_mode: bool, password: str):
         self.bot = discord.Bot()
         self.token = token
@@ -24,6 +27,8 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot, EventsBot):
         self.load_tournament_channels()
         self.load_newsfeed_channels()
         self.load_events_data()
+        self.load_banned_cards()
+        self.load_card_sets()
         self.add_commands()
 
     def add_commands(self):
@@ -35,6 +40,7 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot, EventsBot):
         self.add_newsfeed_commands()
         self.add_legal_cards_commands()
         self.add_decklist_commands()
+        self.add_tournament_commands()
         self.add_admin_commands()
 
         @self.bot.command(description="Get information about the bot")
@@ -71,13 +77,18 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot, EventsBot):
 
     def add_tasks(self):
         time_update_legal_cards = datetime.time(hour=7)
-        time_update_signup_sheet = datetime.time(hour=8)
+        time_update_signup_sheet = datetime.time(hour=10)
         time_update_events = datetime.time(hour=9)
+        time_update_banned_cards = datetime.time(hour=8)
         interval_update_newsfeed = {"hours": 6}
 
         @tasks.loop(time=time_update_legal_cards)
         async def update_legal_cards():
             self.get_legal_cards_task()  # pragma: no cover
+
+        @tasks.loop(time=time_update_banned_cards)
+        async def update_banned_cards():
+            self.get_banned_cards_task()  # pragma: no cover
 
         @tasks.loop(time=time_update_signup_sheet)
         async def update_signup_sheet():
@@ -95,6 +106,7 @@ class Bot(DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot, EventsBot):
         update_signup_sheet.start()
         update_newsfeed.start()
         update_events.start()
+        update_banned_cards.start()
         self.logger.info("Scheduled tasks started.")
 
     def run(self):

@@ -209,11 +209,14 @@ __marimo__/
 # Local configuration files
 tournament_channels.json
 legal_cards.json
+legal_expanded_cards.json
 config.json
 newsfeed_channels.json
 sign_up_sheet.png
 events_data.json
 user_decklists.json
+banned_cards.json
+card_sets.json
 
 # artifacts from chrome headless browser
 downloaded_files/

@@ -1,6 +1,8 @@
+import json
 from unittest.mock import patch, MagicMock
 from src.core import (
-    validate_decklist, fill_sheet, load_card_database, get_offset
+    validate_decklist, fill_sheet, load_card_database,
+    get_offset, convert_banned_cards
 )
 
 
@@ -23,13 +25,14 @@ def test_load_card_database_invalid_json(mock_open):
 
 
 def test_load_card_database():
-    pokemon, trainers, energies = load_card_database(
+    pokemon, trainers, energies, count = load_card_database(
         filename="tests/src/test_legal_cards.json"
     )
     all_pokemon = [p for set in pokemon for p in pokemon[set]]
     assert len(all_pokemon) == 323
     assert len(trainers.keys()) == 14
     assert len(energies.keys()) == 2
+    assert count == 123
 
 
 def test_validate_decklist_60_cards():
@@ -81,14 +84,15 @@ def test_validate_decklist_one_ace_spec():
         }
     }
 
-    pokemon, trainers, energies = load_card_database(
+    pokemon, trainers, energies, count = load_card_database(
         filename="tests/src/test_legal_cards.json"
     )
 
     legalcards = {
         "pokemon": pokemon,
         "trainers": trainers,
-        "energies": energies
+        "energies": energies,
+        "count": count
     }
     valid, error = validate_decklist(decklist, legal_cards=legalcards)
     assert valid is False
@@ -109,14 +113,15 @@ def test_validate_decklist_illegal_card():
         }
     }
 
-    pokemon, trainers, energies = load_card_database(
+    pokemon, trainers, energies, count = load_card_database(
         filename="tests/src/test_legal_cards.json"
     )
 
     legalcards = {
         "pokemon": pokemon,
         "trainers": trainers,
-        "energies": energies
+        "energies": energies,
+        "count": count
     }
     valid, error = validate_decklist(decklist, legal_cards=legalcards)
     assert valid is False
@@ -137,13 +142,14 @@ def test_validate_decklist_at_least_1_basic():
         }
     }
 
-    pokemon, trainers, energies = load_card_database(
+    pokemon, trainers, energies, count = load_card_database(
         filename="tests/src/test_legal_cards.json"
     )
     legalcards = {
         "pokemon": pokemon,
         "trainers": trainers,
-        "energies": energies
+        "energies": energies,
+        "count": count
     }
     valid, error = validate_decklist(decklist, legal_cards=legalcards)
     assert valid is False
@@ -164,13 +170,14 @@ def test_validate_decklist_check_legal_trainers():
         }
     }
 
-    pokemon, trainers, energies = load_card_database(
+    pokemon, trainers, energies, count = load_card_database(
         filename="tests/src/test_legal_cards.json"
     )
     legalcards = {
         "pokemon": pokemon,
         "trainers": trainers,
-        "energies": energies
+        "energies": energies,
+        "count": count
     }
     valid, error = validate_decklist(decklist, legal_cards=legalcards)
     assert valid is False
@@ -190,17 +197,68 @@ def test_validate_decklist_check_legal_enerigies():
         }
     }
 
-    pokemon, trainers, energies = load_card_database(
+    pokemon, trainers, energies, count = load_card_database(
         filename="tests/src/test_legal_cards.json"
     )
     legalcards = {
         "pokemon": pokemon,
         "trainers": trainers,
-        "energies": energies
+        "energies": energies,
+        "count": count
     }
     valid, error = validate_decklist(decklist, legal_cards=legalcards)
     assert valid is False
     assert error == "Energy card fake energy is not legal."
+
+
+def test_validate_banned_cards():
+    decklist = {
+        "pokemon": [
+            {"name": "Sewaddle", "quantity": 1, "set": "WHT", "number": "87"}
+        ],
+        "energies": {
+            "fire energy": {"quantity": 57},
+            "Prism Energy": {"quantity": 1}
+        },
+        "trainers": {
+            "Tool Scrapper": {"quantity": 1}
+        }
+    }
+    pokemon, trainers, energies, count = load_card_database(
+        filename="tests/src/test_legal_cards.json"
+    )
+    legalcards = {
+        "pokemon": pokemon,
+        "trainers": trainers,
+        "energies": energies,
+        "count": count
+    }
+
+    banned_cards = {
+        "pokemon": {"WHT": ["87"]},
+        "trainers": ["Tool Scrapper"],
+        "energies": ["Prism Energy"]
+    }
+
+    valid, error = validate_decklist(
+        decklist, legal_cards=legalcards, banned_cards=banned_cards
+    )
+    assert valid is False
+    assert error == "Card Sewaddle from set WHT is banned."
+
+    banned_cards["pokemon"] = {}
+    valid, error = validate_decklist(
+        decklist, legal_cards=legalcards, banned_cards=banned_cards
+    )
+    assert valid is False
+    assert error == "Trainer card Tool Scrapper is banned."
+
+    banned_cards["trainers"] = []
+    valid, error = validate_decklist(
+        decklist, legal_cards=legalcards, banned_cards=banned_cards
+    )
+    assert valid is False
+    assert error == "Energy card Prism Energy is banned."
 
 
 def test_validate_decklist():
@@ -209,19 +267,21 @@ def test_validate_decklist():
             {"name": "Sewaddle", "quantity": 1, "set": "WHT", "number": "87"}
         ],
         "energies": {
-            "fire energy": {"quantity": 59},
+            "fire energy": {"quantity": 58},
         },
         "trainers": {
+            "Tool Scrapper": {"quantity": 1}
         }
     }
 
-    pokemon, trainers, energies = load_card_database(
+    pokemon, trainers, energies, count = load_card_database(
         filename="tests/src/test_legal_cards.json"
     )
     legalcards = {
         "pokemon": pokemon,
         "trainers": trainers,
-        "energies": energies
+        "energies": energies,
+        "count": count
     }
     valid, error = validate_decklist(decklist, legal_cards=legalcards)
     assert valid
@@ -286,3 +346,74 @@ def test_fill_sheet(mock_draw, mock_font, mock_image):
     assert draw_instance.text.call_count == 11
     mock_image.open.assert_called_once()
     image_instance.save.assert_called_once()
+
+
+def test_convert_banned_cards():
+    banned_cards = {
+        "standard": [
+            ("Sewaddle", "white", "087"),
+            ("Tool Scrapper", "white", "085"),
+            ("Prism Energy", "black", "086")
+        ]
+    }
+
+    sets = {
+        "white": "WHT",
+        "black": "BLK"
+    }
+
+    with open("tests/src/test_legal_cards.json", "r") as f:
+        legal_cards = json.load(f)
+
+    result = convert_banned_cards(
+        banned_cards, sets, legal_cards["cards"]
+    )
+    assert result["standard"]["pokemon"] == {
+        "WHT": ["087"]
+    }
+    assert result["standard"]["trainers"] == [
+        "Tool Scrapper"
+    ]
+    assert result["standard"]["energies"] == [
+        "Prism Energy"
+    ]
+
+    error = None
+    try:
+        convert_banned_cards(
+            banned_cards, sets, {}
+        )
+    except Exception as e:
+        error = e
+
+    assert str(error) == (
+        "Set code WHT not found in expanded cards."
+    )
+
+    error = None
+    try:
+        convert_banned_cards(
+            banned_cards, sets, {"WHT": {}}
+        )
+    except Exception as e:
+        error = e
+
+    assert str(error) == (
+        "Card number WHT-087 "
+        "not found in expanded cards."
+    )
+
+    error = None
+    try:
+        convert_banned_cards(
+            banned_cards, sets, {"WHT": {"087": {
+                "type": "dunno"
+            }}}
+        )
+    except Exception as e:
+        error = e
+
+    assert str(error) == (
+        "Card WHT-087 "
+        "has unknown type dunno."
+    )

@@ -16,7 +16,7 @@ def test_bot_init(
     b = Bot("faketoken", False, "123")
 
     mock_discord.Bot.assert_called_once()
-    assert mock_open.call_count == 5
+    assert mock_open.call_count == 10
     mock_logger.assert_called_once()
 
     b.add_tasks()

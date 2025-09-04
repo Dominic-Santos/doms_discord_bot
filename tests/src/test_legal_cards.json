@@ -1,4 +1,5 @@
 {
+    "cards": {
     "WHT": {
         "173": {
             "name": "Reshiram ex",
@@ -560,7 +561,7 @@
             "rarity": "Illustration Rare",
             "link": "https://pkmncards.com/card/accelgor-white-flare-wht-094/"
         },
-        "093": {
+        "093A": {
             "name": "Shelmet",
             "type": "Pkmn  > Basic",
             "color": "{ G }",
@@ -2418,4 +2419,6 @@
             "link": "https://pkmncards.com/card/snivy-black-bolt-blk-001/"
         }
     }
+    },
+    "count": 123
 }
