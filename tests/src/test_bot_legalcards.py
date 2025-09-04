@@ -62,7 +62,9 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
 
         mock_sets.side_effect = Exception("sets fail")
         await b.get_legal_cards(mock_ctx)
-        assert mock_ctx.last_response == "Pokemon sets update failed! sets fail"
+        assert mock_ctx.last_response == (
+            "Pokemon sets update failed! sets fail"
+        )
 
         mock_logger_instance.reset_mock()
         b.legal_cards = {}

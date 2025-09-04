@@ -116,6 +116,10 @@ Some commands are intended for server administrators only. It’s recommended to
 
 > Updates the standard legal card data. This is used for deck checks and tournament sign-ups.
 
+### /admin pokemon update_banned_cards
+
+> Updates the banned cards list. This is used for deck checks and tournament sign-ups.
+
 ### /admin pokemon update_signup_sheet
 
 > Updates the tournament sign-up sheet.
@@ -211,13 +215,21 @@ Some commands are intended for server administrators only. It’s recommended to
 
 The bot also includes scheduled tasks that run automatically at set intervals.
 
-### Update Sign-Up Sheet
-
-> Runs daily at 8 AM to refresh the tournament sign-up sheet.
-
 ### Update Legal Cards
 
-> Runs daily at 7 AM to update the Standard legal cards used for deck validation and sign-ups.
+> Runs daily at 7 AM to update legal cards used for deck validation and sign-ups.
+
+### Update Banned Cards
+
+> Runs daily at 8 AM to update the banned cards used for deck validation and sign-ups.
+
+### Update Events
+
+> Runs daily at 9 AM to check for new premier and store events.
+
+### Update Sign-Up Sheet
+
+> Runs daily at 10 AM to refresh the tournament sign-up sheet.
 
 ### Check for New Newsfeed Articles
 
