@@ -104,9 +104,9 @@ class LegalCardsBot:
             self.logger.error(f"Legal cards update failed. {error}")
             return
 
-        error = self.do_get_banned_cards()
+        error = self.do_get_pokemon_sets()
         if error is not None:
-            self.logger.error(f"Banned cards update failed. {error}")
+            self.logger.error(f"Pokemon sets update failed. {error}")
             return
         self.logger.info("Legal cards updated successfully.")
 
