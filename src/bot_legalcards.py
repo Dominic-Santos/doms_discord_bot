@@ -1,17 +1,22 @@
 import json
 
-from .core import load_card_database, convert_banned_cards
+from .core import load_card_database, convert_banned_cards, DATA_FOLDER
 from .pkmncards import get_legal_cards, get_pokemon_sets
 from .pokemon import get_banned_cards
 
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
+
+LEGAL_CARDS_FILE = f"{DATA_FOLDER}/legal_cards.json"
+LEGAL_CARDS_EXPANDED_FILE = f"{DATA_FOLDER}/legal_expanded_cards.json"
+BANNED_CARDS_FILE = f"{DATA_FOLDER}/banned_cards.json"
+SETS_FILE = f"{DATA_FOLDER}/card_sets.json"
 
 
 class LegalCardsBot:
     def load_legal_cards(self):
         try:
             pokemon, trainers, energies, count = load_card_database(
-                "legal_cards.json"
+                LEGAL_CARDS_FILE
             )
             self.legal_cards = {
                 "pokemon": pokemon,
@@ -25,7 +30,7 @@ class LegalCardsBot:
 
         try:
             pokemon, trainers, energies, count = load_card_database(
-                "legal_expanded_cards.json"
+                LEGAL_CARDS_EXPANDED_FILE
             )
             self.legal_expanded_cards = {
                 "pokemon": pokemon,
@@ -40,42 +45,42 @@ class LegalCardsBot:
             self.legal_expanded_cards = None
 
         try:
-            with open("legal_cards.json", "r") as f:
+            with open(LEGAL_CARDS_FILE, "r") as f:
                 self.raw_standard_cards = json.load(f)
         except Exception as e:
-            self.logger.warning(f"Error loading legal_cards.json: {e}")
+            self.logger.warning(f"Error loading {LEGAL_CARDS_FILE}: {e}")
             self.raw_standard_cards = {}
 
         try:
-            with open("legal_expanded_cards.json", "r") as f:
+            with open(LEGAL_CARDS_EXPANDED_FILE, "r") as f:
                 self.raw_expanded_cards = json.load(f)
         except Exception as e:
             self.logger.warning(
-                f"Error loading legal_expanded_cards.json: {e}"
+                f"Error loading {LEGAL_CARDS_EXPANDED_FILE}: {e}"
             )
             self.raw_expanded_cards = {}
 
     def load_banned_cards(self):
         try:
-            with open("banned_cards.json", "r") as f:
+            with open(BANNED_CARDS_FILE, "r") as f:
                 self.banned_cards = json.load(f)
         except Exception as e:
-            self.logger.warning(f"Error loading banned_cards.json: {e}")
+            self.logger.warning(f"Error loading {BANNED_CARDS_FILE}: {e}")
             self.banned_cards = {"standard": None, "expanded": None}
 
     def save_banned_cards(self):
         try:
-            with open("banned_cards.json", "w") as f:
+            with open(BANNED_CARDS_FILE, "w") as f:
                 json.dump(self.banned_cards, f, indent=4)
         except Exception as e:
-            self.logger.error(f"Error saving banned_cards.json: {e}")
+            self.logger.error(f"Error saving {BANNED_CARDS_FILE}: {e}")
 
     def load_card_sets(self):
         try:
-            with open("card_sets.json", "r") as f:
+            with open(SETS_FILE, "r") as f:
                 self.card_sets = json.load(f)
         except Exception as e:
-            self.logger.warning(f"Error loading card_sets.json: {e}")
+            self.logger.warning(f"Error loading {SETS_FILE}: {e}")
             self.card_sets = {}
 
     def add_legal_cards_commands(self):
@@ -178,6 +183,8 @@ class LegalCardsBot:
         t = CustomThread(get_legal_cards, kwargs={
             "standard_count": standard_count,
             "expanded_count": expanded_count,
+            "filename": LEGAL_CARDS_FILE,
+            "expanded_filename": LEGAL_CARDS_EXPANDED_FILE,
         })
         t.start()
         _, error = t.join()
@@ -185,7 +192,9 @@ class LegalCardsBot:
         return error
 
     def do_get_pokemon_sets(self) -> Exception | None:
-        t = CustomThread(get_pokemon_sets)
+        t = CustomThread(get_pokemon_sets, kwargs={
+            "filename": SETS_FILE
+        })
         t.start()
         _, error = t.join()
         self.load_card_sets()

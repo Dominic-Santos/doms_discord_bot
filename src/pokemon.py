@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import shutil
 from urllib.request import urlretrieve
 import requests
+from .core import DATA_FOLDER
 
 POKEMON_EVENTS_BASE_URL = "https://events.pokemon.com"
 POKEMON_RULES_URL = (
@@ -23,6 +24,7 @@ REPLACE_CHARACTERS = {
     "’": "'",
     "›": ">",
 }
+TMP_FILE = f"{DATA_FOLDER}/tmp.pdf"
 
 
 class PokemonEvent():
@@ -111,10 +113,10 @@ def get_decklist_pdf(output_filename: str):
 
 
 def get_decklist_png(output_filename: str = "sign_up_sheet.png"):
-    get_decklist_pdf("tmp.pdf")
-    convert_pdf_to_png("tmp.pdf", output_filename)
+    get_decklist_pdf(TMP_FILE)
+    convert_pdf_to_png(TMP_FILE, output_filename)
     # Clean up temporary files if necessary
-    os.remove("tmp.pdf")
+    os.remove(TMP_FILE)
 
 
 def get_premier_events() -> list[PokemonEvent]:

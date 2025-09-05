@@ -4,6 +4,7 @@ from src.pokemon import (
     get_premier_events, get_store_events, extract_event_info,
     PokemonEvent, get_logo, get_banned_cards
 )
+from src.core import DATA_FOLDER
 from unittest.mock import patch, call, MagicMock
 
 
@@ -14,11 +15,14 @@ def test_get_decklist_png(mock_remove, mock_convert, mock_get_pdf):
     mock_get_pdf.return_value = None
     mock_convert.return_value = None
 
-    get_decklist_png("test.png")
+    png_file = "test.png"
+    pdf_file = f"{DATA_FOLDER}/tmp.pdf"
 
-    mock_get_pdf.assert_called_once_with("tmp.pdf")
-    mock_convert.assert_called_once_with("tmp.pdf", "test.png")
-    mock_remove.assert_called_once_with("tmp.pdf")
+    get_decklist_png(png_file)
+
+    mock_get_pdf.assert_called_once_with(pdf_file)
+    mock_convert.assert_called_once_with(pdf_file, png_file)
+    mock_remove.assert_called_once_with(pdf_file)
 
 
 @patch('shutil.rmtree')

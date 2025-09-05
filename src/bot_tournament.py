@@ -3,7 +3,7 @@ import discord
 import json
 from datetime import datetime
 
-from .core import fill_sheet
+from .core import fill_sheet, DATA_FOLDER
 from .pokemon import get_decklist_png as get_sign_up_sheet
 
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
@@ -19,22 +19,27 @@ SIGN_UP_SHEET_MISSING_ERROR = (
     "Sign-up sheet is not available. Please try again later."
 )
 
+TOURNAMENT_CHANNELS_FILE = f"{DATA_FOLDER}/tournament_channels.json"
+SIGN_UP_SHEET_FILE = f"{DATA_FOLDER}/sign_up_sheet.png"
+
 
 class TournamentBot:
     def load_tournament_channels(self):
         try:
-            with open("tournament_channels.json", "r") as f:
+            with open(TOURNAMENT_CHANNELS_FILE, "r") as f:
                 self.tournament_channels = json.load(f)
         except Exception as e:
-            self.logger.warning(f"Error loading tournament_channels.json: {e}")
+            self.logger.warning(
+                f"Error loading {TOURNAMENT_CHANNELS_FILE}: {e}"
+            )
             self.tournament_channels = {}
 
     def save_tournament_channels(self):
         try:
-            with open("tournament_channels.json", "w") as f:
+            with open(TOURNAMENT_CHANNELS_FILE, "w") as f:
                 json.dump(self.tournament_channels, f, indent=4)
         except Exception as e:
-            self.logger.error(f"Error saving tournament_channels.json: {e}")
+            self.logger.error(f"Error saving {TOURNAMENT_CHANNELS_FILE}: {e}")
 
     def add_tournament_commands(self):
         tournament = self.bot.create_group(
@@ -271,7 +276,9 @@ class TournamentBot:
         limitless_url: str,
         format: str
     ):
-        output_filename = f"sign_up_sheet_{ctx.guild.id}_{ctx.author.id}.png"
+        output_filename = (
+            f"{DATA_FOLDER}/sign_up_sheet_{ctx.guild.id}_{ctx.author.id}.png"
+        )
 
         fill_sheet(
             player={
@@ -387,7 +394,9 @@ class TournamentBot:
             self.logger.error(f"Failed up update sign-up sheet {error}")
 
     def do_update_sheet(self) -> Exception | None:
-        t = CustomThread(get_sign_up_sheet)
+        t = CustomThread(get_sign_up_sheet, kwargs={
+            "output_filename": SIGN_UP_SHEET_FILE
+        })
         t.start()
         _, error = t.join()
         return error

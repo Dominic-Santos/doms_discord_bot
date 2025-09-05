@@ -3,7 +3,8 @@ import discord
 
 from discord.ext import tasks
 
-from .helpers import create_logger
+from .core import DATA_FOLDER
+from .helpers import create_logger, check_dir
 from .bot_decklist import DecklistBot
 from .bot_legalcards import LegalCardsBot
 from .bot_newsfeed import NewsfeedBot
@@ -21,6 +22,7 @@ class Bot(
         self.maintenance = maintenance_mode
         self.password = password
         self.logger = create_logger("decklist_bot", filename="logs/bot.log")
+        check_dir(DATA_FOLDER)
 
         self.load_legal_cards()
         self.load_user_decklists()

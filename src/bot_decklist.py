@@ -3,25 +3,27 @@ import discord
 from datetime import datetime
 
 from .limitless import get_decklist_from_url
-from .core import validate_decklist
+from .core import validate_decklist, DATA_FOLDER
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
+
+USER_DECKLIST_FILE = f"{DATA_FOLDER}/user_decklists.json"
 
 
 class DecklistBot:
     def load_user_decklists(self):
         try:
-            with open("user_decklists.json", "r") as f:
+            with open(USER_DECKLIST_FILE, "r") as f:
                 self.user_decklists = json.load(f)
         except Exception as e:
-            self.logger.warning(f"Error loading user_decklists.json: {e}")
+            self.logger.warning(f"Error loading {USER_DECKLIST_FILE}: {e}")
             self.user_decklists = {}
 
     def save_user_decklists(self):
         try:
-            with open("user_decklists.json", "w") as f:
+            with open(USER_DECKLIST_FILE, "w") as f:
                 json.dump(self.user_decklists, f, indent=4)
         except Exception as e:
-            self.logger.error(f"Error saving user_decklists.json: {e}")
+            self.logger.error(f"Error saving {USER_DECKLIST_FILE}: {e}")
 
     def add_decklist_commands(self):
         decklist = self.bot.create_group(

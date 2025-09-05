@@ -7,18 +7,21 @@ from .pokemon import (
     PokemonEvent, get_logo
 )
 from .helpers import MAINTENANCE_MODE_MESSAGE, CustomThread
+from .core import DATA_FOLDER
+
+EVENTS_FILE = f"{DATA_FOLDER}/events_data.json"
 
 
 class EventsBot:
     def load_events_data(self):
         try:
-            with open("events_data.json", "r") as f:
+            with open(EVENTS_FILE, "r") as f:
                 data = json.load(f)
                 self.events_following = data.get("events", {})
                 self.premier_following = data.get("premier", {})
                 self.event_channels = data.get("channels", {})
         except Exception as e:
-            self.logger.warning(f"Error loading events_data.json: {e}")
+            self.logger.warning(f"Error loading {EVENTS_FILE}: {e}")
             self.events_following = {}
             self.premier_following = {}
             self.event_channels = {}
@@ -30,10 +33,10 @@ class EventsBot:
                 "premier": self.premier_following,
                 "channels": self.event_channels
             }
-            with open("events_data.json", "w") as f:
+            with open(EVENTS_FILE, "w") as f:
                 json.dump(data, f, indent=4)
         except Exception as e:
-            self.logger.error(f"Error saving events_data.json: {e}")
+            self.logger.error(f"Error saving {EVENTS_FILE}: {e}")
 
     def add_event_commands(self):
         events = self.bot.create_group("events", "Events commands")

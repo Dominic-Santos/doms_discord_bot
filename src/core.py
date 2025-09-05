@@ -4,6 +4,8 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 
+DATA_FOLDER = "data"
+
 ENERGY_TYPES = [
     "fire", "water", "grass", "lightning", "psychic",
     "fighting", "darkness", "metal"

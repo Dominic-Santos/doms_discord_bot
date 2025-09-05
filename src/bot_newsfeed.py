@@ -2,23 +2,26 @@ import json
 
 from .pokebeach import get_newsfeed
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
+from .core import DATA_FOLDER
+
+NEWSFEED_CHANNELS_FILE = f"{DATA_FOLDER}/newsfeed_channels.json"
 
 
 class NewsfeedBot:
     def load_newsfeed_channels(self):
         try:
-            with open("newsfeed_channels.json", "r") as f:
+            with open(NEWSFEED_CHANNELS_FILE, "r") as f:
                 self.newsfeed_channels = json.load(f)
         except Exception as e:
-            self.logger.warning(f"Error loading newsfeed_channels.json: {e}")
+            self.logger.warning(f"Error loading {NEWSFEED_CHANNELS_FILE}: {e}")
             self.newsfeed_channels = {}
 
     def save_newsfeed_channels(self):
         try:
-            with open("newsfeed_channels.json", "w") as f:
+            with open(NEWSFEED_CHANNELS_FILE, "w") as f:
                 json.dump(self.newsfeed_channels, f, indent=4)
         except Exception as e:
-            self.logger.error(f"Error saving newsfeed_channels.json: {e}")
+            self.logger.error(f"Error saving {NEWSFEED_CHANNELS_FILE}: {e}")
 
     def add_newsfeed_commands(self):
         newsfeed = self.bot.create_group("newsfeed", "Manage newsfeed posts")
