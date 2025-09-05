@@ -78,7 +78,7 @@ def convert_pdf_to_png(in_file: str, out_file: str):
 def get_decklist_pdf(output_filename: str):
     sb = Driver(uc=True, locale_code="en", ad_block=True, external_pdf=True)
     sb.uc_activate_cdp_mode(POKEMON_RULES_URL)
-    sb.sleep(5)
+    sb.sleep(10)
     a_elements = sb.cdp.find_visible_elements("a")
 
     for a in a_elements:
