@@ -8,9 +8,9 @@ from src.core import DATA_FOLDER
 from unittest.mock import patch, call, MagicMock
 
 
-@patch('src.pokemon.get_decklist_pdf')
-@patch('src.pokemon.convert_pdf_to_png')
-@patch('os.remove')
+@patch("src.pokemon.get_decklist_pdf")
+@patch("src.pokemon.convert_pdf_to_png")
+@patch("os.remove")
 def test_get_decklist_png(mock_remove, mock_convert, mock_get_pdf):
     mock_get_pdf.return_value = None
     mock_convert.return_value = None
@@ -25,12 +25,12 @@ def test_get_decklist_png(mock_remove, mock_convert, mock_get_pdf):
     mock_remove.assert_called_once_with(pdf_file)
 
 
-@patch('shutil.rmtree')
-@patch('os.rename')
-@patch('os.remove')
-@patch('os.path.exists')
-@patch('os.listdir')
-@patch('src.pokemon.Driver')
+@patch("shutil.rmtree")
+@patch("os.rename")
+@patch("os.remove")
+@patch("os.path.exists")
+@patch("os.listdir")
+@patch("src.pokemon.Driver")
 def test_get_decklist_pdf(
     mock_driver,
     mock_listdir,
@@ -91,7 +91,7 @@ def test_get_decklist_pdf(
         assert str(e) == "Couldn't find sheet in page"
 
 
-@patch('src.pokemon.fitz.open')
+@patch("src.pokemon.fitz.open")
 def test_convert_pdf_to_png(mock_fitz_open):
     mock_doc = mock_fitz_open.return_value
     mock_doc.__iter__.return_value = [mock_doc]
@@ -178,8 +178,8 @@ def test_extract_event_info():
     event.end_date.year == 2025
 
 
-@patch('src.pokemon.extract_event_info')
-@patch('src.pokemon.Driver')
+@patch("src.pokemon.extract_event_info")
+@patch("src.pokemon.Driver")
 def test_get_store_events(
     mock_driver,
     mock_extract
@@ -204,8 +204,8 @@ def test_get_store_events(
     mock_driver_instance.quit.assert_called_once()
 
 
-@patch('src.pokemon.extract_event_info')
-@patch('src.pokemon.Driver')
+@patch("src.pokemon.extract_event_info")
+@patch("src.pokemon.Driver")
 def test_get_premier_events(
     mock_driver,
     mock_extract
@@ -235,9 +235,9 @@ def test_get_premier_events(
     assert results[0].name == MOCK_EVENT.name
 
 
-@patch('builtins.open')
-@patch('src.pokemon.urlretrieve')
-@patch('src.pokemon.requests.get')
+@patch("builtins.open")
+@patch("src.pokemon.urlretrieve")
+@patch("src.pokemon.requests.get")
 def test_get_logo(mock_get, mock_retrieve, mock_open):
     vector_img = "data:image/gif;base64,randomstringofletters"
     other_img = "logo.png"
@@ -258,7 +258,7 @@ def test_get_logo(mock_get, mock_retrieve, mock_open):
     assert logo == "contenttest"
 
 
-@patch('src.pokemon.Driver')
+@patch("src.pokemon.Driver")
 def test_get_banned_cards(mock_driver):
     mock_driver_instance = mock_driver.return_value
     mock_driver_instance.cdp.find_visible_elements.return_value = [

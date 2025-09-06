@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import shutil
 from urllib.request import urlretrieve
 import requests
-from .core import DATA_FOLDER
+from .core import DATA_FOLDER, REPLACE_CHARACTERS
 
 POKEMON_EVENTS_BASE_URL = "https://events.pokemon.com"
 POKEMON_RULES_URL = (
@@ -19,11 +19,6 @@ POKEMON_BANNED_CARDS_URL = (
     "about/pokemon-tcg-banned-card-list"
 )
 EVENT_DATE_FORMAT = "%b %d,%Y"
-
-REPLACE_CHARACTERS = {
-    "’": "'",
-    "›": ">",
-}
 TMP_FILE = f"{DATA_FOLDER}/tmp.pdf"
 
 
@@ -109,7 +104,7 @@ def get_decklist_pdf(output_filename: str):
 
     sb.quit()
     # Clean up the directory
-    shutil.rmtree('downloaded_files', ignore_errors=True)
+    shutil.rmtree("downloaded_files", ignore_errors=True)
 
 
 def get_decklist_png(output_filename: str = "sign_up_sheet.png"):
@@ -173,7 +168,7 @@ def get_store_events(guids: list[str] = []) -> list[PokemonEvent]:
         events[guid] = []
 
         events_div = sb.cdp.find_visible_elements(
-            '#b10-Content'
+            "#b10-Content"
         )[0].children[0].children
         for event in events_div:
             div = event.children[0].children[0].children[0].children[0]

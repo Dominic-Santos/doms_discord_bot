@@ -3,16 +3,16 @@ from unittest.mock import patch
 from src.helpers import check_dir, create_logger, CustomThread
 
 
-@patch('os.makedirs')
+@patch("os.makedirs")
 def test_check_dir(mock_makedirs):
     # Test case where directory does not exist
     check_dir("test_dir")
     mock_makedirs.assert_called_once_with("test_dir")
 
 
-@patch('logging.FileHandler')
-@patch('logging.getLogger')
-@patch('os.makedirs')
+@patch("logging.FileHandler")
+@patch("logging.getLogger")
+@patch("os.makedirs")
 def test_create_logger(mock_makedirs, mock_logging, mock_filehandler):
     logger = create_logger("test_logger", "/logs/test_log.txt")
     logger.setLevel.assert_called_once_with(logging.DEBUG)

@@ -11,6 +11,11 @@ ENERGY_TYPES = [
     "fighting", "darkness", "metal"
 ]
 
+REPLACE_CHARACTERS = {
+    "’": "'",
+    "›": ">",
+}
+
 
 def get_offset(card_type: str, amount: int) -> int:
     if card_type == "pokemon":

@@ -2,9 +2,9 @@ from main import main
 from unittest.mock import patch, mock_open
 
 
-@patch('main.Bot')
+@patch("main.Bot")
 @patch(
-    'builtins.open',
+    "builtins.open",
     new_callable=mock_open,
     read_data='{"app_token": "test_token"}'
 )
@@ -21,8 +21,8 @@ def test_main(mock_file_open, mock_bot):
     mock_bot.return_value.run.assert_called_once()
 
 
-@patch('builtins.open', new_callable=mock_open)
-@patch('builtins.print')
+@patch("builtins.open", new_callable=mock_open)
+@patch("builtins.print")
 def test_main_no_config(mock_print, mock_file_open):
     mock_file_open.side_effect = FileNotFoundError
 

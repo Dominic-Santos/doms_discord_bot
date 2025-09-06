@@ -2,7 +2,7 @@ from unittest.mock import patch, MagicMock
 from src.pokebeach import get_newsfeed
 
 
-@patch('src.pokebeach.Driver')
+@patch("src.pokebeach.Driver")
 def test_get_newsfeed(mock_driver):
     mock_driver_instance = mock_driver.return_value
 
@@ -29,4 +29,4 @@ def test_get_newsfeed(mock_driver):
     mock_driver_instance.uc_activate_cdp_mode.assert_called_once_with(
         "https://www.pokebeach.com/"
     )
-    mock_driver_instance.sleep.assert_called_once_with(1)
+    mock_driver_instance.sleep.assert_called_once_with(10)

@@ -2,16 +2,13 @@ from datetime import datetime
 from seleniumbase import Driver
 import json
 
+from .core import REPLACE_CHARACTERS
+
 CARD_LIST_ULR = (
     "https://pkmncards.com/?s=format%3A{current_format}"
     "&sort=date&ord=auto&display=list"
 )
 SETS_URL = "https://pkmncards.com/sets/"
-
-REPLACE_CHARACTERS = {
-    "’": "'",
-    "›": ">",
-}
 
 
 def get_legal_card_list(
@@ -99,7 +96,7 @@ def get_standard_format_from_date(date: datetime.date) -> str:
     format_year = date.year
     if date.month >= 4:
         format_year += 1
-    format_letter = chr(ord('d') + (format_year - 2023))
+    format_letter = chr(ord("d") + (format_year - 2023))
     return f"{format_letter}-on-standard-{format_year}"
 
 
@@ -144,7 +141,7 @@ def get_card_text(card_link: str) -> str:
     sb = Driver(uc=True, locale_code="en", ad_block=True)
     sb.uc_activate_cdp_mode(card_link)
     sb.sleep(1)
-    query = 'div.card-text-area div.card-tabs div.tab div.text'
+    query = "div.card-text-area div.card-tabs div.tab div.text"
     card_text = sb.cdp.find_visible_elements(query)[0].text.strip()
     sb.quit()
     return card_text.strip()
@@ -156,7 +153,7 @@ def get_pokemon_sets(
     sb = Driver(uc=True, locale_code="en", ad_block=True)
     sb.uc_activate_cdp_mode(SETS_URL)
     sb.sleep(1)
-    query = 'div.entry-content li a'
+    query = "div.entry-content li a"
     set_elements = sb.cdp.find_visible_elements(query)
 
     pokemon_sets = {"black star promo": "SMP"}

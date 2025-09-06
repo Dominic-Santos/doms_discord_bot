@@ -2,7 +2,7 @@ from unittest.mock import patch, MagicMock
 from src.limitless import get_decklist_from_url
 
 
-@patch('src.limitless.Driver')
+@patch("src.limitless.Driver")
 def test_get_decklist_from_url(mock_driver):
     mock_driver_instance = MagicMock()
     mock_driver.return_value = mock_driver_instance

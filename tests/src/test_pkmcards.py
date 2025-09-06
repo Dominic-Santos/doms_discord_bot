@@ -27,7 +27,7 @@ def pokemon_card_mock():
     ]
 
 
-@patch('src.pkmncards.Driver')
+@patch("src.pkmncards.Driver")
 def test_get_card_text(mock_driver):
     mock_driver_instance = mock_driver.return_value
     mock_driver_instance.cdp.find_visible_elements.return_value = [
@@ -46,8 +46,8 @@ def test_get_card_text(mock_driver):
     assert card_text == "Card text here"
 
 
-@patch('src.pkmncards.get_legal_card_list')
-@patch('src.pkmncards.save_cards_to_file')
+@patch("src.pkmncards.get_legal_card_list")
+@patch("src.pkmncards.save_cards_to_file")
 def test_get_legal_cards(mock_save, mock_get):
     mock_get.return_value = ([
         {
@@ -65,9 +65,9 @@ def test_get_legal_cards(mock_save, mock_get):
     assert mock_save.call_count == 2
 
 
-@patch('src.pkmncards.datetime')
-@patch('src.pkmncards.get_legal_card_list')
-@patch('src.pkmncards.save_cards_to_file')
+@patch("src.pkmncards.datetime")
+@patch("src.pkmncards.get_legal_card_list")
+@patch("src.pkmncards.save_cards_to_file")
 def test_get_legal_cards_fail(mock_save, mock_get, mock_datetime):
     mock_datetime.now.return_value = datetime(2024, 4, 15)
     mock_get.return_value = ([], False, 0)
@@ -76,8 +76,8 @@ def test_get_legal_cards_fail(mock_save, mock_get, mock_datetime):
     assert mock_save.call_count == 0
 
 
-@patch('builtins.open')
-@patch('src.pkmncards.json.dump')
+@patch("builtins.open")
+@patch("src.pkmncards.json.dump")
 def test_save_cards_to_file(mock_dump, mock_open):
     mock_dump.return_value = None
     save_cards_to_file([{
@@ -105,7 +105,7 @@ def test_save_cards_to_file(mock_dump, mock_open):
     }, mock_open.return_value, indent=4)
 
 
-@patch('src.pkmncards.Driver')
+@patch("src.pkmncards.Driver")
 def test_get_legal_card_list(mock_driver):
     value_max = 262
 
@@ -200,9 +200,9 @@ def test_get_legal_card_list(mock_driver):
     assert mock_driver_instance.sleep.call_count == 4
 
 
-@patch('builtins.open')
-@patch('src.pkmncards.json.dump')
-@patch('src.pkmncards.Driver')
+@patch("builtins.open")
+@patch("src.pkmncards.json.dump")
+@patch("src.pkmncards.Driver")
 def test_get_pokemon_sets(mock_driver, mock_dump, mock_open):
     mock_driver_instance = mock_driver.return_value
     mock_driver_instance.cdp.find_visible_elements.return_value = [
