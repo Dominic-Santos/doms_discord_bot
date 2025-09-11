@@ -281,6 +281,7 @@ class TournamentBot:
         )
 
         fill_sheet(
+            sheet_location=SIGN_UP_SHEET_FILE,
             player={
                 "name": full_name,
                 "id": str(pokemon_id),
