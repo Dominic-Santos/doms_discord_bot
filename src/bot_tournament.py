@@ -402,4 +402,4 @@ class TournamentBot:
         return error
 
     def check_sign_up_sheet(self) -> bool:
-        return os.path.exists("sign_up_sheet.png")
+        return os.path.exists(SIGN_UP_SHEET_FILE)
