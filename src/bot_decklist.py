@@ -172,11 +172,11 @@ class DecklistBot:
         user_decks = self.user_decklists.get(user_id, {})
 
         if len(user_decks.keys()) == 0:
-            await ctx.respond("You have no saved decks")
+            await ctx.respond("You have no saved decks", ephemeral=True)
             return
 
         decks = "\n".join(f"\t{deck}" for deck in sorted(user_decks.keys()))
-        await ctx.respond(f"Your decks:\n{decks}")
+        await ctx.respond(f"Your decks:\n{decks}", ephemeral=True)
 
     async def decklist_check(self, ctx, name: str):
         await ctx.defer(ephemeral=True)
