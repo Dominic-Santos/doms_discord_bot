@@ -6,6 +6,23 @@ from src.helpers import MAINTENANCE_MODE_MESSAGE
 from src.pokemon import PokemonEvent
 
 
+def get_mock_one_day_event_date(day, year):
+    prefix = "0" if day < 10 else ""
+    return f"Friday, January {prefix}{day}, {year}"
+
+
+def get_mock_event_date(s_day, e_day, year):
+    s_prefix = "0" if s_day < 10 else ""
+    e_prefix = "0" if e_day < 10 else ""
+    return (
+        f"Friday, January {s_prefix}{s_day}"
+        f" - Sunday, {e_prefix}{e_day}, {year}"
+    )
+
+
+MOCK_EVENT_DATE = get_mock_one_day_event_date(1, 2025)
+
+
 class MockCtx():
     def __init__(self):
         self.guild = MagicMock(id=123)
@@ -22,18 +39,17 @@ class MockEvent():
     def __init__(self, name="test event", old=True):
         self.name = name
         self.location = "hell"
-        date_format = "%b %d,%Y"
+
         if old:
-            self.start_time = datetime.strptime("Jan 14,2025", date_format)
-            self.end_time = datetime.strptime("Jan 17,2025", date_format)
+            mock_date = get_mock_event_date(14, 16, 2025)
         else:
             mock_year = datetime.now().year + 1
-            self.start_time = datetime.strptime(
-                f"Jan 14,{mock_year}", date_format
-            )
-            self.end_time = datetime.strptime(
-                f"Jan 17,{mock_year}", date_format
-            )
+            mock_date = get_mock_event_date(14, 16, mock_year)
+
+        p_event = PokemonEvent("a", "b", "c", mock_date, "d", True)
+        self.start_time = p_event.start_date
+        self.end_time = p_event.end_date
+
         self.url = "www.test.com"
         self.creator_id = "im_a_bot"
         self.canceled = False
@@ -77,7 +93,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
                 e_name,
                 "e_type",
                 "e_location",
-                "January 1, 2025",
+                MOCK_EVENT_DATE,
                 "e_logo",
                 True
             )
@@ -89,7 +105,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
                     "event1",
                     "e_type",
                     "e_location",
-                    "January 1, 2025",
+                    MOCK_EVENT_DATE,
                     "e_logo",
                     False
                 )
@@ -99,7 +115,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
                     "event2",
                     "e_type",
                     "e_location",
-                    "January 1, 2025",
+                    MOCK_EVENT_DATE,
                     "e_logo",
                     False
                 )
@@ -208,26 +224,26 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
                 {
                     "name": "e1",
                     "type": "friendly",
-                    "date": f"January 14-16,{mock_year}"
+                    "date": get_mock_event_date(14, 16, mock_year)
                 },
                 {
                     "name": "e2",
                     "type": "friendly",
-                    "date": f"January 20,{mock_year}"
+                    "date": get_mock_one_day_event_date(20, mock_year)
                 },
                 {
                     "name": "e3",
                     "type": "friendly",
-                    "date": f"January 20,{mock_old_year}"
+                    "date": get_mock_one_day_event_date(20, mock_old_year)
                 },
                 {
                     "name": "event2",
                     "type": "friendly",
-                    "date": f"January 14-16,{mock_year}"
+                    "date": get_mock_event_date(14, 16, mock_year)
                 },
                 {
                     "name": "event2",
-                    "date": f"January 14-16,{mock_year}",
+                    "date": get_mock_event_date(14, 16, mock_year),
                     "type": "League"
                 }
             ]

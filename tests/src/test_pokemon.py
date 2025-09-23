@@ -150,7 +150,7 @@ MOCK_EVENT_DATA = {
     "type": "friendly",
     "name": "test event",
     "location": "hell",
-    "date": "January 14-16,2025"
+    "date": "Friday, Oct 10 - Sunday, 12, 2025"
 }
 
 MOCK_EVENT = PokemonEvent(
@@ -162,6 +162,40 @@ MOCK_EVENT = PokemonEvent(
     False
 )
 
+MOCK_ONE_DAY_EVENT_DATA = {
+    "logo": "test.png",
+    "type": "friendly",
+    "name": "test event",
+    "location": "hell",
+    "date": "Wednesday, September 24, 2025 03:00 PM"
+}
+
+MOCK_ONE_DAY_EVENT = PokemonEvent(
+    MOCK_ONE_DAY_EVENT_DATA["name"],
+    MOCK_ONE_DAY_EVENT_DATA["type"],
+    MOCK_ONE_DAY_EVENT_DATA["location"],
+    MOCK_ONE_DAY_EVENT_DATA["date"],
+    MOCK_ONE_DAY_EVENT_DATA["logo"],
+    False
+)
+
+MOCK_BETWEEN_MONTHS_EVENT_DATA = {
+    "logo": "test.png",
+    "type": "friendly",
+    "name": "test event",
+    "location": "hell",
+    "date": "Friday, Oct 10 - Sunday, Nov 12, 2025"
+}
+
+MOCK_BETWEEN_MONTHS_EVENT = PokemonEvent(
+    MOCK_BETWEEN_MONTHS_EVENT_DATA["name"],
+    MOCK_BETWEEN_MONTHS_EVENT_DATA["type"],
+    MOCK_BETWEEN_MONTHS_EVENT_DATA["location"],
+    MOCK_BETWEEN_MONTHS_EVENT_DATA["date"],
+    MOCK_BETWEEN_MONTHS_EVENT_DATA["logo"],
+    False
+)
+
 
 def test_extract_event_info():
     mock_e_div = MockEventDiv(MOCK_EVENT_DATA, store=True)
@@ -170,11 +204,41 @@ def test_extract_event_info():
     event.name == MOCK_EVENT_DATA["name"]
     event.type == MOCK_EVENT_DATA["type"]
     event.location == MOCK_EVENT_DATA["location"]
-    event.start_date.day == 14
-    event.start_date.month == 1
+    event.start_date.day == 10
+    event.start_date.month == 10
     event.start_date.year == 2025
-    event.end_date.day == 17
-    event.end_date.month == 1
+    event.end_date.day == 13
+    event.end_date.month == 10
+    event.end_date.year == 2025
+
+
+def test_extract_one_day_event_info():
+    mock_e_div = MockEventDiv(MOCK_ONE_DAY_EVENT_DATA, store=True)
+    event = extract_event_info(mock_e_div, store=True)
+    event.logo == MOCK_ONE_DAY_EVENT_DATA["logo"]
+    event.name == MOCK_ONE_DAY_EVENT_DATA["name"]
+    event.type == MOCK_ONE_DAY_EVENT_DATA["type"]
+    event.location == MOCK_ONE_DAY_EVENT_DATA["location"]
+    event.start_date.day == 24
+    event.start_date.month == 10
+    event.start_date.year == 2025
+    event.end_date.day == 25
+    event.end_date.month == 10
+    event.end_date.year == 2025
+
+
+def test_extract_between_months_event_info():
+    mock_e_div = MockEventDiv(MOCK_BETWEEN_MONTHS_EVENT_DATA, store=True)
+    event = extract_event_info(mock_e_div, store=True)
+    event.logo == MOCK_BETWEEN_MONTHS_EVENT_DATA["logo"]
+    event.name == MOCK_BETWEEN_MONTHS_EVENT_DATA["name"]
+    event.type == MOCK_BETWEEN_MONTHS_EVENT_DATA["type"]
+    event.location == MOCK_BETWEEN_MONTHS_EVENT_DATA["location"]
+    event.start_date.day == 10
+    event.start_date.month == 10
+    event.start_date.year == 2025
+    event.end_date.day == 13
+    event.end_date.month == 11
     event.end_date.year == 2025
 
 

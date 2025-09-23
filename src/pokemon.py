@@ -18,7 +18,7 @@ POKEMON_BANNED_CARDS_URL = (
     "https://www.pokemon.com/us/play-pokemon/"
     "about/pokemon-tcg-banned-card-list"
 )
-EVENT_DATE_FORMAT = "%b %d,%Y"
+EVENT_DATE_FORMAT = "%b %d %Y"
 TMP_FILE = f"{DATA_FOLDER}/tmp.pdf"
 
 
@@ -41,12 +41,22 @@ class PokemonEvent():
         self._parse_date(date)
 
     def _parse_date(self, date: str):
-        e_date = date.replace(", ", ",")
-        e_date = e_date[:3] + " " + e_date.split(" ")[1]
+        e_date = date.replace(", ", ",").replace(",", " ")
 
         if "-" in e_date:
-            start_str = e_date[:6] + e_date[9:]
-            end_str = e_date[0:4] + e_date[7:]
+            # Friday Oct 10 - Sunday 12 2025
+            d_split = e_date.split(" ")
+            start_month, start_day = d_split[1:3]
+            year = d_split[-1]
+            if len(d_split) == 7:
+                end_month = start_month
+                end_day = d_split[5]
+            else:
+                end_month, end_day = d_split[5:7]
+
+            start_str = f"{start_month[:3]} {start_day} {year}"
+            end_str = f"{end_month[:3]} {end_day} {year}"
+
             self.start_date = datetime.strptime(
                 start_str, EVENT_DATE_FORMAT
             )
@@ -54,6 +64,10 @@ class PokemonEvent():
                 end_str, EVENT_DATE_FORMAT
             ) + timedelta(days=1)
             return
+
+        # Wednesday September 24 2025 03:00 PM
+        month, day, year = e_date.split(" ")[1:4]
+        e_date = f"{month[:3]} {day} {year}"
 
         event_date = datetime.strptime(
             e_date,
