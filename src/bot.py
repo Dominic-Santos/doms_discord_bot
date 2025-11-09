@@ -79,8 +79,8 @@ class Bot(
 
     def add_tasks(self):
         time_update_legal_cards = datetime.time(hour=7)
-        time_update_signup_sheet = datetime.time(hour=10)
-        time_update_events = datetime.time(hour=9)
+        time_update_signup_sheet = datetime.time(hour=9)
+        time_update_events = datetime.time(hour=11)
         time_update_banned_cards = datetime.time(hour=8)
         interval_update_newsfeed = {"hours": 6}
 

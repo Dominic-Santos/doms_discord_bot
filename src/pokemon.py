@@ -185,7 +185,9 @@ def get_store_events(guids: list[str] = []) -> list[PokemonEvent]:
             "#b10-Content"
         )[0].children[0].children
         for event in events_div:
-            div = event.children[0].children[0].children[0].children[0]
+            div = event
+            for _ in range(5):
+                div = div.children[0]
             event_info = extract_event_info(div, store=True)
             events[guid].append(event_info)
 
