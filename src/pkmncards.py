@@ -36,8 +36,10 @@ def get_legal_card_list(
         current_range = sb.cdp.find_visible_elements("span.range-current")[0]
         total = sb.cdp.find_visible_elements("span.out-of")[0]
 
-        range_max = current_range.text.replace(",", "")
-        range_max = range_max.split("thru")[1].strip()
+        range_max = current_range.text.replace(",", "").strip()
+        if "thru" in range_max:
+            range_max = range_max.split("thru")[1].strip()
+
         clean_total = total.children[0].text.replace(",", "")
         clean_total = clean_total.replace("/", "").strip()
 
@@ -61,7 +63,7 @@ def get_legal_card_list(
         # trigger next page
         next_link_element = sb.cdp.find_visible_elements("li.next-link a")
         next_link_element[0].click()
-        sb.sleep(2)
+        sb.sleep(3)
 
     sb.quit()
     return legal_cards, valid, int(clean_total)

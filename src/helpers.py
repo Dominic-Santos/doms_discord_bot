@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import traceback
 
 from threading import Thread
 
@@ -44,6 +45,7 @@ class CustomThread(Thread):
             self.return_value = self._target(*self._args, **self._kwargs)
         except Exception as e:
             self.error = e
+            print(traceback.format_exc())
 
     def join(self, *args, **kwargs):
         super().join(*args, **kwargs)
