@@ -253,9 +253,14 @@ class TournamentBot:
 
         self.save_user_decklists()
 
-        if valid["standard"]["valid"] is False:
+        if valid[format]["valid"] is False:
+            log_text = (
+                f"Decklist for user {full_name} failed validation: "
+                f"{valid[format]['error']}"
+            )
+            self.logger.info(log_text)
             await ctx.respond(
-                f"Decklist is not valid: {valid['standard']['error']}",
+                f"Decklist is not valid: {valid[format]['error']}",
                 ephemeral=True
             )
             return
@@ -354,6 +359,11 @@ class TournamentBot:
             return
 
         if result[format]["valid"] is False:
+            log_text = (
+                f"Decklist for {full_name} failed validation: "
+                f"{result[format]['error']}"
+            )
+            self.logger.info(log_text)
             await ctx.respond(
                 f"Deck is not valid: {result[format]['error']}",
                 ephemeral=True
