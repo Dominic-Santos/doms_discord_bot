@@ -29,6 +29,18 @@ def test_load_card_database():
         filename="tests/src/test_legal_cards.json"
     )
     all_pokemon = [p for set in pokemon for p in pokemon[set]]
+    assert len(all_pokemon) == 484
+    assert len(trainers.keys()) == 14
+    assert len(energies.keys()) == 2
+    assert count == 123
+
+
+def test_load_card_database_with_banned_sets():
+    pokemon, trainers, energies, count = load_card_database(
+        filename="tests/src/test_legal_cards.json",
+        banned_sets=["BLK"]
+    )
+    all_pokemon = [p for set in pokemon for p in pokemon[set]]
     assert len(all_pokemon) == 323
     assert len(trainers.keys()) == 14
     assert len(energies.keys()) == 2
@@ -353,13 +365,15 @@ def test_convert_banned_cards():
         "standard": [
             ("Sewaddle", "white", "087"),
             ("Tool Scrapper", "white", "085"),
-            ("Prism Energy", "black", "086")
+            ("Prism Energy", "black", "086"),
+            ("Prism Energy Promo", "black promo", "086"),
         ]
     }
 
     sets = {
         "white": "WHT",
-        "black": "BLK"
+        "black": "BLK",
+        "black promos": "BLK-PROMO"
     }
 
     with open("tests/src/test_legal_cards.json", "r") as f:
@@ -375,7 +389,7 @@ def test_convert_banned_cards():
         "Tool Scrapper"
     ]
     assert result["standard"]["energies"] == [
-        "Prism Energy"
+        "Prism Energy", "Prism Energy Promo"
     ]
 
     error = None

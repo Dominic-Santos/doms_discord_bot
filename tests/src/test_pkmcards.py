@@ -1,8 +1,8 @@
 from datetime import datetime
 from unittest.mock import patch, MagicMock, ANY
 from src.pkmncards import (
-    get_legal_card_list, save_cards_to_file, get_legal_cards,
-    get_card_text, get_pokemon_sets
+    get_legal_card_list, save_cards_to_file,
+    get_legal_cards, get_card_text, get_pokemon_sets, check_should_skip_set
 )
 
 
@@ -203,13 +203,16 @@ def test_get_legal_card_list(mock_driver):
 @patch("builtins.open")
 @patch("src.pkmncards.json.dump")
 @patch("src.pkmncards.Driver")
-def test_get_pokemon_sets(mock_driver, mock_dump, mock_open):
+def test_get_pokemon_sets(
+    mock_driver, mock_dump, mock_open
+):
     mock_driver_instance = mock_driver.return_value
     mock_driver_instance.cdp.find_visible_elements.return_value = [
         MagicMock(text="Destined Rivals (DRI)"),
         MagicMock(text="Journey Together (JTG)"),
         MagicMock(text="Prismatic Evolutions (PRE)"),
-        MagicMock(text="Fake Set")
+        MagicMock(text="Fake Set"),
+        MagicMock(text="Miscellaneous")
     ]
 
     get_pokemon_sets()
@@ -218,5 +221,13 @@ def test_get_pokemon_sets(mock_driver, mock_dump, mock_open):
         "destined rivals": "DRI",
         "journey together": "JTG",
         "prismatic evolutions": "PRE",
+        "Fake Set": "Fake Set"
     }, ANY, indent=4)
     mock_driver_instance.quit.assert_called_once()
+
+
+def test_check_should_skip_set():
+    assert check_should_skip_set("Shield & Sword Energy") == (False, False)
+    assert check_should_skip_set("Miscellaneous") == (True, False)
+    assert check_should_skip_set("Fake Set") == (False, False)
+    assert check_should_skip_set("Destined Rivals (DRI)") == (False, True)

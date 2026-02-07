@@ -16,7 +16,8 @@ class LegalCardsBot:
     def load_legal_cards(self):
         try:
             pokemon, trainers, energies, count = load_card_database(
-                LEGAL_CARDS_FILE
+                LEGAL_CARDS_FILE,
+                self.banned_sets
             )
             self.legal_cards = {
                 "pokemon": pokemon,
@@ -30,7 +31,8 @@ class LegalCardsBot:
 
         try:
             pokemon, trainers, energies, count = load_card_database(
-                LEGAL_CARDS_EXPANDED_FILE
+                LEGAL_CARDS_EXPANDED_FILE,
+                self.banned_sets
             )
             self.legal_expanded_cards = {
                 "pokemon": pokemon,

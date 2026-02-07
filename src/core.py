@@ -137,9 +137,10 @@ def fill_sheet(
     img.save(output_filename)
 
 
-def load_card_database(filename: str = "legal_cards.json") -> tuple[
-    dict, dict, dict, int
-]:
+def load_card_database(
+    filename: str = "legal_cards.json",
+    banned_sets: list[str] = []
+) -> tuple[dict, dict, dict, int]:
     if not filename.endswith(".json"):
         raise ValueError("Filename must be a JSON file.")
     try:
@@ -154,6 +155,8 @@ def load_card_database(filename: str = "legal_cards.json") -> tuple[
     count = data.get("count", 0)
 
     for set_name, cards in data.get("cards", {}).items():
+        if set_name in banned_sets:
+            continue
         for card_number, card_info in cards.items():
             if card_info["type"].startswith("Pkmn"):
                 if card_number.isdigit():
@@ -177,7 +180,7 @@ def load_card_database(filename: str = "legal_cards.json") -> tuple[
 def validate_decklist(
     decklist: dict,
     legal_cards: dict | None = None,
-    banned_cards: dict | None = None
+    banned_cards: dict | None = None,
 ) -> tuple[bool, str]:
     # check 60 card deck
     pokemon_count = sum(
@@ -311,9 +314,18 @@ def convert_banned_cards(banned_cards: dict, sets: dict, expanded_cards: dict):
         for card_name, set_name, set_nr in banned_cards[format]:
             set_code = sets.get(set_name.lower(), set_name)
             if set_code not in expanded_cards:
-                raise Exception(
-                    f"Set code {set_code} not found in expanded cards."
-                )
+                raise_exception = True
+                lower_code = set_code.lower()
+                if "promo" in lower_code and "promos" not in lower_code:
+                    set_code = set_code.replace("romo", "romos")
+                    set_code = sets.get(set_code, set_code)
+                    if set_code in expanded_cards:
+                        raise_exception = False
+
+                if raise_exception:
+                    raise Exception(
+                        f"Set code {set_code} not found in expanded cards."
+                    )
 
             if set_nr not in expanded_cards[set_code]:
                 raise Exception(

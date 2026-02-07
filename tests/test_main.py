@@ -15,7 +15,7 @@ def test_main(mock_file_open, mock_bot):
     mock_file_open.assert_called_once_with("config.json", "r")
 
     # Check if the Bot was instantiated with the correct token
-    mock_bot.assert_called_once_with("test_token", True, "abc123")
+    mock_bot.assert_called_once_with("test_token", True, "abc123", [])
 
     # Check if the bot's run method was called
     mock_bot.return_value.run.assert_called_once()

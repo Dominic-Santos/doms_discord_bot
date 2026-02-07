@@ -2418,6 +2418,1212 @@
             "rarity": "Common",
             "link": "https://pkmncards.com/card/snivy-black-bolt-blk-001/"
         }
+    },
+    "BLK-PROMO": {
+        "172": {
+            "name": "Zekrom ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ L }",
+            "rarity": "Black White Rare",
+            "link": "https://pkmncards.com/card/zekrom-ex-black-bolt-blk-172/"
+        },
+        "171": {
+            "name": "Victini",
+            "type": "Pkmn  > Basic",
+            "color": "{ R }",
+            "rarity": "Black White Rare",
+            "link": "https://pkmncards.com/card/victini-black-bolt-blk-171/"
+        },
+        "170": {
+            "name": "N's Plan",
+            "type": "Trainer > Supporter",
+            "color": "",
+            "rarity": "Special Illustration Rare",
+            "link": "https://pkmncards.com/card/ns-plan-black-bolt-blk-170/"
+        },
+        "169": {
+            "name": "Genesect ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ M }",
+            "rarity": "Special Illustration Rare",
+            "link": "https://pkmncards.com/card/genesect-ex-black-bolt-blk-169/"
+        },
+        "168": {
+            "name": "Excadrill ex",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ F }",
+            "rarity": "Special Illustration Rare",
+            "link": "https://pkmncards.com/card/excadrill-ex-black-bolt-blk-168/"
+        },
+        "167": {
+            "name": "Meloetta ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ P }",
+            "rarity": "Special Illustration Rare",
+            "link": "https://pkmncards.com/card/meloetta-ex-black-bolt-blk-167/"
+        },
+        "166": {
+            "name": "Zekrom ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ L }",
+            "rarity": "Special Illustration Rare",
+            "link": "https://pkmncards.com/card/zekrom-ex-black-bolt-blk-166/"
+        },
+        "165": {
+            "name": "Kyurem ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Special Illustration Rare",
+            "link": "https://pkmncards.com/card/kyurem-ex-black-bolt-blk-165/"
+        },
+        "164": {
+            "name": "Serperior ex",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ G }",
+            "rarity": "Special Illustration Rare",
+            "link": "https://pkmncards.com/card/serperior-ex-black-bolt-blk-164/"
+        },
+        "163": {
+            "name": "N's Plan",
+            "type": "Trainer > Supporter",
+            "color": "",
+            "rarity": "Ultra Rare",
+            "link": "https://pkmncards.com/card/ns-plan-black-bolt-blk-163/"
+        },
+        "162": {
+            "name": "Fennel",
+            "type": "Trainer > Supporter",
+            "color": "",
+            "rarity": "Ultra Rare",
+            "link": "https://pkmncards.com/card/fennel-black-bolt-blk-162/"
+        },
+        "161": {
+            "name": "Genesect ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ M }",
+            "rarity": "Ultra Rare",
+            "link": "https://pkmncards.com/card/genesect-ex-black-bolt-blk-161/"
+        },
+        "160": {
+            "name": "Excadrill ex",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ F }",
+            "rarity": "Ultra Rare",
+            "link": "https://pkmncards.com/card/excadrill-ex-black-bolt-blk-160/"
+        },
+        "159": {
+            "name": "Meloetta ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ P }",
+            "rarity": "Ultra Rare",
+            "link": "https://pkmncards.com/card/meloetta-ex-black-bolt-blk-159/"
+        },
+        "158": {
+            "name": "Zekrom ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ L }",
+            "rarity": "Ultra Rare",
+            "link": "https://pkmncards.com/card/zekrom-ex-black-bolt-blk-158/"
+        },
+        "157": {
+            "name": "Kyurem ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Ultra Rare",
+            "link": "https://pkmncards.com/card/kyurem-ex-black-bolt-blk-157/"
+        },
+        "156": {
+            "name": "Serperior ex",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ G }",
+            "rarity": "Ultra Rare",
+            "link": "https://pkmncards.com/card/serperior-ex-black-bolt-blk-156/"
+        },
+        "155": {
+            "name": "Braviary",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ C }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/braviary-black-bolt-blk-155/"
+        },
+        "154": {
+            "name": "Rufflet",
+            "type": "Pkmn  > Basic",
+            "color": "{ C }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/rufflet-black-bolt-blk-154/"
+        },
+        "153": {
+            "name": "Cinccino",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ C }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/cinccino-black-bolt-blk-153/"
+        },
+        "152": {
+            "name": "Minccino",
+            "type": "Pkmn  > Basic",
+            "color": "{ C }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/minccino-black-bolt-blk-152/"
+        },
+        "151": {
+            "name": "Audino",
+            "type": "Pkmn  > Basic",
+            "color": "{ C }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/audino-black-bolt-blk-151/"
+        },
+        "150": {
+            "name": "Unfezant",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ C }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/unfezant-black-bolt-blk-150/"
+        },
+        "149": {
+            "name": "Tranquill",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ C }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/tranquill-black-bolt-blk-149/"
+        },
+        "148": {
+            "name": "Pidove",
+            "type": "Pkmn  > Basic",
+            "color": "{ C }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/pidove-black-bolt-blk-148/"
+        },
+        "147": {
+            "name": "Haxorus",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ N }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/haxorus-black-bolt-blk-147/"
+        },
+        "146": {
+            "name": "Fraxure",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ N }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/fraxure-black-bolt-blk-146/"
+        },
+        "145": {
+            "name": "Axew",
+            "type": "Pkmn  > Basic",
+            "color": "{ N }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/axew-black-bolt-blk-145/"
+        },
+        "144": {
+            "name": "Cobalion",
+            "type": "Pkmn  > Basic",
+            "color": "{ M }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/cobalion-black-bolt-blk-144/"
+        },
+        "143": {
+            "name": "Bisharp",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ M }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/bisharp-black-bolt-blk-143/"
+        },
+        "142": {
+            "name": "Pawniard",
+            "type": "Pkmn  > Basic",
+            "color": "{ M }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/pawniard-black-bolt-blk-142/"
+        },
+        "141": {
+            "name": "Klinklang",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ M }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/klinklang-black-bolt-blk-141/"
+        },
+        "140": {
+            "name": "Klang",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ M }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/klang-black-bolt-blk-140/"
+        },
+        "139": {
+            "name": "Klink",
+            "type": "Pkmn  > Basic",
+            "color": "{ M }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/klink-black-bolt-blk-139/"
+        },
+        "138": {
+            "name": "Escavalier",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ M }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/escavalier-black-bolt-blk-138/"
+        },
+        "137": {
+            "name": "Krookodile",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ D }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/krookodile-black-bolt-blk-137/"
+        },
+        "136": {
+            "name": "Krokorok",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ D }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/krokorok-black-bolt-blk-136/"
+        },
+        "135": {
+            "name": "Sandile",
+            "type": "Pkmn  > Basic",
+            "color": "{ D }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/sandile-black-bolt-blk-135/"
+        },
+        "134": {
+            "name": "Scolipede",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ D }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/scolipede-black-bolt-blk-134/"
+        },
+        "133": {
+            "name": "Whirlipede",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ D }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/whirlipede-black-bolt-blk-133/"
+        },
+        "132": {
+            "name": "Venipede",
+            "type": "Pkmn  > Basic",
+            "color": "{ D }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/venipede-black-bolt-blk-132/"
+        },
+        "131": {
+            "name": "Landorus",
+            "type": "Pkmn  > Basic",
+            "color": "{ F }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/landorus-black-bolt-blk-131/"
+        },
+        "130": {
+            "name": "Crustle",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ F }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/crustle-black-bolt-blk-130/"
+        },
+        "129": {
+            "name": "Dwebble",
+            "type": "Pkmn  > Basic",
+            "color": "{ F }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/dwebble-black-bolt-blk-129/"
+        },
+        "128": {
+            "name": "Throh",
+            "type": "Pkmn  > Basic",
+            "color": "{ F }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/throh-black-bolt-blk-128/"
+        },
+        "127": {
+            "name": "Conkeldurr",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ F }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/conkeldurr-black-bolt-blk-127/"
+        },
+        "126": {
+            "name": "Gurdurr",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ F }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/gurdurr-black-bolt-blk-126/"
+        },
+        "125": {
+            "name": "Timburr",
+            "type": "Pkmn  > Basic",
+            "color": "{ F }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/timburr-black-bolt-blk-125/"
+        },
+        "124": {
+            "name": "Drilbur",
+            "type": "Pkmn  > Basic",
+            "color": "{ F }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/drilbur-black-bolt-blk-124/"
+        },
+        "123": {
+            "name": "Golurk",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ P }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/golurk-black-bolt-blk-123/"
+        },
+        "122": {
+            "name": "Golett",
+            "type": "Pkmn  > Basic",
+            "color": "{ P }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/golett-black-bolt-blk-122/"
+        },
+        "121": {
+            "name": "Beheeyem",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ P }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/beheeyem-black-bolt-blk-121/"
+        },
+        "120": {
+            "name": "Elgyem",
+            "type": "Pkmn  > Basic",
+            "color": "{ P }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/elgyem-black-bolt-blk-120/"
+        },
+        "119": {
+            "name": "Duosion",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ P }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/duosion-black-bolt-blk-119/"
+        },
+        "118": {
+            "name": "Solosis",
+            "type": "Pkmn  > Basic",
+            "color": "{ P }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/solosis-black-bolt-blk-118/"
+        },
+        "117": {
+            "name": "Musharna",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ P }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/musharna-black-bolt-blk-117/"
+        },
+        "116": {
+            "name": "Munna",
+            "type": "Pkmn  > Basic",
+            "color": "{ P }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/munna-black-bolt-blk-116/"
+        },
+        "115": {
+            "name": "Eelektross",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ L }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/eelektross-black-bolt-blk-115/"
+        },
+        "114": {
+            "name": "Eelektrik",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ L }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/eelektrik-black-bolt-blk-114/"
+        },
+        "113": {
+            "name": "Tynamo",
+            "type": "Pkmn  > Basic",
+            "color": "{ L }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/tynamo-black-bolt-blk-113/"
+        },
+        "112": {
+            "name": "Emolga",
+            "type": "Pkmn  > Basic",
+            "color": "{ L }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/emolga-black-bolt-blk-112/"
+        },
+        "111": {
+            "name": "Cryogonal",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/cryogonal-black-bolt-blk-111/"
+        },
+        "110": {
+            "name": "Beartic",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ W }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/beartic-black-bolt-blk-110/"
+        },
+        "109": {
+            "name": "Cubchoo",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/cubchoo-black-bolt-blk-109/"
+        },
+        "108": {
+            "name": "Alomomola",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/alomomola-black-bolt-blk-108/"
+        },
+        "107": {
+            "name": "Carracosta",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ W }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/carracosta-black-bolt-blk-107/"
+        },
+        "106": {
+            "name": "Tirtouga",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ W }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/tirtouga-black-bolt-blk-106/"
+        },
+        "105": {
+            "name": "Seismitoad",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ W }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/seismitoad-black-bolt-blk-105/"
+        },
+        "104": {
+            "name": "Palpitoad",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ W }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/palpitoad-black-bolt-blk-104/"
+        },
+        "103": {
+            "name": "Tympole",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/tympole-black-bolt-blk-103/"
+        },
+        "102": {
+            "name": "Simipour",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ W }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/simipour-black-bolt-blk-102/"
+        },
+        "101": {
+            "name": "Panpour",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/panpour-black-bolt-blk-101/"
+        },
+        "100": {
+            "name": "Volcarona",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ R }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/volcarona-black-bolt-blk-100/"
+        },
+        "099": {
+            "name": "Larvesta",
+            "type": "Pkmn  > Basic",
+            "color": "{ R }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/larvesta-black-bolt-blk-099/"
+        },
+        "098": {
+            "name": "Darmanitan",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ R }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/darmanitan-black-bolt-blk-098/"
+        },
+        "097": {
+            "name": "Darumaka",
+            "type": "Pkmn  > Basic",
+            "color": "{ R }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/darumaka-black-bolt-blk-097/"
+        },
+        "096": {
+            "name": "Amoonguss",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ G }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/amoonguss-black-bolt-blk-096/"
+        },
+        "095": {
+            "name": "Foongus",
+            "type": "Pkmn  > Basic",
+            "color": "{ G }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/foongus-black-bolt-blk-095/"
+        },
+        "094": {
+            "name": "Karrablast",
+            "type": "Pkmn  > Basic",
+            "color": "{ G }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/karrablast-black-bolt-blk-094/"
+        },
+        "093": {
+            "name": "Maractus",
+            "type": "Pkmn  > Basic",
+            "color": "{ G }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/maractus-black-bolt-blk-093/"
+        },
+        "092": {
+            "name": "Lilligant",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ G }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/lilligant-black-bolt-blk-092/"
+        },
+        "091": {
+            "name": "Petilil",
+            "type": "Pkmn  > Basic",
+            "color": "{ G }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/petilil-black-bolt-blk-091/"
+        },
+        "090": {
+            "name": "Simisage",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ G }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/simisage-black-bolt-blk-090/"
+        },
+        "089": {
+            "name": "Pansage",
+            "type": "Pkmn  > Basic",
+            "color": "{ G }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/pansage-black-bolt-blk-089/"
+        },
+        "088": {
+            "name": "Servine",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ G }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/servine-black-bolt-blk-088/"
+        },
+        "087": {
+            "name": "Snivy",
+            "type": "Pkmn  > Basic",
+            "color": "{ G }",
+            "rarity": "Illustration Rare",
+            "link": "https://pkmncards.com/card/snivy-black-bolt-blk-087/"
+        },
+        "086": {
+            "name": "Prism Energy",
+            "type": "Energy > Special",
+            "color": "",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/prism-energy-black-bolt-blk-086/"
+        },
+        "085": {
+            "name": "Professor's Research",
+            "type": "Trainer > Supporter",
+            "color": "",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/professors-research-black-bolt-blk-085/"
+        },
+        "084": {
+            "name": "Pok\u00e9gear 3.0",
+            "type": "Trainer > Item",
+            "color": "",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/pokegear-3-0-black-bolt-blk-084/"
+        },
+        "083": {
+            "name": "N's Plan",
+            "type": "Trainer > Supporter",
+            "color": "",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/ns-plan-black-bolt-blk-083/"
+        },
+        "082": {
+            "name": "Fennel",
+            "type": "Trainer > Supporter",
+            "color": "",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/fennel-black-bolt-blk-082/"
+        },
+        "081": {
+            "name": "Energy Coin",
+            "type": "Trainer > Item",
+            "color": "",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/energy-coin-black-bolt-blk-081/"
+        },
+        "080": {
+            "name": "Antique Cover Fossil",
+            "type": "Trainer > Item",
+            "color": "",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/antique-cover-fossil-black-bolt-blk-080/"
+        },
+        "079": {
+            "name": "Air Balloon",
+            "type": "Trainer > Tool",
+            "color": "",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/air-balloon-black-bolt-blk-079/"
+        },
+        "078": {
+            "name": "Braviary",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ C }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/braviary-black-bolt-blk-078/"
+        },
+        "077": {
+            "name": "Rufflet",
+            "type": "Pkmn  > Basic",
+            "color": "{ C }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/rufflet-black-bolt-blk-077/"
+        },
+        "076": {
+            "name": "Cinccino",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ C }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/cinccino-black-bolt-blk-076/"
+        },
+        "075": {
+            "name": "Minccino",
+            "type": "Pkmn  > Basic",
+            "color": "{ C }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/minccino-black-bolt-blk-075/"
+        },
+        "074": {
+            "name": "Audino",
+            "type": "Pkmn  > Basic",
+            "color": "{ C }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/audino-black-bolt-blk-074/"
+        },
+        "073": {
+            "name": "Unfezant",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ C }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/unfezant-black-bolt-blk-073/"
+        },
+        "072": {
+            "name": "Tranquill",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ C }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/tranquill-black-bolt-blk-072/"
+        },
+        "071": {
+            "name": "Pidove",
+            "type": "Pkmn  > Basic",
+            "color": "{ C }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/pidove-black-bolt-blk-071/"
+        },
+        "070": {
+            "name": "Haxorus",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ N }",
+            "rarity": "Rare",
+            "link": "https://pkmncards.com/card/haxorus-black-bolt-blk-070/"
+        },
+        "069": {
+            "name": "Fraxure",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ N }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/fraxure-black-bolt-blk-069/"
+        },
+        "068": {
+            "name": "Axew",
+            "type": "Pkmn  > Basic",
+            "color": "{ N }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/axew-black-bolt-blk-068/"
+        },
+        "067": {
+            "name": "Genesect ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ M }",
+            "rarity": "Double Rare",
+            "link": "https://pkmncards.com/card/genesect-ex-black-bolt-blk-067/"
+        },
+        "066": {
+            "name": "Cobalion",
+            "type": "Pkmn  > Basic",
+            "color": "{ M }",
+            "rarity": "Rare",
+            "link": "https://pkmncards.com/card/cobalion-black-bolt-blk-066/"
+        },
+        "065": {
+            "name": "Bisharp",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ M }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/bisharp-black-bolt-blk-065/"
+        },
+        "064": {
+            "name": "Pawniard",
+            "type": "Pkmn  > Basic",
+            "color": "{ M }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/pawniard-black-bolt-blk-064/"
+        },
+        "063": {
+            "name": "Klinklang",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ M }",
+            "rarity": "Rare",
+            "link": "https://pkmncards.com/card/klinklang-black-bolt-blk-063/"
+        },
+        "062": {
+            "name": "Klang",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ M }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/klang-black-bolt-blk-062/"
+        },
+        "061": {
+            "name": "Klink",
+            "type": "Pkmn  > Basic",
+            "color": "{ M }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/klink-black-bolt-blk-061/"
+        },
+        "060": {
+            "name": "Escavalier",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ M }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/escavalier-black-bolt-blk-060/"
+        },
+        "059": {
+            "name": "Krookodile",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ D }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/krookodile-black-bolt-blk-059/"
+        },
+        "058": {
+            "name": "Krokorok",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ D }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/krokorok-black-bolt-blk-058/"
+        },
+        "057": {
+            "name": "Sandile",
+            "type": "Pkmn  > Basic",
+            "color": "{ D }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/sandile-black-bolt-blk-057/"
+        },
+        "056": {
+            "name": "Scolipede",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ D }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/scolipede-black-bolt-blk-056/"
+        },
+        "055": {
+            "name": "Whirlipede",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ D }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/whirlipede-black-bolt-blk-055/"
+        },
+        "054": {
+            "name": "Venipede",
+            "type": "Pkmn  > Basic",
+            "color": "{ D }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/venipede-black-bolt-blk-054/"
+        },
+        "053": {
+            "name": "Landorus",
+            "type": "Pkmn  > Basic",
+            "color": "{ F }",
+            "rarity": "Rare",
+            "link": "https://pkmncards.com/card/landorus-black-bolt-blk-053/"
+        },
+        "052": {
+            "name": "Crustle",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ F }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/crustle-black-bolt-blk-052/"
+        },
+        "051": {
+            "name": "Dwebble",
+            "type": "Pkmn  > Basic",
+            "color": "{ F }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/dwebble-black-bolt-blk-051/"
+        },
+        "050": {
+            "name": "Throh",
+            "type": "Pkmn  > Basic",
+            "color": "{ F }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/throh-black-bolt-blk-050/"
+        },
+        "049": {
+            "name": "Conkeldurr",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ F }",
+            "rarity": "Rare",
+            "link": "https://pkmncards.com/card/conkeldurr-black-bolt-blk-049/"
+        },
+        "048": {
+            "name": "Gurdurr",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ F }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/gurdurr-black-bolt-blk-048/"
+        },
+        "047": {
+            "name": "Timburr",
+            "type": "Pkmn  > Basic",
+            "color": "{ F }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/timburr-black-bolt-blk-047/"
+        },
+        "046": {
+            "name": "Excadrill ex",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ F }",
+            "rarity": "Double Rare",
+            "link": "https://pkmncards.com/card/excadrill-ex-black-bolt-blk-046/"
+        },
+        "045": {
+            "name": "Drilbur",
+            "type": "Pkmn  > Basic",
+            "color": "{ F }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/drilbur-black-bolt-blk-045/"
+        },
+        "044": {
+            "name": "Meloetta ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ P }",
+            "rarity": "Double Rare",
+            "link": "https://pkmncards.com/card/meloetta-ex-black-bolt-blk-044/"
+        },
+        "043": {
+            "name": "Golurk",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ P }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/golurk-black-bolt-blk-043/"
+        },
+        "042": {
+            "name": "Golett",
+            "type": "Pkmn  > Basic",
+            "color": "{ P }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/golett-black-bolt-blk-042/"
+        },
+        "041": {
+            "name": "Beheeyem",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ P }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/beheeyem-black-bolt-blk-041/"
+        },
+        "040": {
+            "name": "Elgyem",
+            "type": "Pkmn  > Basic",
+            "color": "{ P }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/elgyem-black-bolt-blk-040/"
+        },
+        "039": {
+            "name": "Reuniclus",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ P }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/reuniclus-black-bolt-blk-039/"
+        },
+        "038": {
+            "name": "Duosion",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ P }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/duosion-black-bolt-blk-038/"
+        },
+        "037": {
+            "name": "Solosis",
+            "type": "Pkmn  > Basic",
+            "color": "{ P }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/solosis-black-bolt-blk-037/"
+        },
+        "036": {
+            "name": "Musharna",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ P }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/musharna-black-bolt-blk-036/"
+        },
+        "035": {
+            "name": "Munna",
+            "type": "Pkmn  > Basic",
+            "color": "{ P }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/munna-black-bolt-blk-035/"
+        },
+        "034": {
+            "name": "Zekrom ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ L }",
+            "rarity": "Double Rare",
+            "link": "https://pkmncards.com/card/zekrom-ex-black-bolt-blk-034/"
+        },
+        "033": {
+            "name": "Thundurus",
+            "type": "Pkmn  > Basic",
+            "color": "{ L }",
+            "rarity": "Rare",
+            "link": "https://pkmncards.com/card/thundurus-black-bolt-blk-033/"
+        },
+        "032": {
+            "name": "Eelektross",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ L }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/eelektross-black-bolt-blk-032/"
+        },
+        "031": {
+            "name": "Eelektrik",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ L }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/eelektrik-black-bolt-blk-031/"
+        },
+        "030": {
+            "name": "Tynamo",
+            "type": "Pkmn  > Basic",
+            "color": "{ L }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/tynamo-black-bolt-blk-030/"
+        },
+        "029": {
+            "name": "Emolga",
+            "type": "Pkmn  > Basic",
+            "color": "{ L }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/emolga-black-bolt-blk-029/"
+        },
+        "028": {
+            "name": "Kyurem ex",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Double Rare",
+            "link": "https://pkmncards.com/card/kyurem-ex-black-bolt-blk-028/"
+        },
+        "027": {
+            "name": "Cryogonal",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/cryogonal-black-bolt-blk-027/"
+        },
+        "026": {
+            "name": "Beartic",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ W }",
+            "rarity": "Rare",
+            "link": "https://pkmncards.com/card/beartic-black-bolt-blk-026/"
+        },
+        "025": {
+            "name": "Cubchoo",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/cubchoo-black-bolt-blk-025/"
+        },
+        "024": {
+            "name": "Alomomola",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/alomomola-black-bolt-blk-024/"
+        },
+        "023": {
+            "name": "Carracosta",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ W }",
+            "rarity": "Rare",
+            "link": "https://pkmncards.com/card/carracosta-black-bolt-blk-023/"
+        },
+        "022": {
+            "name": "Tirtouga",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ W }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/tirtouga-black-bolt-blk-022/"
+        },
+        "021": {
+            "name": "Seismitoad",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ W }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/seismitoad-black-bolt-blk-021/"
+        },
+        "020": {
+            "name": "Palpitoad",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ W }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/palpitoad-black-bolt-blk-020/"
+        },
+        "019": {
+            "name": "Tympole",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/tympole-black-bolt-blk-019/"
+        },
+        "018": {
+            "name": "Simipour",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ W }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/simipour-black-bolt-blk-018/"
+        },
+        "017": {
+            "name": "Panpour",
+            "type": "Pkmn  > Basic",
+            "color": "{ W }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/panpour-black-bolt-blk-017/"
+        },
+        "016": {
+            "name": "Volcarona",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ R }",
+            "rarity": "Rare",
+            "link": "https://pkmncards.com/card/volcarona-black-bolt-blk-016/"
+        },
+        "015": {
+            "name": "Larvesta",
+            "type": "Pkmn  > Basic",
+            "color": "{ R }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/larvesta-black-bolt-blk-015/"
+        },
+        "014": {
+            "name": "Darmanitan",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ R }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/darmanitan-black-bolt-blk-014/"
+        },
+        "013": {
+            "name": "Darumaka",
+            "type": "Pkmn  > Basic",
+            "color": "{ R }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/darumaka-black-bolt-blk-013/"
+        },
+        "012": {
+            "name": "Victini",
+            "type": "Pkmn  > Basic",
+            "color": "{ R }",
+            "rarity": "Rare",
+            "link": "https://pkmncards.com/card/victini-black-bolt-blk-012/"
+        },
+        "011": {
+            "name": "Amoonguss",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ G }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/amoonguss-black-bolt-blk-011/"
+        },
+        "010": {
+            "name": "Foongus",
+            "type": "Pkmn  > Basic",
+            "color": "{ G }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/foongus-black-bolt-blk-010/"
+        },
+        "009": {
+            "name": "Karrablast",
+            "type": "Pkmn  > Basic",
+            "color": "{ G }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/karrablast-black-bolt-blk-009/"
+        },
+        "008": {
+            "name": "Maractus",
+            "type": "Pkmn  > Basic",
+            "color": "{ G }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/maractus-black-bolt-blk-008/"
+        },
+        "007": {
+            "name": "Lilligant",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ G }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/lilligant-black-bolt-blk-007/"
+        },
+        "006": {
+            "name": "Petilil",
+            "type": "Pkmn  > Basic",
+            "color": "{ G }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/petilil-black-bolt-blk-006/"
+        },
+        "005": {
+            "name": "Simisage",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ G }",
+            "rarity": "Uncommon",
+            "link": "https://pkmncards.com/card/simisage-black-bolt-blk-005/"
+        },
+        "004": {
+            "name": "Pansage",
+            "type": "Pkmn  > Basic",
+            "color": "{ G }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/pansage-black-bolt-blk-004/"
+        },
+        "003": {
+            "name": "Serperior ex",
+            "type": "Pkmn  > Stage 2",
+            "color": "{ G }",
+            "rarity": "Double Rare",
+            "link": "https://pkmncards.com/card/serperior-ex-black-bolt-blk-003/"
+        },
+        "002": {
+            "name": "Servine",
+            "type": "Pkmn  > Stage 1",
+            "color": "{ G }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/servine-black-bolt-blk-002/"
+        },
+        "001": {
+            "name": "Snivy",
+            "type": "Pkmn  > Basic",
+            "color": "{ G }",
+            "rarity": "Common",
+            "link": "https://pkmncards.com/card/snivy-black-bolt-blk-001/"
+        }
     }
     },
     "count": 123

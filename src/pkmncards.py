@@ -149,6 +149,25 @@ def get_card_text(card_link: str) -> str:
     return card_text.strip()
 
 
+def check_should_skip_set(set_text: str) -> tuple[bool, bool]:
+    """Checks if the set should be skipped or requires deeper parsing.
+
+    Returns a tuple of (should_skip, requires_deeper_parsing).
+    """
+    lower_text = set_text.lower().strip()
+
+    # Normal text, should not skip
+    if "(" in lower_text:
+        return False, True
+
+    # Edge case, should skip
+    if lower_text == "miscellaneous":
+        return True, False
+
+    # No set code, Use as is
+    return False, False
+
+
 def get_pokemon_sets(
     filename: str = "card_sets.json",
 ):
@@ -162,10 +181,15 @@ def get_pokemon_sets(
 
     for element in set_elements:
         element_text = element.text.strip()
-        if "(" not in element_text:
+        should_skip, parse_deeper = check_should_skip_set(element_text)
+        if should_skip:
             continue
-        set_name = element_text.split("(")[0].strip().lower()
-        set_code = element_text.split("(")[1].replace(")", "").strip()
+        if parse_deeper:
+            set_name = element_text.split("(")[0].strip().lower()
+            set_code = element_text.split("(")[1].replace(")", "").strip()
+        else:
+            set_name = element_text
+            set_code = element_text
         pokemon_sets[set_name] = set_code
 
     sb.quit()

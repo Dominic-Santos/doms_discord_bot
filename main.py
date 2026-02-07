@@ -20,7 +20,8 @@ def main():
     bot = Bot(
         config.get("app_token"),
         config.get("maintenance_mode", DEFAULT_MAINTENANCE_MODE),
-        config.get("admin_password", DEFAULT_ADMIN_PASSWRD)
+        config.get("admin_password", DEFAULT_ADMIN_PASSWRD),
+        config.get("banned_sets", [])
     )
 
     # run the bot

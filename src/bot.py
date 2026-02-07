@@ -16,11 +16,15 @@ from .bot_tournament import TournamentBot
 class Bot(
     DecklistBot, LegalCardsBot, NewsfeedBot, AdminBot, EventsBot, TournamentBot
 ):
-    def __init__(self, token: str, maintenance_mode: bool, password: str):
+    def __init__(
+            self, token: str, maintenance_mode: bool, password: str,
+            banned_sets: list = []
+    ):
         self.bot = discord.Bot()
         self.token = token
         self.maintenance = maintenance_mode
         self.password = password
+        self.banned_sets = banned_sets
         self.logger = create_logger("decklist_bot", filename="logs/bot.log")
         check_dir(DATA_FOLDER)
 
