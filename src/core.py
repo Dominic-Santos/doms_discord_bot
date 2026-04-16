@@ -11,6 +11,18 @@ ENERGY_TYPES = [
     "fighting", "darkness", "metal"
 ]
 
+POKEMON_TYPES = [
+    "Colorless", "Darkness", "Dragon", "Fairy", "Fighting",
+    "Fire", "Grass", "Lightning", "Metal", "Psychic",
+    "Water"
+]
+
+TYPE_COLORS = {
+    "Fire": "R",
+    "Dragon": "N",
+    "Fairy": "Y",
+}
+
 REPLACE_CHARACTERS = {
     "’": "'",
     "›": ">",
@@ -137,6 +149,15 @@ def fill_sheet(
     img.save(output_filename)
 
 
+def remove_types_from_card_name(card_name: str) -> str:
+    new_name = card_name
+    for p_type in POKEMON_TYPES:
+        letter = TYPE_COLORS.get(p_type, p_type[0].upper())
+        if "{ %s }" % letter in card_name:
+            new_name = new_name.replace("{ %s }" % letter, p_type.title())
+    return new_name.replace("  ", " ").strip()
+
+
 def load_card_database(
     filename: str = "legal_cards.json",
     banned_sets: list[str] = []
@@ -158,6 +179,7 @@ def load_card_database(
         if set_name in banned_sets:
             continue
         for card_number, card_info in cards.items():
+            card_info["name"] = remove_types_from_card_name(card_info["name"])
             if card_info["type"].startswith("Pkmn"):
                 if card_number.isdigit():
                     clean_number = str(int(card_number))
