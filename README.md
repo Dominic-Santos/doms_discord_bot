@@ -122,6 +122,7 @@ User command groups:
 | Command | Required Role | Parameters | Description |
 | --- | --- | --- | --- |
 | `/admin tournament open_signups` | Admin | `expire_datetime`, `password` | Open sign-ups until the provided expiration datetime. |
+| `/admin tournament close_signups` | Admin | `password` | Close tournament sign-ups immediately. |
 | `/admin tournament status` | Admin | - | Show the current in-memory sign-up expiration. |
 
 ### Admin - Pokemon
@@ -189,6 +190,7 @@ deck validation in tournament sign-up commands.
 Admin control:
 
 - `/admin tournament open_signups {expire_datetime} {password}`
+- `/admin tournament close_signups {password}`
 - `/admin tournament status`
 
 Datetime format:

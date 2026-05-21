@@ -51,6 +51,20 @@ class AdminBot:
         async def status(ctx):
             await self.tournament_status(ctx)  # pragma: no cover
 
+        @tournament.command(
+            description="Close tournament sign-ups"
+        )
+        async def close_signups(
+            ctx,
+            password: discord.Option(
+                str, "Bot admin password"
+            ),  # type: ignore
+        ):
+            await self.close_tournament_signups(
+                ctx,
+                password
+            )  # pragma: no cover
+
     async def maintenance_status(self, ctx):
         await ctx.defer(ephemeral=True)
 
@@ -119,3 +133,13 @@ class AdminBot:
             f"Tournament sign-ups expire at {expires_at}",
             ephemeral=True
         )
+
+    async def close_tournament_signups(self, ctx, password: str):
+        await ctx.defer(ephemeral=True)
+
+        if password != self.password:
+            await ctx.respond("Invalid admin password", ephemeral=True)
+            return
+
+        self.tournament_signup_expires_at = None
+        await ctx.respond("Tournament sign-ups are now closed.", ephemeral=True)

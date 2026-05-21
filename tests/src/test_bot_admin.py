@@ -94,3 +94,11 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
         assert mock_ctx.last_response == (
             "Tournament sign-ups expire at 2026-05-21 18:30:00"
         )
+
+        await b.close_tournament_signups(mock_ctx, "fake")
+        assert mock_ctx.last_response == "Invalid admin password"
+        assert b.tournament_signup_expires_at == "2026-05-21 18:30:00"
+
+        await b.close_tournament_signups(mock_ctx, b.password)
+        assert mock_ctx.last_response == "Tournament sign-ups are now closed."
+        assert b.tournament_signup_expires_at is None
