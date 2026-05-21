@@ -1,257 +1,246 @@
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="images/logo.gif" alt="Logo" width="114" height="96">
-  </a>
+# doms_discord_bot
 
-  <h3 align="center">doms_discord_bot</h3>
+<p align="center">
+  <img src="images/logo.gif" alt="Project logo" width="114" height="96">
+</p>
 
-  <p align="center">
-    A Discord bot that provides TCG news, decklist validation, and tournament sign-ups — primarily focused on the Pokémon TCG.
-    <br />
-    <a href="https://github.com/Dominic-Santos/doms_discord_bot"><strong>Explore the docs »</strong></a>
-  </p>
-</div>
+A Discord bot that provides TCG news, decklist validation, and tournament
+sign-ups, primarily focused on the Pokemon TCG.
 
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-        <a href="#About-The-Project">About The Project</a>
-    </li>
-    <li>
-        <a href="#How-to-use-the-bot">How to Use the Bot</a>
-        <ul>
-            <li><a href="#Installation">Installation</a></li>
-        </ul>
-    </li>
-    <li>
-        <a href="#Roles-based-commands">Role-Based Commands</a>
-    </li>
-    <li>
-        <a href="#Commands">Commands</a>
-    </li>
-    <li>
-        <a href="#Timed-tasks">Timed Tasks</a>
-        <ul>
-            <li><a href="#Update-sign-up-sheet">Update Sign-Up Sheet</a></li>
-            <li><a href="#Update-legal-cards">Update Legal Cards</a></li>
-            <li><a href="#Check-for-new-newsfeed-articles">Check for New Newsfeed Articles</a></li>
-        </ul>
-    </li>
-    <li>
-        <a href="#Create-your-own-bot">Create Your Own Bot</a>
-        <ul>
-            <li><a href="#Discord-App">Discord App</a></li>
-            <li><a href="#Configure-the-App">Configure the App</a></li>
-            <li><a href="#Install-requirements">Install Requirements</a></li>
-            <li><a href="#Run-the-bot">Run the Bot</a></li>
-        </ul>
-    </li>
-  </ol>
-</details>
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue)](https://github.com/Dominic-Santos/doms_discord_bot)
+[![Tests Passing](https://img.shields.io/badge/tests-passing-brightgreen)](https://github.com/Dominic-Santos/doms_discord_bot)
+[![Coverage 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/Dominic-Santos/doms_discord_bot)
+[![License MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
+## Table of Contents
 
-<!-- ABOUT THE PROJECT -->
+- [About The Project](#about-the-project)
+- [Quick Start](#quick-start)
+- [How to Use the Bot](#how-to-use-the-bot)
+- [Role-Based Commands](#role-based-commands)
+- [Commands](#commands)
+- [Tournament Signup Window Behavior](#tournament-signup-window-behavior)
+- [Timed Tasks](#timed-tasks)
+- [Configuration Reference](#configuration-reference)
+- [Operational Notes](#operational-notes)
+- [Troubleshooting](#troubleshooting)
+- [Architecture](#architecture)
+- [Create Your Own Bot](#create-your-own-bot)
+
 ## About The Project
 
-This passion project was created to provide better tools and automation for my local game store. As a Pokémon Professor (Judge), I found the official tools to be severely lacking. To help address those shortcomings, I developed this bot to keep the community informed and streamline everyday operations — from deck checks to tournament sign-ups and more.
+This passion project was created to provide better tools and automation for my
+local game store. As a Pokemon Professor (Judge), I found the official tools
+to be severely lacking. To help address those shortcomings, I developed this
+bot to keep the community informed and streamline everyday operations, from
+deck checks to tournament sign-ups and more.
+
+Who this is for:
+
+- Store organizers and staff managing local events
+- Judges validating decklists quickly
+- Players submitting tournament sign-ups with saved decks or URLs
+
+## Quick Start
+
+1. Install requirements:
+
+```sh
+pip install -r requirements.txt
+```
+
+1. Create your config:
+
+```json
+{
+    "app_token": "your_discord_app_token",
+    "admin_password": "your_admin_password",
+    "maintenance_mode": false
+}
+```
+
+1. Run the bot:
+
+```sh
+python main.py
+```
+
+1. Quick verification commands:
+
+- `/about`
+- `/admin maintenance check`
+- `/admin pokemon test_tournament_channel`
 
 ## How to Use the Bot
 
 ### Installation
 
-Click [here](https://discord.com/oauth2/authorize?client_id=1398430497947779182) to install DomsBot on your server!
+Click
+[this install link](https://discord.com/oauth2/authorize?client_id=1398430497947779182)
+to install DomsBot on your server.
 
-**OR**
-
-<a href="#create-your-own-bot">Create your own bot</a> and add it to your server.
+Or create your own bot and add it to your server by following the
+[Create Your Own Bot](#create-your-own-bot) section.
 
 ## Role-Based Commands
 
-Some commands are intended for server administrators only. It’s recommended to restrict command access based on server roles, which can be managed through your server's integration settings.
+Some commands are intended for server administrators only. It is recommended to
+restrict command access based on server roles through your server integration
+settings.
 
-**Admin Commands:**
-* /admin
-* /newsfeed
-* /events
+Admin command groups:
 
-**User Commands:**
-* /help
-* /about
-* /deck
-* /tournament
+- `/admin`
+- `/newsfeed`
+- `/events`
+
+User command groups:
+
+- `/help`
+- `/about`
+- `/deck`
+- `/tournament`
 
 ## Commands
 
-### /help
+### General
 
-> Brings you to this page.
+| Command | Required Role | Parameters | Description |
+| --- | --- | --- | --- |
+| `/help` | User | - | Opens the documentation link. |
+| `/about` | User | - | Shows bot info and creator details. |
 
-### /about
+### Admin - Maintenance
 
-> Information about the bot and its creator — me! 😊
+| Command | Required Role | Parameters | Description |
+| --- | --- | --- | --- |
+| `/admin maintenance check` | Admin | - | Check whether maintenance mode is on or off. |
+| `/admin maintenance toggle` | Admin | `password` | Toggle maintenance mode. |
 
-### /admin maintenance check
+### Admin - Tournament Window
 
-> Check whether the bot is currently in maintenance mode.
+| Command | Required Role | Parameters | Description |
+| --- | --- | --- | --- |
+| `/admin tournament open_signups` | Admin | `expire_datetime`, `password` | Open sign-ups until the provided expiration datetime. |
+| `/admin tournament close_signups` | Admin | `password` | Close tournament sign-ups immediately. |
+| `/admin tournament status` | Admin | - | Show the current in-memory sign-up expiration. |
 
-### /admin maintenance toggle {password}
+### Admin - Pokemon
 
-> Toggles maintenance mode on or off. Requires the bot admin password.
-> * `password`: defined in the config file
+| Command | Required Role | Parameters | Description |
+| --- | --- | --- | --- |
+| `/admin pokemon set_tournament_channel` | Admin | - | Set current channel as tournament output channel. |
+| `/admin pokemon test_tournament_channel` | Admin | - | Send a test message to the tournament output channel. |
+| `/admin pokemon list_signups` | Admin | - | Return current server tournament sign-ups as a CSV string. |
+| `/admin pokemon update_legal_cards` | Admin | - | Refresh legal cards used for validation. |
+| `/admin pokemon update_banned_cards` | Admin | - | Refresh banned cards used for validation. |
+| `/admin pokemon update_signup_sheet` | Admin | - | Refresh tournament sign-up sheet image. |
 
-### /admin pokemon set_tournament_channel
+### Events - Pokemon
 
-> Set the current channel as the output for tournament sign-up messages.
-> It’s recommended to use a hidden channel visible only to staff.
+| Command | Required Role | Parameters | Description |
+| --- | --- | --- | --- |
+| `/events pokemon follow_premier` | Admin | - | Follow premier events. |
+| `/events pokemon unfollow_premier` | Admin | - | Stop following premier events. |
+| `/events pokemon follow_store` | Admin | `guid` | Follow events for a store GUID. |
+| `/events pokemon unfollow_store` | Admin | `guid` | Stop following events for a store GUID. |
+| `/events pokemon unfollow_all` | Admin | - | Stop following all events. |
+| `/events pokemon sync` | Admin | - | Sync followed events into Discord scheduled events. |
+| `/events pokemon delete_all` | Admin | - | Cancel bot-created Discord events in the server. |
+| `/events pokemon set_channel` | Admin | - | Set channel for event update notifications. |
+| `/events pokemon remove_channel` | Admin | - | Remove event update notification channel. |
 
-### /admin pokemon test_tournament_channel
+### Newsfeed - Pokemon
 
-> Send a generic message to the tournament sign-up output channel.
+| Command | Required Role | Parameters | Description |
+| --- | --- | --- | --- |
+| `/newsfeed pokemon set_channel` | Admin | - | Set channel for newsfeed updates. |
+| `/newsfeed pokemon update` | Admin | - | Fetch latest newsfeed posts now. |
+| `/newsfeed pokemon disable` | Admin | - | Disable newsfeed updates for this server. |
 
-### /admin pokemon update_legal_cards
+### Deck - Pokemon
 
-> Updates the standard legal card data. This is used for deck checks and tournament sign-ups.
+| Command | Required Role | Parameters | Description |
+| --- | --- | --- | --- |
+| `/deck pokemon check_url` | User | `limitless_url` | Validate a Limitless deck URL. |
+| `/deck pokemon check` | User | `name` | Validate a saved deck by name. |
+| `/deck pokemon create` | User | `name`, `limitless_url` | Save deck and run validation. |
+| `/deck pokemon delete` | User | `name` | Delete saved deck. |
+| `/deck pokemon list` | User | - | List saved decks. |
+| `/deck pokemon info` | User | `name` | Show details and validation state of a saved deck. |
 
-### /admin pokemon update_banned_cards
+### Tournament - Pokemon Standard
 
-> Updates the banned cards list. This is used for deck checks and tournament sign-ups.
+| Command | Required Role | Parameters | Description |
+| --- | --- | --- | --- |
+| `/tournament pokemon_standard signup` | User | `name`, `pokemon_id`, `year_of_birth`, `deck_name` | Sign up with a saved deck (Standard path). |
+| `/tournament pokemon_standard signup_url` | User | `name`, `pokemon_id`, `year_of_birth`, `limitless_url` | Sign up with a Limitless URL (Standard path). |
 
-### /admin pokemon update_signup_sheet
+### Tournament - Pokemon Expanded
 
-> Updates the tournament sign-up sheet.
+| Command | Required Role | Parameters | Description |
+| --- | --- | --- | --- |
+| `/tournament pokemon_expanded signup` | User | `name`, `pokemon_id`, `year_of_birth`, `deck_name` | Sign up with a saved deck (Expanded path). |
+| `/tournament pokemon_expanded signup_url` | User | `name`, `pokemon_id`, `year_of_birth`, `limitless_url` | Sign up with a Limitless URL (Expanded path). |
 
-### /events pokemon delete_all
+## Tournament Signup Window Behavior
 
-> Delete all discord events created by the bot
+The tournament signup window is controlled by admin commands and checked before
+deck validation in tournament sign-up commands.
 
-### /events pokemon follow_premier
+Admin control:
 
-> Follow big events and tournaments like the world cup
+- `/admin tournament open_signups {expire_datetime} {password}`
+- `/admin tournament close_signups {password}`
+- `/admin tournament status`
 
-### /events pokemon unfollow_premier
+Datetime format:
 
-> Stop following big events and tournament
+- Uses Python ISO parsing, example: `2026-05-21 18:30:00`
+- Timezone-aware ISO datetimes are accepted and converted to local server time
 
-### /events pokemon follow_store {guid}
+Important runtime behavior:
 
-> Follow events of a store.
-> * `guid`: find the store in the [pokemon event finder](https://events.pokemon.com/EventLocator/), and copy the guid from the url
+- The expiration value is stored in memory only
+- It is not read from `config.json`
+- It is not persisted to `config.json`
+- It resets to `None` when the bot restarts
 
-### /events pokemon unfollow_store {guid}
+Signup listing behavior:
 
-> Stop following events of a store.
-> * `guid`: find the store in the [pokemon event finder](https://events.pokemon.com/EventLocator/), and copy the guid from the url
+- Successful tournament sign-ups are stored in memory for the current window
+- Opening a new sign-up window clears the previous player list for that guild
+- If a player signs up again with the same `pokemon_id`, the previous entry is replaced
+- `/admin pokemon list_signups` returns current guild sign-ups as CSV text
 
-### /events pokemon unfollow_all
+User-facing responses after expiration:
 
-> Stop following all premier and store events.
-
-### /events pokemon sync
-
-> Sync all followed events with discord events.
-
-### /events pokemon set_channel
-
-> Set the current channel to receive event update notifications.
-
-### /events pokemon remove_channel
-
-> Stop receiving event update notifications.
-
-### /newsfeed pokemon set_channel
-
-> Set the current channel to receive newsfeed updates.
-
-### /newsfeed pokemon update
-
-> Check for and fetch new newsfeed articles.
-
-### /deck pokemon check_url {limitless_url}
-
-> Validates whether a limitless url decklist is Standard legal.
-> * `limitless_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**.
-
-### /deck pokemon create {name} {limitless_url}
-> Save a deck to be used later, can be used for tournament signups, if a deck with the same name exists, its overwritten.
-> * `name`: User defined deck name
-> * `limitless_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**.
-
-### /deck pokemon delete {name}
-> Delete a saved deck.
-> * `name`: The deck to delete
-
-### /deck pokemon info {name}
-> Show information on a saved deck, if it's standard legal, last time it was checked, cards in the deck and any errors the deck may have.
-> * `name`: The deck to show info
-
-### /deck pokemon check {name}
-> Check if a saved game is standard legal.
-> * `name`: The deck to check
-
-### /deck pokemon list
-> List all saved decks.
-
-### /tournament pokemon signup {name} {pokemon_id} {year_of_birth} {deck_name}
-
-> Sign up for a tournament. If the deck is Standard legal, the sign-up info is posted to the tournament output channel.
-> * `name`: User’s first and last name  
-> * `pokemon_id`: User’s Pokémon ID  
-> * `year_of_birth`: User’s year of birth  
-> * `deck_name`: Name of the saved deck
-
-### /tournament pokemon signup_url {name} {pokemon_id} {year_of_birth} {limitless_url}
-
-> Sign up for a tournament. If the deck is Standard legal, the sign-up info is posted to the tournament output channel.
-> * `name`: User’s first and last name  
-> * `pokemon_id`: User’s Pokémon ID  
-> * `year_of_birth`: User’s year of birth  
-> * `limitless_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**
+- If up to 1 day late: `tournament sign ups are closed`
+- If more than 1 day late:
+  `no tournaments are being held at this moment`
 
 ## Timed Tasks
 
-The bot also includes scheduled tasks that run automatically at set intervals.
+The bot includes scheduled tasks that run automatically.
 
-### Update Legal Cards
+| Task | Schedule | Purpose |
+| --- | --- | --- |
+| Update legal cards | Daily at 7:00 | Refresh legal card data for validation. |
+| Update banned cards | Daily at 8:00 | Refresh banned card data for validation. |
+| Update sign-up sheet | Daily at 9:00 | Refresh tournament sign-up sheet image. |
+| Update events | Daily at 11:00 | Sync latest followed event data. |
+| Check newsfeed | Every 6 hours | Fetch latest Pokemon newsfeed posts. |
 
-> Runs daily at 7 AM to update legal cards used for deck validation and sign-ups.
+## Configuration Reference
 
-### Update Banned Cards
+| Key | Required | Type | Default | Description |
+| --- | --- | --- | --- | --- |
+| `app_token` | Yes | string | none | Discord bot token from Discord Developer Portal. |
+| `admin_password` | Yes | string | `abc123` | Password for admin-protected commands. |
+| `maintenance_mode` | No | boolean | `true` | Whether the bot starts in maintenance mode. |
 
-> Runs daily at 8 AM to update the banned cards used for deck validation and sign-ups.
+Config example:
 
-### Update Events
-
-> Runs daily at 9 AM to check for new premier and store events.
-
-### Update Sign-Up Sheet
-
-> Runs daily at 10 AM to refresh the tournament sign-up sheet.
-
-### Check for New Newsfeed Articles
-
-> Runs every 6 hours to fetch the latest articles from the newsfeed.
-
-### Event Sync
-
-> Runs daily at 9 AM, checks for changes in premier and store events and creates them as discord events.
-
-## Create Your Own Bot
-
-If you’d like to run your own version of the bot, feel free to fork or copy the code from this repository 😊 A shoutout is always appreciated!
-
-### Discord App
-
-You’ll need to create a Discord application. Follow the official guide [here](https://discord.com/developers/docs/intro).
-
-The bot requires permissions to post messages in channels and manage events.
-
-### Configure the App
-
-Refer to the example below and fill out your own `config.json`:
 ```json
 {
     "app_token": "app_token_placeholder",
@@ -259,16 +248,82 @@ Refer to the example below and fill out your own `config.json`:
     "maintenance_mode": true
 }
 ```
-* app_token: this is provided by Discord when creating the Discord App.
-* admin_password: this is used by super-admin to control the bot via discord commands, make up your own.
-* maintenance_mode: if the bot will start in maintenance mode.
 
-### Install requirements
+## Operational Notes
+
+- Maintenance mode affects multiple command groups and scheduled jobs.
+- Tournament sign-up checks happen before deck validation in tournament flows.
+- Event and newsfeed features rely on configured output channels.
+- Schedule times are based on server runtime local time.
+
+## Troubleshooting
+
+Common issues and quick fixes:
+
+- Invalid admin password
+  - Verify `admin_password` in `config.json` and command input.
+- Tournament output channel is not set for this server
+  - Run `/admin pokemon set_tournament_channel` in the desired channel.
+- Tournament output channel not found. Please set it again.
+  - Channel may have been deleted or permissions changed. Re-run set command.
+- Sign-up sheet is not available. Please try again later.
+  - Run `/admin pokemon update_signup_sheet`.
+- Legal cards are not loaded. Please try again later.
+  - Run `/admin pokemon update_legal_cards`.
+- No tournament sign-ups are currently open.
+  - Run `/admin tournament open_signups` with an expiration datetime.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    A[Discord Slash Commands] --> B[Bot Core]
+    B --> C[Deck Module]
+    B --> D[Tournament Module]
+    B --> E[Events Module]
+    B --> F[Newsfeed Module]
+    B --> G[Legal Cards Module]
+    B --> H[Admin Module]
+
+    D --> I[In-Memory Signup Expiry]
+    D --> J[Tournament Output Channel]
+
+    B --> K[Scheduled Tasks]
+    K --> G
+    K --> D
+    K --> E
+    K --> F
+
+    C --> L[Limitless URL Parsing]
+    E --> M[Pokemon Event Data]
+    F --> N[Pokebeach Data]
+```
+
+## Create Your Own Bot
+
+If you would like to run your own version of the bot, feel free to fork or
+copy the code from this repository.
+
+### Discord App
+
+Create a Discord application by following the
+[official Discord developer guide](https://discord.com/developers/docs/intro).
+
+The bot needs permissions to post messages and manage scheduled events.
+
+### Configure the App
+
+Create a `config.json` file in the project root using the configuration
+reference above.
+
+### Install Requirements
+
 ```sh
 pip install -r requirements.txt
 ```
 
-### Run the bot
+### Run the Bot
+
 ```sh
 python main.py
 ```

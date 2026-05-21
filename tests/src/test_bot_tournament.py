@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock, AsyncMock
 from src.bot import Bot
 from src.helpers import MAINTENANCE_MODE_MESSAGE
@@ -24,6 +24,7 @@ class MockCtx():
 
     async def respond(self, message, *args, **kwargs):
         self.last_response = message
+        self.last_respond_kwargs = kwargs
 
     async def defer(self, ephemeral=False):
         return
@@ -62,8 +63,12 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         mock_dl_json.load.side_effect = Exception("failed")
 
         b = Bot("faketoken", False, "123")
+        b.tournament_signup_expires_at = (
+            (datetime.now() + timedelta(days=2)).isoformat(sep=" ")
+        )
 
         assert b.tournament_channels == {}
+        assert b.tournament_signups == {}
 
         mock_dl_json.dump.side_effect = Exception("failed")
         b.save_tournament_channels()
@@ -97,6 +102,9 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
 
         await b.update_signup_sheet(mock_ctx)
         assert mock_ctx.last_response == "Sheet has been updated!"
+
+        await b.export_tournament_signups(mock_ctx)
+        assert mock_ctx.last_response == "No tournament sign-ups to list."
 
         await b.tournament_signup_url(
             mock_ctx,
@@ -171,6 +179,25 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         )
         mock_remove.assert_called_once()
 
+        await b.export_tournament_signups(mock_ctx)
+        assert mock_ctx.last_response.startswith("```csv\n")
+        assert "pokemon_id" in mock_ctx.last_response
+        assert "test person" in mock_ctx.last_response
+        assert "file" not in mock_ctx.last_respond_kwargs
+
+        await b.tournament_signup_url(
+            mock_ctx,
+            "updated person",
+            1234,
+            1991,
+            "https://my.limitlesstcg.com/builder?i=abc123abc",
+            "standard"
+        )
+        signups = b.tournament_signups[str(mock_ctx.guild.id)]
+        assert len(signups) == 1
+        assert signups[0]["full_name"] == "updated person"
+        assert signups[0]["year_of_birth"] == 1991
+
         mock_validate.return_value = (False, "err")
         await b.tournament_signup_url(
             mock_ctx,
@@ -205,6 +232,9 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             return Exception("Test")
 
         b = Bot("faketoken", False, "123")
+        b.tournament_signup_expires_at = (
+            datetime.now().replace(microsecond=0).isoformat(sep=" ")
+        )
         b.do_update_sheet = mock_do_update_sheet
 
         mock_ctx = MockCtx()
@@ -244,6 +274,21 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         await b.update_signup_sheet(mock_ctx)
         assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
 
+        b.maintenance = False
+        b.tournament_signup_expires_at = None
+        await b.tournament_signup_url(
+            mock_ctx,
+            "test person",
+            1234,
+            1990,
+            "https://my.limitlesstcg.com/builder?i=abc123abc",
+            "standard"
+        )
+        assert mock_ctx.last_response == (
+            "no tournaments are being held at this moment"
+        )
+
+        b.maintenance = True
         mock_logger_instance.reset_mock()
         b.update_signup_sheet_task()
         assert mock_logger_instance.info.call_count == 2
@@ -276,6 +321,9 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
 
         mock_ctx = MockCtx()
         b = Bot("faketoken", False, "123")
+        b.tournament_signup_expires_at = (
+            (datetime.now() + timedelta(days=2)).isoformat(sep=" ")
+        )
 
         mock_decklist.return_value = {}
         mock_validate.return_value = (True, "")
@@ -328,6 +376,25 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
 
         b.maintenance = False
+        b.tournament_signup_expires_at = None
+        await b.tournament_signup(
+            mock_ctx, "first last", 12, 2000, "deckname", "standard"
+        )
+        assert mock_ctx.last_response == (
+            "no tournaments are being held at this moment"
+        )
+
+        b.tournament_signup_expires_at = (
+            (datetime.now() - timedelta(hours=23)).isoformat(sep=" ")
+        )
+        await b.tournament_signup(
+            mock_ctx, "first last", 12, 2000, "deckname", "standard"
+        )
+        assert mock_ctx.last_response == "tournament sign ups are closed"
+
+        b.tournament_signup_expires_at = (
+            (datetime.now() + timedelta(hours=2)).isoformat(sep=" ")
+        )
         await b.tournament_signup(
             mock_ctx, "first last", 12, 2000, "deckname", "standard"
         )
@@ -374,3 +441,47 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             assert deck_info[format]["valid"]
             assert deck_info[format]["error"] == ""
         b.tournament_signup_response.assert_called_once()
+
+    @patch("src.bot.create_logger")
+    @patch("src.bot.discord")
+    @patch("builtins.open")
+    async def test_tournament_signup_status_messages(
+        self,
+        mock_open,
+        mock_discord,
+        mock_logger,
+    ):
+        mock_bot = MagicMock()
+        mock_discord.Bot.return_value = mock_bot
+
+        b = Bot("faketoken", False, "123")
+
+        is_open, message = b.get_tournament_signup_status()
+        assert is_open is False
+        assert message == "no tournaments are being held at this moment"
+
+        b.tournament_signup_expires_at = (
+            (datetime.now() - timedelta(hours=2)).isoformat(sep=" ")
+        )
+        is_open, message = b.get_tournament_signup_status()
+        assert is_open is False
+        assert message == "tournament sign ups are closed"
+
+        b.tournament_signup_expires_at = (
+            (datetime.now() - timedelta(days=2)).isoformat(sep=" ")
+        )
+        is_open, message = b.get_tournament_signup_status()
+        assert is_open is False
+        assert message == "no tournaments are being held at this moment"
+
+        b.tournament_signup_expires_at = (
+            (datetime.now() + timedelta(hours=2)).isoformat(sep=" ")
+        )
+        is_open, message = b.get_tournament_signup_status()
+        assert is_open is True
+        assert message is None
+
+        b.tournament_signup_expires_at = "invalid-datetime"
+        is_open, message = b.get_tournament_signup_status()
+        assert is_open is False
+        assert message == "no tournaments are being held at this moment"
