@@ -2,7 +2,7 @@ import json
 from unittest.mock import patch, MagicMock
 from src.core import (
     validate_decklist, fill_sheet, load_card_database,
-    get_offset, convert_banned_cards
+    get_offset, convert_banned_cards, remove_types_from_card_name
 )
 
 
@@ -20,6 +20,20 @@ def test_load_card_database_invalid_json(mock_open):
     ]
     try:
         load_card_database("tests/data/invalid_format.json")
+    except ValueError as e:
+        assert str(e) == "Error loading JSON file."
+
+
+@patch("src.core.json.load")
+@patch("builtins.open")
+def test_load_card_database_invalid_json_load_exception(
+    mock_open,
+    mock_json_load
+):
+    mock_json_load.side_effect = Exception("bad json")
+
+    try:
+        load_card_database("tests/src/test_legal_cards.json")
     except ValueError as e:
         assert str(e) == "Error loading JSON file."
 
@@ -45,6 +59,10 @@ def test_load_card_database_with_banned_sets():
     assert len(trainers.keys()) == 14
     assert len(energies.keys()) == 2
     assert count == 123
+
+
+def test_remove_types_from_card_name():
+    assert remove_types_from_card_name("Charizard { R }") == "Charizard Fire"
 
 
 def test_validate_decklist_60_cards():

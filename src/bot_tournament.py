@@ -1,7 +1,7 @@
 import os
 import discord
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from .core import fill_sheet, DATA_FOLDER
 from .pokemon import get_decklist_png as get_sign_up_sheet
@@ -24,6 +24,34 @@ SIGN_UP_SHEET_FILE = f"{DATA_FOLDER}/sign_up_sheet.png"
 
 
 class TournamentBot:
+    def get_tournament_signup_status(
+        self,
+        now: datetime | None = None
+    ) -> tuple[bool, str | None]:
+        if now is None:
+            now = datetime.now()
+
+        expires_at = self.tournament_signup_expires_at
+        if not expires_at:
+            return False, "no tournaments are being held at this moment"
+
+        try:
+            expire_datetime = datetime.fromisoformat(expires_at)
+        except ValueError:
+            self.logger.error(
+                "Invalid tournament signup expiry datetime in config: "
+                f"{expires_at}"
+            )
+            return False, "no tournaments are being held at this moment"
+
+        if now <= expire_datetime:
+            return True, None
+
+        if now - expire_datetime <= timedelta(days=1):
+            return False, "tournament sign ups are closed"
+
+        return False, "no tournaments are being held at this moment"
+
     def load_tournament_channels(self):
         try:
             with open(TOURNAMENT_CHANNELS_FILE, "r") as f:
@@ -216,6 +244,11 @@ class TournamentBot:
             await ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
             return
 
+        tournament_open, message = self.get_tournament_signup_status()
+        if not tournament_open:
+            await ctx.respond(message, ephemeral=True)
+            return
+
         deck_data = self.user_decklists.get(user_id, {}).get(deck_name, None)
         if deck_data is None:
             await ctx.respond("Deck not found", ephemeral=True)
@@ -329,6 +362,11 @@ class TournamentBot:
         await ctx.defer(ephemeral=True)
         if self.maintenance:
             await ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
+            return
+
+        tournament_open, message = self.get_tournament_signup_status()
+        if not tournament_open:
+            await ctx.respond(message, ephemeral=True)
             return
 
         if not self.legal_cards:

@@ -19,35 +19,37 @@
   <summary>Table of Contents</summary>
   <ol>
     <li>
-        <a href="#About-The-Project">About The Project</a>
+      <a href="#about-the-project">About The Project</a>
     </li>
     <li>
-        <a href="#How-to-use-the-bot">How to Use the Bot</a>
+      <a href="#how-to-use-the-bot">How to Use the Bot</a>
         <ul>
-            <li><a href="#Installation">Installation</a></li>
+        <li><a href="#installation">Installation</a></li>
         </ul>
     </li>
     <li>
-        <a href="#Roles-based-commands">Role-Based Commands</a>
+      <a href="#role-based-commands">Role-Based Commands</a>
     </li>
     <li>
-        <a href="#Commands">Commands</a>
+      <a href="#commands">Commands</a>
     </li>
     <li>
-        <a href="#Timed-tasks">Timed Tasks</a>
+      <a href="#timed-tasks">Timed Tasks</a>
         <ul>
-            <li><a href="#Update-sign-up-sheet">Update Sign-Up Sheet</a></li>
-            <li><a href="#Update-legal-cards">Update Legal Cards</a></li>
-            <li><a href="#Check-for-new-newsfeed-articles">Check for New Newsfeed Articles</a></li>
+        <li><a href="#update-legal-cards">Update Legal Cards</a></li>
+        <li><a href="#update-banned-cards">Update Banned Cards</a></li>
+        <li><a href="#update-sign-up-sheet">Update Sign-Up Sheet</a></li>
+        <li><a href="#update-events">Update Events</a></li>
+        <li><a href="#check-for-new-newsfeed-articles">Check for New Newsfeed Articles</a></li>
         </ul>
     </li>
     <li>
-        <a href="#Create-your-own-bot">Create Your Own Bot</a>
+      <a href="#create-your-own-bot">Create Your Own Bot</a>
         <ul>
-            <li><a href="#Discord-App">Discord App</a></li>
-            <li><a href="#Configure-the-App">Configure the App</a></li>
-            <li><a href="#Install-requirements">Install Requirements</a></li>
-            <li><a href="#Run-the-bot">Run the Bot</a></li>
+        <li><a href="#discord-app">Discord App</a></li>
+        <li><a href="#configure-the-app">Configure the App</a></li>
+        <li><a href="#install-requirements">Install Requirements</a></li>
+        <li><a href="#run-the-bot">Run the Bot</a></li>
         </ul>
     </li>
   </ol>
@@ -102,6 +104,16 @@ Some commands are intended for server administrators only. It’s recommended to
 
 > Toggles maintenance mode on or off. Requires the bot admin password.
 > * `password`: defined in the config file
+
+### /admin tournament open_signups {expire_datetime} {password}
+
+> Open tournament sign-ups until a specific expiration datetime.
+> * `expire_datetime`: ISO datetime string (example: `2026-05-21 18:30:00`)
+> * `password`: defined in the config file
+
+### /admin tournament status
+
+> Show the current in-memory tournament sign-up expiration.
 
 ### /admin pokemon set_tournament_channel
 
@@ -170,6 +182,10 @@ Some commands are intended for server administrators only. It’s recommended to
 
 > Check for and fetch new newsfeed articles.
 
+### /newsfeed pokemon disable
+
+> Disable newsfeed updates for the current server.
+
 ### /deck pokemon check_url {limitless_url}
 
 > Validates whether a limitless url decklist is Standard legal.
@@ -195,20 +211,36 @@ Some commands are intended for server administrators only. It’s recommended to
 ### /deck pokemon list
 > List all saved decks.
 
-### /tournament pokemon signup {name} {pokemon_id} {year_of_birth} {deck_name}
+### /tournament pokemon_standard signup {name} {pokemon_id} {year_of_birth} {deck_name}
 
-> Sign up for a tournament. If the deck is Standard legal, the sign-up info is posted to the tournament output channel.
+> Sign up for a Standard tournament. If the deck is Standard legal, the sign-up info is posted to the tournament output channel.
 > * `name`: User’s first and last name  
 > * `pokemon_id`: User’s Pokémon ID  
 > * `year_of_birth`: User’s year of birth  
 > * `deck_name`: Name of the saved deck
 
-### /tournament pokemon signup_url {name} {pokemon_id} {year_of_birth} {limitless_url}
+### /tournament pokemon_standard signup_url {name} {pokemon_id} {year_of_birth} {limitless_url}
 
-> Sign up for a tournament. If the deck is Standard legal, the sign-up info is posted to the tournament output channel.
+> Sign up for a Standard tournament. If the deck is Standard legal, the sign-up info is posted to the tournament output channel.
 > * `name`: User’s first and last name  
 > * `pokemon_id`: User’s Pokémon ID  
 > * `year_of_birth`: User’s year of birth  
+> * `limitless_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**
+
+### /tournament pokemon_expanded signup {name} {pokemon_id} {year_of_birth} {deck_name}
+
+> Sign up for an Expanded tournament. If the deck is Expanded legal, the sign-up info is posted to the tournament output channel.
+> * `name`: User’s first and last name
+> * `pokemon_id`: User’s Pokémon ID
+> * `year_of_birth`: User’s year of birth
+> * `deck_name`: Name of the saved deck
+
+### /tournament pokemon_expanded signup_url {name} {pokemon_id} {year_of_birth} {limitless_url}
+
+> Sign up for an Expanded tournament. If the deck is Expanded legal, the sign-up info is posted to the tournament output channel.
+> * `name`: User’s first and last name
+> * `pokemon_id`: User’s Pokémon ID
+> * `year_of_birth`: User’s year of birth
 > * `limitless_url`: Create a deck using the [builder](https://my.limitlesstcg.com/builder), then click **Share** > **Copy Import Link**
 
 ## Timed Tasks
@@ -223,21 +255,18 @@ The bot also includes scheduled tasks that run automatically at set intervals.
 
 > Runs daily at 8 AM to update the banned cards used for deck validation and sign-ups.
 
-### Update Events
-
-> Runs daily at 9 AM to check for new premier and store events.
-
 ### Update Sign-Up Sheet
 
-> Runs daily at 10 AM to refresh the tournament sign-up sheet.
+> Runs daily at 9 AM to refresh the tournament sign-up sheet.
+
+### Update Events
+
+> Runs daily at 11 AM to check for new premier and store events.
 
 ### Check for New Newsfeed Articles
 
 > Runs every 6 hours to fetch the latest articles from the newsfeed.
 
-### Event Sync
-
-> Runs daily at 9 AM, checks for changes in premier and store events and creates them as discord events.
 
 ## Create Your Own Bot
 
