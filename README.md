@@ -1,8 +1,8 @@
 # doms_discord_bot
 
-| Project logo                             |
-|:----------------------------------------:|
-| ![Project logo](images/logo.gif)         |
+<p align="center">
+  <img src="images/logo.gif" alt="Project logo" width="114" height="96">
+</p>
 
 A Discord bot that provides TCG news, decklist validation, and tournament
 sign-ups, primarily focused on the Pokemon TCG.
