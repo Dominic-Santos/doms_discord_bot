@@ -24,6 +24,7 @@ class MockCtx():
 
     async def respond(self, message, *args, **kwargs):
         self.last_response = message
+        self.last_respond_kwargs = kwargs
 
     async def defer(self, ephemeral=False):
         return
@@ -67,6 +68,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         )
 
         assert b.tournament_channels == {}
+        assert b.tournament_signups == {}
 
         mock_dl_json.dump.side_effect = Exception("failed")
         b.save_tournament_channels()
@@ -100,6 +102,9 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
 
         await b.update_signup_sheet(mock_ctx)
         assert mock_ctx.last_response == "Sheet has been updated!"
+
+        await b.export_tournament_signups(mock_ctx)
+        assert mock_ctx.last_response == "No tournament sign-ups to list."
 
         await b.tournament_signup_url(
             mock_ctx,
@@ -173,6 +178,25 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             "Tournament signup has been processed!"
         )
         mock_remove.assert_called_once()
+
+        await b.export_tournament_signups(mock_ctx)
+        assert mock_ctx.last_response.startswith("```csv\n")
+        assert "pokemon_id" in mock_ctx.last_response
+        assert "test person" in mock_ctx.last_response
+        assert "file" not in mock_ctx.last_respond_kwargs
+
+        await b.tournament_signup_url(
+            mock_ctx,
+            "updated person",
+            1234,
+            1991,
+            "https://my.limitlesstcg.com/builder?i=abc123abc",
+            "standard"
+        )
+        signups = b.tournament_signups[str(mock_ctx.guild.id)]
+        assert len(signups) == 1
+        assert signups[0]["full_name"] == "updated person"
+        assert signups[0]["year_of_birth"] == 1991
 
         mock_validate.return_value = (False, "err")
         await b.tournament_signup_url(

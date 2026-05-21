@@ -1,6 +1,8 @@
 import os
 import discord
 import json
+import csv
+import io
 from datetime import datetime, timedelta
 
 from .core import fill_sheet, DATA_FOLDER
@@ -192,6 +194,12 @@ class TournamentBot:
         async def test_tournament_channel(ctx):
             await self.test_tournament_channel(ctx)  # pragma: no cover
 
+        @self.admin_pokemon.command(
+            description="List tournament sign-ups as CSV text"
+        )
+        async def list_signups(ctx):
+            await self.export_tournament_signups(ctx)  # pragma: no cover
+
     async def set_tournament_channel(self, ctx):
         channel_id = ctx.channel.id
         self.tournament_channels[str(ctx.guild.id)] = channel_id
@@ -213,6 +221,72 @@ class TournamentBot:
             "Test message sent to the output channel!",
             ephemeral=True
         )
+
+    async def export_tournament_signups(self, ctx):
+        await ctx.defer(ephemeral=True)
+        guild_id = str(ctx.guild.id)
+        signups = self.tournament_signups.get(guild_id, [])
+
+        if len(signups) == 0:
+            await ctx.respond(
+                "No tournament sign-ups to list.",
+                ephemeral=True
+            )
+            return
+
+        fieldnames = [
+            "timestamp",
+            "format",
+            "full_name",
+            "pokemon_id",
+            "year_of_birth",
+            "limitless_url",
+            "discord_user_id"
+        ]
+
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer.writeheader()
+        for signup in signups:
+            writer.writerow(signup)
+
+        csv_text = output.getvalue().strip()
+
+        await ctx.respond(
+            f"```csv\n{csv_text}\n```",
+            ephemeral=True,
+        )
+
+    def record_tournament_signup(
+        self,
+        guild_id: int,
+        user_id: int,
+        full_name: str,
+        pokemon_id: int,
+        year_of_birth: int,
+        limitless_url: str,
+        format: str
+    ):
+        guild_key = str(guild_id)
+        if guild_key not in self.tournament_signups:
+            self.tournament_signups[guild_key] = []
+
+        updated_signup = {
+            "timestamp": datetime.now().isoformat(sep=" ", timespec="seconds"),
+            "format": format,
+            "full_name": full_name,
+            "pokemon_id": pokemon_id,
+            "year_of_birth": year_of_birth,
+            "limitless_url": limitless_url,
+            "discord_user_id": str(user_id)
+        }
+
+        for i, signup in enumerate(self.tournament_signups[guild_key]):
+            if str(signup.get("pokemon_id")) == str(pokemon_id):
+                self.tournament_signups[guild_key][i] = updated_signup
+                return
+
+        self.tournament_signups[guild_key].append(updated_signup)
 
     def get_tournament_channel(self, guild_id: str) -> tuple[
         discord.TextChannel | None, str
@@ -340,6 +414,16 @@ class TournamentBot:
                 f"- Decklist: {limitless_url}"
             ),
             file=discord.File(output_filename, filename="sign_up_sheet.png")
+        )
+
+        self.record_tournament_signup(
+            ctx.guild.id,
+            ctx.author.id,
+            full_name,
+            pokemon_id,
+            year_of_birth,
+            limitless_url,
+            format
         )
 
         await ctx.respond(

@@ -26,6 +26,7 @@ class Bot(
         self.password = password
         self.banned_sets = banned_sets
         self.tournament_signup_expires_at = None
+        self.tournament_signups = {}
         self.logger = create_logger("decklist_bot", filename="logs/bot.log")
         check_dir(DATA_FOLDER)
 

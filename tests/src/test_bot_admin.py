@@ -5,6 +5,10 @@ from src.bot import Bot
 
 
 class MockCtx():
+    def __init__(self):
+        self.guild = MagicMock()
+        self.guild.id = 202
+
     async def respond(self, message, ephemeral=False):
         self.last_response = message
 
@@ -73,6 +77,15 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
             "Tournament sign-ups are now open until"
         )
         assert b.tournament_signup_expires_at is not None
+        assert b.tournament_signups[str(mock_ctx.guild.id)] == []
+
+        b.tournament_signups[str(mock_ctx.guild.id)] = [{"full_name": "x"}]
+        await b.open_tournament_signups(
+            mock_ctx,
+            future_dt,
+            b.password
+        )
+        assert b.tournament_signups[str(mock_ctx.guild.id)] == []
 
         await b.open_tournament_signups(
             mock_ctx,

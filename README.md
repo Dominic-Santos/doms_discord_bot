@@ -131,6 +131,7 @@ User command groups:
 | --- | --- | --- | --- |
 | `/admin pokemon set_tournament_channel` | Admin | - | Set current channel as tournament output channel. |
 | `/admin pokemon test_tournament_channel` | Admin | - | Send a test message to the tournament output channel. |
+| `/admin pokemon list_signups` | Admin | - | Return current server tournament sign-ups as a CSV string. |
 | `/admin pokemon update_legal_cards` | Admin | - | Refresh legal cards used for validation. |
 | `/admin pokemon update_banned_cards` | Admin | - | Refresh banned cards used for validation. |
 | `/admin pokemon update_signup_sheet` | Admin | - | Refresh tournament sign-up sheet image. |
@@ -204,6 +205,13 @@ Important runtime behavior:
 - It is not read from `config.json`
 - It is not persisted to `config.json`
 - It resets to `None` when the bot restarts
+
+Signup listing behavior:
+
+- Successful tournament sign-ups are stored in memory for the current window
+- Opening a new sign-up window clears the previous player list for that guild
+- If a player signs up again with the same `pokemon_id`, the previous entry is replaced
+- `/admin pokemon list_signups` returns current guild sign-ups as CSV text
 
 User-facing responses after expiration:
 

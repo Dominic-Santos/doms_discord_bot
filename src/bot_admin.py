@@ -33,7 +33,10 @@ class AdminBot:
             ctx,
             expire_datetime: discord.Option(
                 str,
-                "Expiration datetime string (ISO format, ex: 2026-05-21 18:30:00)"
+                (
+                    "Expiration datetime string "
+                    "(ISO format, ex: 2026-05-21 18:30:00)"
+                )
             ),  # type: ignore
             password: discord.Option(
                 str, "Bot admin password"
@@ -110,6 +113,7 @@ class AdminBot:
         self.tournament_signup_expires_at = expire.isoformat(
             sep=" ", timespec="seconds"
         )
+        self.tournament_signups[str(ctx.guild.id)] = []
         await ctx.respond(
             (
                 "Tournament sign-ups are now open until "
@@ -142,4 +146,7 @@ class AdminBot:
             return
 
         self.tournament_signup_expires_at = None
-        await ctx.respond("Tournament sign-ups are now closed.", ephemeral=True)
+        await ctx.respond(
+            "Tournament sign-ups are now closed.",
+            ephemeral=True
+        )
