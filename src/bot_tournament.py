@@ -235,13 +235,10 @@ class TournamentBot:
             return
 
         fieldnames = [
-            "timestamp",
             "format",
             "full_name",
             "pokemon_id",
             "year_of_birth",
-            "limitless_url",
-            "discord_user_id"
         ]
 
         output = io.StringIO()
