@@ -238,11 +238,11 @@ class TournamentBot:
             "format",
             "full_name",
             "pokemon_id",
-            "year_of_birth",
+            "year_of_birth"
         ]
 
         output = io.StringIO()
-        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         for signup in signups:
             writer.writerow(signup)

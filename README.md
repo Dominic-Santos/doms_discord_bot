@@ -211,7 +211,7 @@ Signup listing behavior:
 - Successful tournament sign-ups are stored in memory for the current window
 - Opening a new sign-up window clears the previous player list for that guild
 - If a player signs up again with the same `pokemon_id`, the previous entry is replaced
-- `/admin pokemon list_signups` returns current guild sign-ups as CSV text
+- `/admin pokemon list_signups` returns current guild sign-ups as CSV text (format, full_name, pokemon_id, year_of_birth)
 
 User-facing responses after expiration:
 
