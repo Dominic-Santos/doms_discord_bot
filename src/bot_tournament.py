@@ -242,10 +242,11 @@ class TournamentBot:
         ]
 
         output = io.StringIO()
-        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
         writer.writeheader()
         for signup in signups:
-            writer.writerow(signup)
+            filtered_signup = {k: signup[k] for k in fieldnames if k in signup}
+            writer.writerow(filtered_signup)
 
         csv_text = output.getvalue().strip()
 
