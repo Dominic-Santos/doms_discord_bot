@@ -53,6 +53,7 @@ class CommandModal(discord.ui.Modal):
                 label=field[1],
                 placeholder=field[2],
                 required=True,
+                value=field[4] if len(field) > 4 else None,
             )
             self.inputs[name] = input_field
             self.converters[name] = field[3]

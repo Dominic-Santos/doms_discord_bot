@@ -178,19 +178,11 @@ User command groups:
 | `/deck pokemon list` | User | - | List saved decks. |
 | `/deck pokemon info` | User | `name` | Open a form to show saved deck details and validation state. |
 
-### Tournament - Pokemon Standard
+### Tournament Signup
 
 | Command | Required Role | Form fields | Description |
 | --- | --- | --- | --- |
-| `/tournament pokemon_standard signup` | User | `name`, `pokemon_id`, `year_of_birth`, `deck_name` | Open a form to sign up with a saved deck (Standard path). |
-| `/tournament pokemon_standard signup_url` | User | `name`, `pokemon_id`, `year_of_birth`, `limitless_url` | Open a form to sign up with a Limitless URL (Standard path). |
-
-### Tournament - Pokemon Expanded
-
-| Command | Required Role | Form fields | Description |
-| --- | --- | --- | --- |
-| `/tournament pokemon_expanded signup` | User | `name`, `pokemon_id`, `year_of_birth`, `deck_name` | Open a form to sign up with a saved deck (Expanded path). |
-| `/tournament pokemon_expanded signup_url` | User | `name`, `pokemon_id`, `year_of_birth`, `limitless_url` | Open a form to sign up with a Limitless URL (Expanded path). |
+| `/tournament signup` | User | `name`, `pokemon_id`, `year_of_birth`, `limitless_url` | Select an open tournament and a saved deck or enter a Limitless URL. The tournament format is selected automatically. |
 
 ## Tournament Management
 

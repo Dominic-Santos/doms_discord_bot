@@ -57,6 +57,95 @@ class TournamentSelectView(discord.ui.View):
         self.stop()
 
 
+class TournamentSignupView(discord.ui.View):
+    def __init__(self, tournament_bot, open_tournaments, user_id):
+        super().__init__(timeout=120)
+        self.tournament_bot = tournament_bot
+        self.open_tournaments = open_tournaments
+        self.user_id = user_id
+
+        options = [
+            discord.SelectOption(
+                label=data.get("name", tournament_id)[:100],
+                value=tournament_id,
+                description=f"Expires: {data.get('expires_at', 'Unknown')}"[:100],
+            )
+            for tournament_id, data in open_tournaments.items()
+        ]
+        select = discord.ui.Select(
+            placeholder="Select the tournament",
+            options=options,
+        )
+
+        async def select_callback(interaction):
+            tournament_id = select.values[0]
+            await self.show_deck_choice(interaction, tournament_id)
+
+        select.callback = select_callback
+        self.add_item(select)
+
+    async def show_deck_choice(self, interaction, tournament_id):
+        saved_decks = self.tournament_bot.user_decklists.get(
+            self.user_id, {}
+        )
+        if not saved_decks:
+            await interaction.response.send_modal(
+                self.tournament_bot.create_signup_modal(tournament_id)
+            )
+            self.stop()
+            return
+
+        view = SavedDeckSelectView(
+            self.tournament_bot,
+            tournament_id,
+            saved_decks,
+        )
+        await interaction.response.edit_message(
+            content="Select a saved deck, or choose to enter a deck URL:",
+            view=view,
+        )
+        self.stop()
+
+
+class SavedDeckSelectView(discord.ui.View):
+    def __init__(self, tournament_bot, tournament_id, saved_decks):
+        super().__init__(timeout=120)
+        self.tournament_bot = tournament_bot
+        self.tournament_id = tournament_id
+
+        options = [
+            discord.SelectOption(label=name[:100], value=name)
+            for name in saved_decks
+        ]
+        options.append(
+            discord.SelectOption(
+                label="Use a deck URL",
+                value="__deck_url__",
+                description="Enter a Limitless URL manually",
+            )
+        )
+        select = discord.ui.Select(
+            placeholder="Select a deck",
+            options=options[:24] + [options[-1]],
+        )
+
+        async def select_callback(interaction):
+            selected = select.values[0]
+            deck_url = None
+            if selected != "__deck_url__":
+                deck_url = saved_decks[selected].get("url")
+            await interaction.response.send_modal(
+                self.tournament_bot.create_signup_modal(
+                    self.tournament_id,
+                    deck_url,
+                )
+            )
+            self.stop()
+
+        select.callback = select_callback
+        self.add_item(select)
+
+
 class TournamentBot:
     def get_tournament_signup_status(
         self,
@@ -180,56 +269,25 @@ class TournamentBot:
             "tournament", "Manage tournament sign-ups"
         )
 
-        @tournament.command(
-            name="signup_url",
-            description="Sign up for a tournament with a limitless url"
-        )
-        async def signup_url(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Tournament Sign-up",
-                [
-                    ("name", "Full name", "Ash Ketchum", str),
-                    ("pokemon_id", "Pokemon ID", "123456", int),
-                    ("year_of_birth", "Year of birth", "1990", int),
-                    (
-                        "limitless_url",
-                        "Limitless deck URL",
-                        "https://limitlesstcg.com/...",
-                        str
-                    ),
-                ],
-                lambda modal_ctx, values: self.tournament_signup_url(
-                    modal_ctx,
-                    values["name"],
-                    values["pokemon_id"],
-                    values["year_of_birth"],
-                    values["limitless_url"]
-                ),
-                self.logger
-            ))
-
-        @tournament.command(
-            name="signup",
-            description="Sign up for a tournament with a saved deck"
-        )
+        @tournament.command(description="Sign up for a tournament")
         async def signup(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Tournament Sign-up",
-                [
-                    ("name", "Full name", "Ash Ketchum", str),
-                    ("pokemon_id", "Pokemon ID", "123456", int),
-                    ("year_of_birth", "Year of birth", "1990", int),
-                    ("deck_name", "Saved deck name", "My deck", str),
-                ],
-                lambda modal_ctx, values: self.tournament_signup(
-                    modal_ctx,
-                    values["name"],
-                    values["pokemon_id"],
-                    values["year_of_birth"],
-                    values["deck_name"]
+            open_tournaments = self.get_open_tournaments()
+            if not open_tournaments:
+                await ctx.respond(
+                    "No tournaments are open at this moment.",
+                    ephemeral=True,
+                )
+                return
+
+            await ctx.respond(
+                "Select the tournament you are signing up for:",
+                view=TournamentSignupView(
+                    self,
+                    open_tournaments,
+                    str(ctx.author.id),
                 ),
-                self.logger
-            ))
+                ephemeral=True,
+            )
 
         @self.admin_pokemon.command(description="Update the sign-up sheet")
         async def update_signup_sheet(ctx):
@@ -341,6 +399,32 @@ class TournamentBot:
                 return
 
         self.tournament_signups[guild_key].append(updated_signup)
+
+    def create_signup_modal(self, tournament_id, deck_url=None):
+        return CommandModal(
+            "Tournament Sign-up",
+            [
+                ("name", "Full name", "Ash Ketchum", str),
+                ("pokemon_id", "Pokemon ID", "123456", int),
+                ("year_of_birth", "Year of birth", "1990", int),
+                (
+                    "limitless_url",
+                    "Limitless deck URL",
+                    "https://limitlesstcg.com/...",
+                    str,
+                    deck_url,
+                ),
+            ],
+            lambda modal_ctx, values: self.tournament_signup_url(
+                modal_ctx,
+                values["name"],
+                values["pokemon_id"],
+                values["year_of_birth"],
+                values["limitless_url"],
+                tournament_id,
+            ),
+            self.logger,
+        )
 
     def get_tournament_channel(self, guild_id: str) -> tuple[
         discord.TextChannel | None, str
