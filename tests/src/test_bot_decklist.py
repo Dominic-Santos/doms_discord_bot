@@ -216,6 +216,7 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         )
 
         b.do_user_decklist_check.return_value = (False, "err")
+        b.save_user_decklists = MagicMock()
         await b.decklist_create(
             mock_ctx,
             "deckname2",
@@ -224,6 +225,7 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         assert mock_ctx.last_response == (
             "Deck saved, error checking deck: err"
         )
+        b.save_user_decklists.assert_called_once()
 
         await b.decklist_check(mock_ctx, "deckname2")
         assert mock_ctx.last_response == (

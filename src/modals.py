@@ -18,6 +18,9 @@ def choice_converter(*allowed_values):
 class ModalInteractionContext:
     def __init__(self, interaction: discord.Interaction):
         self.interaction = interaction
+        self.author = interaction.user
+        self.user = interaction.user
+        self.bot = interaction.client
 
     def __getattr__(self, name):
         return getattr(self.interaction, name)

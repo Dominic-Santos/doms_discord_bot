@@ -226,6 +226,7 @@ class DecklistBot:
         self.user_decklists[user_id][name] = {
             "url": limitless_url
         }
+        self.save_user_decklists()
 
         result, error = self.do_user_decklist_check(user_id, name)
 

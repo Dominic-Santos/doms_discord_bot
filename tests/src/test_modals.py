@@ -16,6 +16,9 @@ class TestCommandModal(unittest.IsolatedAsyncioTestCase):
         context = ModalInteractionContext(interaction)
 
         assert context.guild == interaction.guild
+        assert context.author == interaction.user
+        assert context.user == interaction.user
+        assert context.bot == interaction.client
         await context.respond("first", ephemeral=True)
         await context.defer(ephemeral=True)
         await context.respond("second", ephemeral=True)
