@@ -119,3 +119,35 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
         await b.close_tournament_signups(mock_ctx, b.password)
         assert mock_ctx.last_response == "Tournament sign-ups are now closed."
         assert b.tournament_signup_expires_at is None
+
+        b.tournaments = {
+            "open_one": {
+                "name": "Open One",
+                "format": "standard",
+                "expires_at": "2099-05-21 18:30:00",
+            },
+            "open_two": {
+                "name": "Open Two",
+                "format": "expanded",
+                "expires_at": "2099-06-21 18:30:00",
+            },
+        }
+        await b.close_tournament(mock_ctx, "open_one", "fake")
+        assert mock_ctx.last_response == "Invalid admin password"
+        assert b.tournaments["open_one"]["expires_at"] == (
+            "2099-05-21 18:30:00"
+        )
+
+        await b.close_tournament(mock_ctx, "missing", b.password)
+        assert mock_ctx.last_response == "Tournament 'missing' not found."
+
+        await b.close_tournament(mock_ctx, "open_one", b.password)
+        assert mock_ctx.last_response == (
+            "Tournament 'Open One' is now closed."
+        )
+        assert datetime.fromisoformat(
+            b.tournaments["open_one"]["expires_at"]
+        ) <= datetime.now()
+        assert b.tournaments["open_two"]["expires_at"] == (
+            "2099-06-21 18:30:00"
+        )

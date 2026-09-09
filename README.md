@@ -130,6 +130,7 @@ User command groups:
 | `/admin tournament create` | Admin | `name`, `expire_datetime`, `format`, `password` | Open a form to create a new named tournament. |
 | `/admin tournament list` | Admin | - | List all tournaments with their status (OPEN/CLOSED). |
 | `/admin tournament delete` | Admin | `tournament_id`, `password` | Open a form to delete a tournament. |
+| `/admin tournament close` | Admin | Select a tournament, then `password` | Select an open tournament and close only that tournament. |
 | `/admin tournament status` | Admin | - | Show tournament status information. |
 
 ### Admin - Pokemon
@@ -203,6 +204,7 @@ Admins use `/admin tournament` commands to manage tournaments:
 /admin tournament create  # complete the form
 /admin tournament list
 /admin tournament delete   # complete the form
+/admin tournament close    # select a tournament, then enter the password
 ```
 
 ### Tournament Storage
