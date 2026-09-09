@@ -1,4 +1,9 @@
+import logging
+
 import discord
+
+
+logger = logging.getLogger(__name__)
 
 
 def choice_converter(*allowed_values):
@@ -65,3 +70,6 @@ class CommandModal(discord.ui.Modal):
                 return
 
         await self.handler(ModalInteractionContext(interaction), values)
+
+    async def on_error(self, error, item, interaction):
+        logger.exception("Modal submission failed", exc_info=error)
