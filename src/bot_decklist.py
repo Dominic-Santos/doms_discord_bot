@@ -115,19 +115,32 @@ class DecklistBot:
             await ctx.respond("Deck not found", ephemeral=True)
             return
 
+        standard_status = deck_data.get("standard")
+        expanded_status = deck_data.get("expanded")
+
         deck_info = f"{name}\nStandard Legal: "
-        if deck_data["standard"]["valid"]:
+        if standard_status is None:
+            deck_info += "Unknown - not checked"
+        elif standard_status["valid"] is None:
+            deck_info += "Unknown - not checked"
+        elif standard_status["valid"]:
             deck_info += ":white_check_mark:"
         else:
-            deck_info += f":x: - {deck_data['standard']['error']}"
+            deck_info += f":x: - {standard_status['error']}"
 
         deck_info += "\nExpanded Legal: "
-        if deck_data["expanded"]["valid"]:
+        if expanded_status is None:
+            deck_info += "Unknown - not checked"
+        elif expanded_status["valid"] is None:
+            deck_info += "Unknown - not checked"
+        elif expanded_status["valid"]:
             deck_info += ":white_check_mark:"
         else:
-            deck_info += f":x: - {deck_data['expanded']['error']}"
+            deck_info += f":x: - {expanded_status['error']}"
 
-        deck_info += f"\nLast Checked: {deck_data['last_checked']}"
+        deck_info += (
+            f"\nLast Checked: {deck_data.get('last_checked', 'Never')}"
+        )
 
         if "deck" in deck_data:
             if (
@@ -227,30 +240,10 @@ class DecklistBot:
             "url": limitless_url
         }
         self.save_user_decklists()
-
-        result, error = self.do_user_decklist_check(user_id, name)
-
-        if error is not None:
-            await ctx.respond(
-                f"Deck saved, error checking deck: {error}",
-                ephemeral=True
-            )
-            return
-
-        result_text = "Deck saved, deck is:\n- standard "
-        if result["standard"]["valid"]:
-            result_text += "valid!"
-        else:
-            result_text += f"not valid! {result['standard']['error']}"
-
-        result_text += "\n- expanded "
-        if result["expanded"]["valid"]:
-            result_text += "valid!"
-        else:
-            result_text += f"not valid! {result['expanded']['error']}"
-
-        await ctx.respond(result_text, ephemeral=True)
-        self.save_user_decklists()
+        await ctx.respond(
+            "Deck saved.",
+            ephemeral=True
+        )
 
     async def decklist_check_url(self, ctx, deck_url: str):
         await ctx.defer(ephemeral=True)
@@ -292,30 +285,7 @@ class DecklistBot:
 
         decklist_url = deck_data["url"]
 
-        valid, deck_data, error = self.do_decklist_check(decklist_url)
-        self.user_decklists[user_id][deck_name].update(
-            {
-                "deck": deck_data,
-                "last_checked": str(datetime.now().date())
-            }
-        )
-        if error is not None:
-            self.user_decklists[user_id][deck_name].update(
-                {
-                    "standard": {
-                        "valid": False,
-                        "error": error
-                    },
-                    "expanded": {
-                        "valid": False,
-                        "error": error
-                    }
-                }
-            )
-        else:
-            self.user_decklists[user_id][deck_name].update(valid)
-
-        self.save_user_decklists()
+        valid, _, error = self.do_decklist_check(decklist_url)
         return valid, error
 
     def do_decklist_check(self, limitless_url: str) -> tuple[dict, dict, str]:

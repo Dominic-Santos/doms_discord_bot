@@ -114,19 +114,18 @@ class SavedDeckSelectView(discord.ui.View):
         self.tournament_id = tournament_id
 
         options = [
-            discord.SelectOption(label=name[:100], value=name)
-            for name in saved_decks
-        ]
-        options.append(
             discord.SelectOption(
                 label="Use a deck URL",
                 value="__deck_url__",
                 description="Enter a Limitless URL manually",
-            )
-        )
+            ),
+        ] + [
+            discord.SelectOption(label=name[:100], value=name)
+            for name in saved_decks
+        ]
         select = discord.ui.Select(
             placeholder="Select a deck",
-            options=options[:24] + [options[-1]],
+            options=options[:25],
         )
 
         async def select_callback(interaction):
