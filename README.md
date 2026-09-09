@@ -131,6 +131,7 @@ User command groups:
 | `/admin tournament list` | Admin | - | List all tournaments with their status (OPEN/CLOSED). |
 | `/admin tournament delete` | Admin | `tournament_id`, `password` | Open a form to delete a tournament. |
 | `/admin tournament close` | Admin | Select a tournament, then `password` | Select an open tournament and close only that tournament. |
+| `/admin tournament delete_closed` | Admin | `password` | Delete every tournament whose expiration has passed. |
 | `/admin tournament status` | Admin | - | Show tournament status information. |
 
 ### Admin - Pokemon
@@ -205,6 +206,7 @@ Admins use `/admin tournament` commands to manage tournaments:
 /admin tournament list
 /admin tournament delete   # complete the form
 /admin tournament close    # select a tournament, then enter the password
+/admin tournament delete_closed  # enter the password
 ```
 
 ### Tournament Storage

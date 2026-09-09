@@ -151,3 +151,21 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
         assert b.tournaments["open_two"]["expires_at"] == (
             "2099-06-21 18:30:00"
         )
+
+        b.tournaments["closed"] = {
+            "name": "Closed",
+            "expires_at": "2000-01-01 00:00:00",
+        }
+        b.tournaments["invalid"] = {
+            "name": "Invalid",
+            "expires_at": "not a datetime",
+        }
+        await b.delete_closed_tournaments(mock_ctx, "fake")
+        assert mock_ctx.last_response == "Invalid admin password"
+        assert "closed" in b.tournaments
+
+        await b.delete_closed_tournaments(mock_ctx, b.password)
+        assert mock_ctx.last_response == "Deleted 1 closed tournament(s)."
+        assert "closed" not in b.tournaments
+        assert "open_two" in b.tournaments
+        assert "invalid" in b.tournaments

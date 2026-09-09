@@ -149,6 +149,22 @@ class AdminBot:
                 ephemeral=True,
             )
 
+        @tournament.command(
+            description="Delete all closed tournaments"
+        )
+        async def delete_closed(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Delete Closed Tournaments",
+                [
+                    ("password", "Bot admin password", "Password", str),
+                ],
+                lambda modal_ctx, values: self.delete_closed_tournaments(
+                    modal_ctx,
+                    values["password"],
+                ),
+                self.logger,
+            ))
+
     async def maintenance_status(self, ctx):
         await ctx.defer(ephemeral=True)
 
@@ -387,4 +403,35 @@ class AdminBot:
         await ctx.respond(
             f"Tournament '{tournament_name}' has been deleted.",
             ephemeral=True
+        )
+
+    async def delete_closed_tournaments(self, ctx, password: str):
+        await ctx.defer(ephemeral=True)
+
+        if password != self.password:
+            await ctx.respond("Invalid admin password", ephemeral=True)
+            return
+
+        now = datetime.now()
+        closed_ids = []
+        for tournament_id, tournament_data in self.tournaments.items():
+            try:
+                expires_at = datetime.fromisoformat(
+                    tournament_data.get("expires_at", "")
+                )
+            except ValueError:
+                continue
+
+            if expires_at < now:
+                closed_ids.append(tournament_id)
+
+        for tournament_id in closed_ids:
+            del self.tournaments[tournament_id]
+
+        if closed_ids:
+            self.save_tournaments()
+
+        await ctx.respond(
+            f"Deleted {len(closed_ids)} closed tournament(s).",
+            ephemeral=True,
         )
