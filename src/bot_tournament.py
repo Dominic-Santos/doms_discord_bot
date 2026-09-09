@@ -9,7 +9,7 @@ from .core import fill_sheet, DATA_FOLDER
 from .pokemon import get_decklist_png as get_sign_up_sheet
 
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
-from .modals import CommandModal
+from .chat_prompts import run_chat_prompt
 
 OUTPUT_CHANNEL_NOT_SET_ERROR = (
     "Tournament output channel is not set for this server."
@@ -185,27 +185,17 @@ class TournamentBot:
             description="Sign up for a tournament with a limitless url"
         )
         async def signup_url(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Tournament Sign-up",
-                [
-                    ("name", "Full name", "Ash Ketchum", str),
-                    ("pokemon_id", "Pokemon ID", "123456", int),
-                    ("year_of_birth", "Year of birth", "1990", int),
-                    (
-                        "limitless_url",
-                        "Limitless deck URL",
-                        "https://limitlesstcg.com/...",
-                        str
-                    ),
-                ],
-                lambda modal_ctx, values: self.tournament_signup_url(
-                    modal_ctx,
-                    values["name"],
-                    values["pokemon_id"],
-                    values["year_of_birth"],
-                    values["limitless_url"]
-                ),
-                self.logger
+            await run_chat_prompt(ctx, [
+                ("name", "Enter the player's full name:", str),
+                ("pokemon_id", "Enter the player's Pokemon ID:", int),
+                ("year_of_birth", "Enter the player's year of birth:", int),
+                ("limitless_url", "Enter the Limitless deck URL:", str),
+            ], lambda prompt_ctx, values: self.tournament_signup_url(
+                prompt_ctx,
+                values["name"],
+                values["pokemon_id"],
+                values["year_of_birth"],
+                values["limitless_url"]
             ))
 
         @tournament.command(
@@ -213,22 +203,17 @@ class TournamentBot:
             description="Sign up for a tournament with a saved deck"
         )
         async def signup(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Tournament Sign-up",
-                [
-                    ("name", "Full name", "Ash Ketchum", str),
-                    ("pokemon_id", "Pokemon ID", "123456", int),
-                    ("year_of_birth", "Year of birth", "1990", int),
-                    ("deck_name", "Saved deck name", "My deck", str),
-                ],
-                lambda modal_ctx, values: self.tournament_signup(
-                    modal_ctx,
-                    values["name"],
-                    values["pokemon_id"],
-                    values["year_of_birth"],
-                    values["deck_name"]
-                ),
-                self.logger
+            await run_chat_prompt(ctx, [
+                ("name", "Enter the player's full name:", str),
+                ("pokemon_id", "Enter the player's Pokemon ID:", int),
+                ("year_of_birth", "Enter the player's year of birth:", int),
+                ("deck_name", "Enter the saved deck name:", str),
+            ], lambda prompt_ctx, values: self.tournament_signup(
+                prompt_ctx,
+                values["name"],
+                values["pokemon_id"],
+                values["year_of_birth"],
+                values["deck_name"]
             ))
 
         @self.admin_pokemon.command(description="Update the sign-up sheet")

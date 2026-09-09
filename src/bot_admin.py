@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from .modals import CommandModal, choice_converter
+from .chat_prompts import run_chat_prompt
 
 
 class AdminBot:
@@ -20,50 +20,27 @@ class AdminBot:
 
         @maintenance.command(description="Toggle bot maintenance mode")
         async def toggle(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Toggle Maintenance",
-                [("password", "Bot admin password", "Password", str)],
-                lambda modal_ctx, values: self.toggle_maintenance(
-                    modal_ctx, values["password"]
-                ),
-                self.logger
+            await run_chat_prompt(ctx, [
+                ("password", "Enter the bot admin password:", str),
+            ], lambda prompt_ctx, values: self.toggle_maintenance(
+                prompt_ctx, values["password"]
             ))
 
         @tournament.command(
             description="Create a new tournament"
         )
         async def create(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Create Tournament",
-                [
-                    ("name", "Tournament name", "League Cup", str),
-                    (
-                        "expire_datetime",
-                        "Expiration datetime",
-                        "2026-05-21 18:30:00",
-                        str
-                    ),
-                    (
-                        "format",
-                        "Tournament format",
-                        "standard or expanded",
-                        choice_converter("standard", "expanded")
-                    ),
-                    (
-                        "password",
-                        "Bot admin password",
-                        "Password",
-                        str
-                    ),
-                ],
-                lambda modal_ctx, values: self.create_tournament(
-                    modal_ctx,
-                    values["name"],
-                    values["expire_datetime"],
-                    values["format"],
-                    values["password"]
-                ),
-                self.logger
+            await run_chat_prompt(ctx, [
+                ("name", "Enter the tournament name:", str),
+                ("expire_datetime", "Enter expiration datetime (YYYY-MM-DD HH:MM:SS):", str),
+                ("format", "Select tournament format:", "choice", ["standard", "expanded"]),
+                ("password", "Enter the bot admin password:", str),
+            ], lambda prompt_ctx, values: self.create_tournament(
+                prompt_ctx,
+                values["name"],
+                values["expire_datetime"],
+                values["format"],
+                values["password"]
             ))
 
         @tournament.command(
@@ -76,18 +53,13 @@ class AdminBot:
             description="Delete a tournament"
         )
         async def delete(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Delete Tournament",
-                [
-                    ("tournament_id", "Tournament ID", "league_cup", str),
-                    ("password", "Bot admin password", "Password", str),
-                ],
-                lambda modal_ctx, values: self.delete_tournament(
-                    modal_ctx,
-                    values["tournament_id"],
-                    values["password"]
-                ),
-                self.logger
+            await run_chat_prompt(ctx, [
+                ("tournament_id", "Enter the tournament ID:", str),
+                ("password", "Enter the bot admin password:", str),
+            ], lambda prompt_ctx, values: self.delete_tournament(
+                prompt_ctx,
+                values["tournament_id"],
+                values["password"]
             ))
 
         @tournament.command(
@@ -100,13 +72,10 @@ class AdminBot:
             description="Close tournament sign-ups (deprecated - use individual tournament deletion)"
         )
         async def close_signups(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Close Tournament Sign-ups",
-                [("password", "Bot admin password", "Password", str)],
-                lambda modal_ctx, values: self.close_tournament_signups(
-                    modal_ctx, values["password"]
-                ),
-                self.logger
+            await run_chat_prompt(ctx, [
+                ("password", "Enter the bot admin password:", str),
+            ], lambda prompt_ctx, values: self.close_tournament_signups(
+                prompt_ctx, values["password"]
             ))
 
     async def maintenance_status(self, ctx):

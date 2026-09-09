@@ -71,11 +71,11 @@ python main.py
 - `/about`
 - `/admin maintenance check`
 - `/admin pokemon set_tournament_channel`
-- `/admin tournament create` then complete the form with the requested values
+- `/admin tournament create` then follow the private chat prompts
 
-Commands with fields open a Pycord form after the command is selected. Submit
-the form to run the command; fields are no longer entered inline in the slash
-command.
+Commands with fields now use private chat prompts after the command is
+selected. Text responses are collected one at a time, and fixed choices such
+as tournament format use select menus.
 
 ## How to Use the Bot
 
@@ -111,30 +111,30 @@ User command groups:
 
 ### General
 
-| Command | Required Role | Form fields | Description |
+| Command | Required Role | Prompt fields | Description |
 | --- | --- | --- | --- |
 | `/help` | User | - | Opens the documentation link. |
 | `/about` | User | - | Shows bot info and creator details. |
 
 ### Admin - Maintenance
 
-| Command | Required Role | Form fields | Description |
+| Command | Required Role | Prompt fields | Description |
 | --- | --- | --- | --- |
 | `/admin maintenance check` | Admin | - | Check whether maintenance mode is on or off. |
 | `/admin maintenance toggle` | Admin | `password` | Toggle maintenance mode. |
 
 ### Admin - Tournament Management
 
-| Command | Required Role | Parameters | Description |
+| Command | Required Role | Prompt fields | Description |
 | --- | --- | --- | --- |
-| `/admin tournament create` | Admin | `name`, `expire_datetime`, `format`, `password` | Open a form to create a new named tournament. |
+| `/admin tournament create` | Admin | `name`, `expire_datetime`, `format`, `password` | Follow private prompts to create a new named tournament. |
 | `/admin tournament list` | Admin | - | List all tournaments with their status (OPEN/CLOSED). |
-| `/admin tournament delete` | Admin | `tournament_id`, `password` | Open a form to delete a tournament. |
+| `/admin tournament delete` | Admin | `tournament_id`, `password` | Follow private prompts to delete a tournament. |
 | `/admin tournament status` | Admin | - | Show tournament status information. |
 
 ### Admin - Pokemon
 
-| Command | Required Role | Form fields | Description |
+| Command | Required Role | Prompt fields | Description |
 | --- | --- | --- | --- |
 | `/admin pokemon set_tournament_channel` | Admin | - | Set current channel as tournament output channel. |
 | `/admin pokemon test_tournament_channel` | Admin | - | Send a test message to the tournament output channel. |
@@ -145,12 +145,12 @@ User command groups:
 
 ### Events - Pokemon
 
-| Command | Required Role | Form fields | Description |
+| Command | Required Role | Prompt fields | Description |
 | --- | --- | --- | --- |
 | `/events pokemon follow_premier` | Admin | - | Follow premier events. |
 | `/events pokemon unfollow_premier` | Admin | - | Stop following premier events. |
-| `/events pokemon follow_store` | Admin | `guid` | Open a form to follow events for a store GUID. |
-| `/events pokemon unfollow_store` | Admin | `guid` | Open a form to stop following events for a store GUID. |
+| `/events pokemon follow_store` | Admin | `guid` | Follow a private prompt to follow events for a store GUID. |
+| `/events pokemon unfollow_store` | Admin | `guid` | Follow a private prompt to stop following events for a store GUID. |
 | `/events pokemon unfollow_all` | Admin | - | Stop following all events. |
 | `/events pokemon sync` | Admin | - | Sync followed events into Discord scheduled events. |
 | `/events pokemon delete_all` | Admin | - | Cancel bot-created Discord events in the server. |
@@ -159,7 +159,7 @@ User command groups:
 
 ### Newsfeed - Pokemon
 
-| Command | Required Role | Form fields | Description |
+| Command | Required Role | Prompt fields | Description |
 | --- | --- | --- | --- |
 | `/newsfeed pokemon set_channel` | Admin | - | Set channel for newsfeed updates. |
 | `/newsfeed pokemon update` | Admin | - | Fetch latest newsfeed posts now. |
@@ -167,28 +167,28 @@ User command groups:
 
 ### Deck - Pokemon
 
-| Command | Required Role | Form fields | Description |
+| Command | Required Role | Prompt fields | Description |
 | --- | --- | --- | --- |
-| `/deck pokemon check_url` | User | `limitless_url` | Open a form to validate a Limitless deck URL. |
-| `/deck pokemon check` | User | `name` | Open a form to validate a saved deck by name. |
-| `/deck pokemon create` | User | `name`, `limitless_url` | Open a form to save a deck and run validation. |
-| `/deck pokemon delete` | User | `name` | Open a form to delete a saved deck. |
+| `/deck pokemon check_url` | User | `limitless_url` | Follow a private prompt to validate a Limitless deck URL. |
+| `/deck pokemon check` | User | `name` | Follow a private prompt to validate a saved deck by name. |
+| `/deck pokemon create` | User | `name`, `limitless_url` | Follow private prompts to save a deck and run validation. |
+| `/deck pokemon delete` | User | `name` | Follow a private prompt to delete a saved deck. |
 | `/deck pokemon list` | User | - | List saved decks. |
-| `/deck pokemon info` | User | `name` | Open a form to show saved deck details and validation state. |
+| `/deck pokemon info` | User | `name` | Follow a private prompt to show saved deck details and validation state. |
 
 ### Tournament - Pokemon Standard
 
-| Command | Required Role | Form fields | Description |
+| Command | Required Role | Prompt fields | Description |
 | --- | --- | --- | --- |
-| `/tournament pokemon_standard signup` | User | `name`, `pokemon_id`, `year_of_birth`, `deck_name` | Open a form to sign up with a saved deck (Standard path). |
-| `/tournament pokemon_standard signup_url` | User | `name`, `pokemon_id`, `year_of_birth`, `limitless_url` | Open a form to sign up with a Limitless URL (Standard path). |
+| `/tournament pokemon_standard signup` | User | `name`, `pokemon_id`, `year_of_birth`, `deck_name` | Follow private prompts to sign up with a saved deck (Standard path). |
+| `/tournament pokemon_standard signup_url` | User | `name`, `pokemon_id`, `year_of_birth`, `limitless_url` | Follow private prompts to sign up with a Limitless URL (Standard path). |
 
 ### Tournament - Pokemon Expanded
 
-| Command | Required Role | Form fields | Description |
+| Command | Required Role | Prompt fields | Description |
 | --- | --- | --- | --- |
-| `/tournament pokemon_expanded signup` | User | `name`, `pokemon_id`, `year_of_birth`, `deck_name` | Open a form to sign up with a saved deck (Expanded path). |
-| `/tournament pokemon_expanded signup_url` | User | `name`, `pokemon_id`, `year_of_birth`, `limitless_url` | Open a form to sign up with a Limitless URL (Expanded path). |
+| `/tournament pokemon_expanded signup` | User | `name`, `pokemon_id`, `year_of_birth`, `deck_name` | Follow private prompts to sign up with a saved deck (Expanded path). |
+| `/tournament pokemon_expanded signup_url` | User | `name`, `pokemon_id`, `year_of_birth`, `limitless_url` | Follow private prompts to sign up with a Limitless URL (Expanded path). |
 
 ## Tournament Management
 
@@ -199,10 +199,10 @@ The bot now supports multiple tournaments running simultaneously, each with thei
 Admins use `/admin tournament` commands to manage tournaments:
 
 ```
-/admin tournament create  # complete the form
-/admin tournament create  # complete the form
+/admin tournament create  # follow the private prompts
+/admin tournament create  # follow the private prompts
 /admin tournament list
-/admin tournament delete   # complete the form
+/admin tournament delete   # follow the private prompts
 ```
 
 ### Tournament Storage

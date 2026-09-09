@@ -4,7 +4,7 @@ from datetime import datetime
 from .limitless import get_decklist_from_url
 from .core import validate_decklist, DATA_FOLDER
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
-from .modals import CommandModal
+from .chat_prompts import run_chat_prompt
 
 USER_DECKLIST_FILE = f"{DATA_FOLDER}/user_decklists.json"
 
@@ -37,58 +37,39 @@ class DecklistBot:
             description="Check a limitless decklist is legal"
         )
         async def check_url(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Check Deck URL",
-                [("limitless_url", "Limitless URL", "https://limitlesstcg.com/...", str)],
-                lambda modal_ctx, values: self.decklist_check_url(
-                    modal_ctx, values["limitless_url"]
-                ),
-                self.logger
+            await run_chat_prompt(ctx, [
+                ("limitless_url", "Enter the Limitless deck URL:", str),
+            ], lambda prompt_ctx, values: self.decklist_check_url(
+                prompt_ctx, values["limitless_url"]
             ))
 
         @pokemon_decklist.command(
             description="Check a saved deck is legal"
         )
         async def check(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Check Saved Deck",
-                [("name", "Deck name", "My deck", str)],
-                lambda modal_ctx, values: self.decklist_check(
-                    modal_ctx, values["name"]
-                ),
-                self.logger
+            await run_chat_prompt(ctx, [
+                ("name", "Enter the saved deck name:", str),
+            ], lambda prompt_ctx, values: self.decklist_check(
+                prompt_ctx, values["name"]
             ))
 
         @pokemon_decklist.command(description="Create a deck")
         async def create(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Create Deck",
-                [
-                    ("name", "Deck name", "My deck", str),
-                    (
-                        "limitless_url",
-                        "Limitless URL",
-                        "https://limitlesstcg.com/...",
-                        str
-                    ),
-                ],
-                lambda modal_ctx, values: self.decklist_create(
-                    modal_ctx,
-                    values["name"],
-                    values["limitless_url"]
-                ),
-                self.logger
+            await run_chat_prompt(ctx, [
+                ("name", "Enter the new deck name:", str),
+                ("limitless_url", "Enter the Limitless deck URL:", str),
+            ], lambda prompt_ctx, values: self.decklist_create(
+                prompt_ctx,
+                values["name"],
+                values["limitless_url"]
             ))
 
         @pokemon_decklist.command(description="Delete a saved deck")
         async def delete(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Delete Saved Deck",
-                [("name", "Deck name", "My deck", str)],
-                lambda modal_ctx, values: self.decklist_delete(
-                    modal_ctx, values["name"]
-                ),
-                self.logger
+            await run_chat_prompt(ctx, [
+                ("name", "Enter the saved deck name to delete:", str),
+            ], lambda prompt_ctx, values: self.decklist_delete(
+                prompt_ctx, values["name"]
             ))
 
         @pokemon_decklist.command(name="list", description="List saved decks")
@@ -97,13 +78,10 @@ class DecklistBot:
 
         @pokemon_decklist.command(description="Show deck info")
         async def info(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Saved Deck Info",
-                [("name", "Deck name", "My deck", str)],
-                lambda modal_ctx, values: self.decklist_info(
-                    modal_ctx, values["name"]
-                ),
-                self.logger
+            await run_chat_prompt(ctx, [
+                ("name", "Enter the saved deck name:", str),
+            ], lambda prompt_ctx, values: self.decklist_info(
+                prompt_ctx, values["name"]
             ))
 
     async def decklist_info(self, ctx, name: str):
