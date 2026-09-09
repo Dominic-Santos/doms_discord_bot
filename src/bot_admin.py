@@ -25,7 +25,8 @@ class AdminBot:
                 [("password", "Bot admin password", "Password", str)],
                 lambda modal_ctx, values: self.toggle_maintenance(
                     modal_ctx, values["password"]
-                )
+                ),
+                self.logger
             ))
 
         @tournament.command(
@@ -61,7 +62,8 @@ class AdminBot:
                     values["expire_datetime"],
                     values["format"],
                     values["password"]
-                )
+                ),
+                self.logger
             ))
 
         @tournament.command(
@@ -84,7 +86,8 @@ class AdminBot:
                     modal_ctx,
                     values["tournament_id"],
                     values["password"]
-                )
+                ),
+                self.logger
             ))
 
         @tournament.command(
@@ -102,7 +105,8 @@ class AdminBot:
                 [("password", "Bot admin password", "Password", str)],
                 lambda modal_ctx, values: self.close_tournament_signups(
                     modal_ctx, values["password"]
-                )
+                ),
+                self.logger
             ))
 
     async def maintenance_status(self, ctx):

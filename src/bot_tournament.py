@@ -204,7 +204,8 @@ class TournamentBot:
                     values["pokemon_id"],
                     values["year_of_birth"],
                     values["limitless_url"]
-                )
+                ),
+                self.logger
             ))
 
         @tournament.command(
@@ -226,7 +227,8 @@ class TournamentBot:
                     values["pokemon_id"],
                     values["year_of_birth"],
                     values["deck_name"]
-                )
+                ),
+                self.logger
             ))
 
         @self.admin_pokemon.command(description="Update the sign-up sheet")

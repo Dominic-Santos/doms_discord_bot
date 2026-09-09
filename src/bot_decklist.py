@@ -42,7 +42,8 @@ class DecklistBot:
                 [("limitless_url", "Limitless URL", "https://limitlesstcg.com/...", str)],
                 lambda modal_ctx, values: self.decklist_check_url(
                     modal_ctx, values["limitless_url"]
-                )
+                ),
+                self.logger
             ))
 
         @pokemon_decklist.command(
@@ -54,7 +55,8 @@ class DecklistBot:
                 [("name", "Deck name", "My deck", str)],
                 lambda modal_ctx, values: self.decklist_check(
                     modal_ctx, values["name"]
-                )
+                ),
+                self.logger
             ))
 
         @pokemon_decklist.command(description="Create a deck")
@@ -74,7 +76,8 @@ class DecklistBot:
                     modal_ctx,
                     values["name"],
                     values["limitless_url"]
-                )
+                ),
+                self.logger
             ))
 
         @pokemon_decklist.command(description="Delete a saved deck")
@@ -84,7 +87,8 @@ class DecklistBot:
                 [("name", "Deck name", "My deck", str)],
                 lambda modal_ctx, values: self.decklist_delete(
                     modal_ctx, values["name"]
-                )
+                ),
+                self.logger
             ))
 
         @pokemon_decklist.command(name="list", description="List saved decks")
@@ -98,7 +102,8 @@ class DecklistBot:
                 [("name", "Deck name", "My deck", str)],
                 lambda modal_ctx, values: self.decklist_info(
                     modal_ctx, values["name"]
-                )
+                ),
+                self.logger
             ))
 
     async def decklist_info(self, ctx, name: str):

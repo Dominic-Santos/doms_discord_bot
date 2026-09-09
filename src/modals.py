@@ -40,9 +40,10 @@ class ModalInteractionContext:
 
 
 class CommandModal(discord.ui.Modal):
-    def __init__(self, title, fields, handler):
+    def __init__(self, title, fields, handler, logger_instance=None):
         super().__init__(title=title)
         self.handler = handler
+        self.logger = logger_instance or logger
         self.inputs = {}
         self.converters = {}
 
@@ -58,6 +59,7 @@ class CommandModal(discord.ui.Modal):
             self.add_item(input_field)
 
     async def on_submit(self, interaction: discord.Interaction):
+        self.logger.info("Modal submitted: %s", self.title)
         values = {}
         for name, input_field in self.inputs.items():
             try:
@@ -72,4 +74,4 @@ class CommandModal(discord.ui.Modal):
         await self.handler(ModalInteractionContext(interaction), values)
 
     async def on_error(self, error, item, interaction):
-        logger.exception("Modal submission failed", exc_info=error)
+        self.logger.error("Modal submission failed", exc_info=error)

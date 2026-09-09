@@ -70,7 +70,8 @@ class EventsBot:
                 [("guid", "Store GUID", "abc-123", str)],
                 lambda modal_ctx, values: self.follow_events(
                     modal_ctx, values["guid"]
-                )
+                ),
+                self.logger
             ))
 
         @pokemon.command(
@@ -83,7 +84,8 @@ class EventsBot:
                 [("guid", "Store GUID", "abc-123", str)],
                 lambda modal_ctx, values: self.unfollow_events(
                     modal_ctx, values["guid"]
-                )
+                ),
+                self.logger
             ))
 
         @pokemon.command(
