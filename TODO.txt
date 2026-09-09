@@ -1,0 +1,7 @@
+Add professor store checker
+    -> keep states of all products
+    -> channel for updates
+    -> get images also
+
+add cardmarket watcher that only needs a link to provide
+

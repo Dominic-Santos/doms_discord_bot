@@ -22,7 +22,38 @@ SIGN_UP_SHEET_MISSING_ERROR = (
 )
 
 TOURNAMENT_CHANNELS_FILE = f"{DATA_FOLDER}/tournament_channels.json"
+TOURNAMENTS_FILE = f"{DATA_FOLDER}/tournaments.json"
 SIGN_UP_SHEET_FILE = f"{DATA_FOLDER}/sign_up_sheet.png"
+
+
+class TournamentSelectView(discord.ui.View):
+    def __init__(self, tournaments: dict):
+        super().__init__()
+        
+        # Create select options for tournaments
+        options = [
+            discord.SelectOption(
+                label=tournament_data.get("name", tournament_id)[:100],
+                value=tournament_id,
+                description=f"Expires: {tournament_data.get('expires_at', 'Unknown')}"[:100]
+            )
+            for tournament_id, tournament_data in tournaments.items()
+        ]
+        
+        if options:
+            self.select.options = options
+        else:
+            self.select.disabled = True
+
+    @discord.ui.select(
+        placeholder="Select a tournament",
+        min_values=1,
+        max_values=1
+    )
+    async def select(self, select: discord.ui.Select, interaction: discord.Interaction):
+        # Store selected tournament in the view
+        self.selected_tournament_id = select.values[0]
+        self.stop()
 
 
 class TournamentBot:
@@ -71,22 +102,86 @@ class TournamentBot:
         except Exception as e:
             self.logger.error(f"Error saving {TOURNAMENT_CHANNELS_FILE}: {e}")
 
+    def load_tournaments(self):
+        try:
+            with open(TOURNAMENTS_FILE, "r") as f:
+                data = json.load(f)
+                self.tournaments = data.get("tournaments", {})
+        except Exception as e:
+            self.logger.warning(
+                f"Error loading {TOURNAMENTS_FILE}: {e}"
+            )
+            self.tournaments = {}
+
+    def save_tournaments(self):
+        try:
+            with open(TOURNAMENTS_FILE, "w") as f:
+                json.dump({"tournaments": self.tournaments}, f, indent=4)
+        except Exception as e:
+            self.logger.error(f"Error saving {TOURNAMENTS_FILE}: {e}")
+
+    def get_open_tournaments(
+        self,
+        now: datetime | None = None
+    ) -> dict:
+        """Get all tournaments that are currently open."""
+        if now is None:
+            now = datetime.now()
+
+        open_tournaments = {}
+        for tournament_id, tournament_data in self.tournaments.items():
+            try:
+                expire_datetime = datetime.fromisoformat(
+                    tournament_data.get("expires_at", "")
+                )
+                if now <= expire_datetime:
+                    open_tournaments[tournament_id] = tournament_data
+            except ValueError:
+                self.logger.warning(
+                    f"Invalid tournament expiry datetime for {tournament_id}: "
+                    f"{tournament_data.get('expires_at')}"
+                )
+                continue
+
+        return open_tournaments
+
+    async def get_tournament_selection(
+        self,
+        ctx,
+        open_tournaments: dict
+    ) -> str | None:
+        """Prompt user to select a tournament from dropdown. Returns tournament_id or None."""
+        if len(open_tournaments) == 1:
+            # Auto-select if only one tournament is open
+            return list(open_tournaments.keys())[0]
+        
+        if len(open_tournaments) == 0:
+            return None
+
+        # Create and send dropdown
+        view = TournamentSelectView(open_tournaments)
+        await ctx.respond(
+            "Please select a tournament to sign up for:",
+            view=view,
+            ephemeral=True
+        )
+        
+        # Wait for selection (30 second timeout)
+        try:
+            await view.wait()
+            return getattr(view, 'selected_tournament_id', None)
+        except Exception as e:
+            self.logger.error(f"Error in tournament selection: {e}")
+            return None
+
     def add_tournament_commands(self):
         tournament = self.bot.create_group(
             "tournament", "Manage tournament sign-ups"
         )
-        standard_tournament = tournament.create_subgroup(
-            "pokemon_standard", "Manage Standard tournaments"
-        )
-        expanded_tournament = tournament.create_subgroup(
-            "pokemon_expanded", "Manage Expanded tournaments"
-        )
 
-        @standard_tournament.command(
+        @tournament.command(
             name="signup_url",
-            description=(
-                "Sign up for a standard tournament with a limitless url"
-            )
+            description="Sign up for a tournament with a limitless url"
         )
         async def signup_url(
             ctx,
@@ -104,37 +199,12 @@ class TournamentBot:
             ),
         ):
             await self.tournament_signup_url(
-                ctx, name, pokemon_id, year_of_birth, limitless_url, "standard"
+                ctx, name, pokemon_id, year_of_birth, limitless_url
             )  # pragma: no cover
 
-        @expanded_tournament.command(
-            name="signup_url",
-            description=(
-                "Sign up for a expanded tournament with a limitless url"
-            )
-        )
-        async def expanded_signup_url(
-            ctx,
-            name: discord.Option(
-                str, "Full name of the player"
-            ),  # type: ignore
-            pokemon_id: discord.Option(
-                int, "Pokemon ID of the player"
-            ),  # type: ignore
-            year_of_birth: discord.Option(
-                int, "Year of birth of the player"
-            ),  # type: ignore
-            limitless_url: str = discord.Option(
-                str, "Limitless URL of the decklist"
-            ),
-        ):
-            await self.tournament_signup_url(
-                ctx, name, pokemon_id, year_of_birth, limitless_url, "expanded"
-            )  # pragma: no cover
-
-        @standard_tournament.command(
+        @tournament.command(
             name="signup",
-            description="Sign up for a standard tournament with a saved deck"
+            description="Sign up for a tournament with a saved deck"
         )
         async def signup(
             ctx,
@@ -152,30 +222,7 @@ class TournamentBot:
             ),
         ):
             await self.tournament_signup(
-                ctx, name, pokemon_id, year_of_birth, deck_name, "standard"
-            )  # pragma: no cover
-
-        @expanded_tournament.command(
-            name="signup",
-            description="Sign up for a expanded tournament with a saved deck"
-        )
-        async def expanded_signup(
-            ctx,
-            name: discord.Option(
-                str, "Full name of the player"
-            ),  # type: ignore
-            pokemon_id: discord.Option(
-                int, "Pokemon ID of the player"
-            ),  # type: ignore
-            year_of_birth: discord.Option(
-                int, "Year of birth of the player"
-            ),  # type: ignore
-            deck_name: str = discord.Option(
-                str, "Name of the deck"
-            ),
-        ):
-            await self.tournament_signup(
-                ctx, name, pokemon_id, year_of_birth, deck_name, "expanded"
+                ctx, name, pokemon_id, year_of_birth, deck_name
             )  # pragma: no cover
 
         @self.admin_pokemon.command(description="Update the sign-up sheet")
@@ -238,7 +285,8 @@ class TournamentBot:
             "format",
             "full_name",
             "pokemon_id",
-            "year_of_birth"
+            "year_of_birth",
+            "tournament_id"
         ]
 
         output = io.StringIO()
@@ -263,7 +311,8 @@ class TournamentBot:
         pokemon_id: int,
         year_of_birth: int,
         limitless_url: str,
-        format: str
+        format: str,
+        tournament_id: str | None = None
     ):
         guild_key = str(guild_id)
         if guild_key not in self.tournament_signups:
@@ -276,7 +325,8 @@ class TournamentBot:
             "pokemon_id": pokemon_id,
             "year_of_birth": year_of_birth,
             "limitless_url": limitless_url,
-            "discord_user_id": str(user_id)
+            "discord_user_id": str(user_id),
+            "tournament_id": tournament_id
         }
 
         for i, signup in enumerate(self.tournament_signups[guild_key]):
@@ -306,7 +356,7 @@ class TournamentBot:
         pokemon_id: int,
         year_of_birth: int,
         deck_name: str,
-        format: str
+        tournament_id: str | None = None
     ):
         await ctx.defer(ephemeral=True)
         user_id = str(ctx.author.id)
@@ -316,10 +366,38 @@ class TournamentBot:
             await ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
             return
 
-        tournament_open, message = self.get_tournament_signup_status()
-        if not tournament_open:
-            await ctx.respond(message, ephemeral=True)
+        # Check if tournament_id is provided, otherwise get open tournaments
+        open_tournaments = self.get_open_tournaments()
+        if not open_tournaments:
+            await ctx.respond(
+                "No tournaments are open at this moment.",
+                ephemeral=True
+            )
             return
+
+        # If multiple tournaments are open and none specified, show dropdown
+        if tournament_id is None:
+            selected_tournament_id = await self.get_tournament_selection(
+                ctx, open_tournaments
+            )
+            if selected_tournament_id is None:
+                await ctx.respond(
+                    "No tournament selected.",
+                    ephemeral=True
+                )
+                return
+            tournament_id = selected_tournament_id
+
+        if tournament_id not in open_tournaments:
+            await ctx.respond(
+                "Selected tournament is not open.",
+                ephemeral=True
+            )
+            return
+
+        # Get format from tournament data
+        tournament_data = self.tournaments.get(tournament_id, {})
+        format = tournament_data.get("format", "standard")
 
         deck_data = self.user_decklists.get(user_id, {}).get(deck_name, None)
         if deck_data is None:
@@ -372,7 +450,7 @@ class TournamentBot:
 
         await self.tournament_signup_response(
             ctx, channel, deck_data["deck"], full_name,
-            pokemon_id, year_of_birth, limitless_url, format
+            pokemon_id, year_of_birth, limitless_url, format, tournament_id
         )
 
     async def tournament_signup_response(
@@ -384,7 +462,8 @@ class TournamentBot:
         pokemon_id: int,
         year_of_birth: int,
         limitless_url: str,
-        format: str
+        format: str,
+        tournament_id: str | None = None
     ):
         output_filename = (
             f"{DATA_FOLDER}/sign_up_sheet_{ctx.guild.id}_{ctx.author.id}.png"
@@ -402,6 +481,9 @@ class TournamentBot:
         )
 
         author = ctx.author.mention
+        tournament_name = ""
+        if tournament_id and tournament_id in self.tournaments:
+            tournament_name = f"\n- Tournament: {self.tournaments[tournament_id].get('name', tournament_id)}"
 
         await channel.send(
             (
@@ -409,7 +491,7 @@ class TournamentBot:
                 f"- Name: {full_name} ({author})\n"
                 f"- Pokémon ID: {pokemon_id}\n"
                 f"- Year of Birth: {year_of_birth}\n"
-                f"- Decklist: {limitless_url}"
+                f"- Decklist: {limitless_url}{tournament_name}"
             ),
             file=discord.File(output_filename, filename="sign_up_sheet.png")
         )
@@ -421,7 +503,8 @@ class TournamentBot:
             pokemon_id,
             year_of_birth,
             limitless_url,
-            format
+            format,
+            tournament_id
         )
 
         await ctx.respond(
@@ -439,17 +522,45 @@ class TournamentBot:
         pokemon_id: int,
         year_of_birth: int,
         limitless_url: str,
-        format: str
+        tournament_id: str | None = None
     ):
         await ctx.defer(ephemeral=True)
         if self.maintenance:
             await ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
             return
 
-        tournament_open, message = self.get_tournament_signup_status()
-        if not tournament_open:
-            await ctx.respond(message, ephemeral=True)
+        # Check if tournament_id is provided, otherwise get open tournaments
+        open_tournaments = self.get_open_tournaments()
+        if not open_tournaments:
+            await ctx.respond(
+                "No tournaments are open at this moment.",
+                ephemeral=True
+            )
             return
+
+        # If multiple tournaments are open and none specified, show dropdown
+        if tournament_id is None:
+            selected_tournament_id = await self.get_tournament_selection(
+                ctx, open_tournaments
+            )
+            if selected_tournament_id is None:
+                await ctx.respond(
+                    "No tournament selected.",
+                    ephemeral=True
+                )
+                return
+            tournament_id = selected_tournament_id
+
+        if tournament_id not in open_tournaments:
+            await ctx.respond(
+                "Selected tournament is not open.",
+                ephemeral=True
+            )
+            return
+
+        # Get format from tournament data
+        tournament_data = self.tournaments.get(tournament_id, {})
+        format = tournament_data.get("format", "standard")
 
         if not self.legal_cards:
             await ctx.respond(
@@ -492,7 +603,7 @@ class TournamentBot:
 
         await self.tournament_signup_response(
             ctx, channel, deck_data, full_name, pokemon_id,
-            year_of_birth, limitless_url, format
+            year_of_birth, limitless_url, format, tournament_id
         )
 
     async def update_signup_sheet(self, ctx):

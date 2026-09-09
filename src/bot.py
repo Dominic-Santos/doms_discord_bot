@@ -26,6 +26,7 @@ class Bot(
         self.password = password
         self.banned_sets = banned_sets
         self.tournament_signup_expires_at = None
+        self.tournaments = {}
         self.tournament_signups = {}
         self.logger = create_logger("decklist_bot", filename="logs/bot.log")
         check_dir(DATA_FOLDER)
@@ -33,6 +34,7 @@ class Bot(
         self.load_legal_cards()
         self.load_user_decklists()
         self.load_tournament_channels()
+        self.load_tournaments()
         self.load_newsfeed_channels()
         self.load_events_data()
         self.load_banned_cards()
@@ -86,7 +88,7 @@ class Bot(
     def add_tasks(self):
         time_update_legal_cards = datetime.time(hour=7)
         time_update_signup_sheet = datetime.time(hour=9)
-        time_update_events = datetime.time(hour=11)
+        # time_update_events = datetime.time(hour=11)
         time_update_banned_cards = datetime.time(hour=8)
         interval_update_newsfeed = {"hours": 6}
 
@@ -106,14 +108,14 @@ class Bot(
         async def update_newsfeed():
             await self.get_newsfeed_task()  # pragma: no cover
 
-        @tasks.loop(time=time_update_events)
-        async def update_events():
-            await self.sync_events_task()   # pragma: no cover
+        # @tasks.loop(time=time_update_events)
+        # async def update_events():
+        #     await self.sync_events_task()   # pragma: no cover
 
         update_legal_cards.start()
         update_signup_sheet.start()
         update_newsfeed.start()
-        update_events.start()
+        # update_events.start()
         update_banned_cards.start()
         self.logger.info("Scheduled tasks started.")
 

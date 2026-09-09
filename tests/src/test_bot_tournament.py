@@ -33,6 +33,30 @@ class MockCtx():
         self.last_send = message
 
 
+def create_tournament(expiry_days=2, format="standard"):
+    """Helper to create a tournament dict that is open"""
+    return {
+        "name": "Test Tournament",
+        "format": format,
+        "expires_at": (
+            datetime.now() + timedelta(days=expiry_days)
+        ).isoformat(sep=" ", timespec="seconds"),
+        "created_at": datetime.now().isoformat(sep=" ", timespec="seconds")
+    }
+
+
+def create_closed_tournament(expiry_days=-1, format="standard"):
+    """Helper to create a tournament dict that is closed"""
+    return {
+        "name": "Closed Tournament",
+        "format": format,
+        "expires_at": (
+            datetime.now() + timedelta(days=expiry_days)
+        ).isoformat(sep=" ", timespec="seconds"),
+        "created_at": datetime.now().isoformat(sep=" ", timespec="seconds")
+    }
+
+
 class TestBotTournament(unittest.IsolatedAsyncioTestCase):
 
     @patch("src.bot_tournament.os.remove")
@@ -63,9 +87,8 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         mock_dl_json.load.side_effect = Exception("failed")
 
         b = Bot("faketoken", False, "123")
-        b.tournament_signup_expires_at = (
-            (datetime.now() + timedelta(days=2)).isoformat(sep=" ")
-        )
+        # Create an open tournament instead of using tournament_signup_expires_at
+        b.tournaments["test_tournament"] = create_tournament()
 
         assert b.tournament_channels == {}
         assert b.tournament_signups == {}
@@ -112,7 +135,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             1234,
             1990,
             "https://my.limitlesstcg.com/builder?i=abc123abc",
-            "standard"
+            "test_tournament"
         )
         assert mock_ctx.last_response == (
             "Legal cards are not loaded. Please try again later."
@@ -126,7 +149,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             1234,
             1990,
             "https://my.limitlesstcg.com/builder?i=abc123abc",
-            "standard"
+            "test_tournament"
         )
         assert mock_ctx.last_response == OUTPUT_CHANNEL_NOT_FOUND_ERROR
 
@@ -140,7 +163,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             1234,
             1990,
             "https://my.limitlesstcg.com/builder?i=abc123abc",
-            "standard"
+            "test_tournament"
         )
         assert mock_ctx.last_response == SIGN_UP_SHEET_MISSING_ERROR
 
@@ -152,7 +175,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             1234,
             1990,
             "https://limitlesstcg.com/builder?i=abc123abc",
-            "standard"
+            "test_tournament"
         )
         assert mock_ctx.last_response == (
             "Error checking decklist: Invalid Limitless URL."
@@ -164,7 +187,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             1234,
             1990,
             "https://my.limitlesstcg.com/builder?i=abc123abc",
-            "standard"
+            "test_tournament"
         )
         mock_fill.assert_called_once()
         assert mock_ctx.last_send == (
@@ -172,7 +195,8 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             "- Format: standard\n"
             "- Name: test person (testuser)\n"
             "- Pokémon ID: 1234\n- Year of Birth: 1990\n"
-            "- Decklist: https://my.limitlesstcg.com/builder?i=abc123abc"
+            "- Decklist: https://my.limitlesstcg.com/builder?i=abc123abc\n"
+            "- Tournament: Test Tournament"
         )
         assert mock_ctx.last_response == (
             "Tournament signup has been processed!"
@@ -191,7 +215,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             1234,
             1991,
             "https://my.limitlesstcg.com/builder?i=abc123abc",
-            "standard"
+            "test_tournament"
         )
         signups = b.tournament_signups[str(mock_ctx.guild.id)]
         assert len(signups) == 1
@@ -205,7 +229,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             1234,
             1990,
             "https://my.limitlesstcg.com/builder?i=abc123abc",
-            "standard"
+            "test_tournament"
         )
         assert mock_ctx.last_response == "Deck is not valid: err"
 
@@ -266,8 +290,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             "test person",
             1234,
             1990,
-            "https://my.limitlesstcg.com/builder?i=abc123abc",
-            "standard"
+            "https://my.limitlesstcg.com/builder?i=abc123abc"
         )
         assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
 
@@ -275,17 +298,16 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
 
         b.maintenance = False
-        b.tournament_signup_expires_at = None
+        # Don't create any tournaments - they should all be closed
         await b.tournament_signup_url(
             mock_ctx,
             "test person",
             1234,
             1990,
-            "https://my.limitlesstcg.com/builder?i=abc123abc",
-            "standard"
+            "https://my.limitlesstcg.com/builder?i=abc123abc"
         )
         assert mock_ctx.last_response == (
-            "no tournaments are being held at this moment"
+            "No tournaments are open at this moment."
         )
 
         b.maintenance = True
@@ -321,9 +343,8 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
 
         mock_ctx = MockCtx()
         b = Bot("faketoken", False, "123")
-        b.tournament_signup_expires_at = (
-            (datetime.now() + timedelta(days=2)).isoformat(sep=" ")
-        )
+        # Create an open tournament
+        b.tournaments["test_tournament"] = create_tournament()
 
         mock_decklist.return_value = {}
         mock_validate.return_value = (True, "")
@@ -365,38 +386,39 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         }
 
         await b.tournament_signup(
-            mock_ctx, "first last", 12, 2000, "baddeck", "standard"
+            mock_ctx, "first last", 12, 2000, "baddeck"
         )
         assert mock_ctx.last_response == "Deck not found"
 
         b.maintenance = True
         await b.tournament_signup(
-            mock_ctx, "first last", 12, 2000, "deckname", "standard"
+            mock_ctx, "first last", 12, 2000, "deckname"
         )
         assert mock_ctx.last_response == MAINTENANCE_MODE_MESSAGE
 
         b.maintenance = False
-        b.tournament_signup_expires_at = None
+        # No tournaments - should show error
+        b.tournaments = {}
         await b.tournament_signup(
-            mock_ctx, "first last", 12, 2000, "deckname", "standard"
+            mock_ctx, "first last", 12, 2000, "deckname"
         )
         assert mock_ctx.last_response == (
-            "no tournaments are being held at this moment"
+            "No tournaments are open at this moment."
         )
 
-        b.tournament_signup_expires_at = (
-            (datetime.now() - timedelta(hours=23)).isoformat(sep=" ")
-        )
+        # Create a closed tournament (should fail)
+        b.tournaments["closed_tournament"] = create_closed_tournament()
         await b.tournament_signup(
-            mock_ctx, "first last", 12, 2000, "deckname", "standard"
+            mock_ctx, "first last", 12, 2000, "deckname"
         )
-        assert mock_ctx.last_response == "tournament sign ups are closed"
+        assert mock_ctx.last_response == (
+            "No tournaments are open at this moment."
+        )
 
-        b.tournament_signup_expires_at = (
-            (datetime.now() + timedelta(hours=2)).isoformat(sep=" ")
-        )
+        # Create an open tournament
+        b.tournaments["test_tournament"] = create_tournament()
         await b.tournament_signup(
-            mock_ctx, "first last", 12, 2000, "deckname", "standard"
+            mock_ctx, "first last", 12, 2000, "deckname"
         )
         assert mock_ctx.last_response == (
             "Legal cards are not loaded. Please try again later."
@@ -404,7 +426,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
 
         b.legal_cards = {"something": "here"}
         await b.tournament_signup(
-            mock_ctx, "first last", 12, 2000, "deckname", "standard"
+            mock_ctx, "first last", 12, 2000, "deckname"
         )
         assert mock_ctx.last_response == OUTPUT_CHANNEL_NOT_SET_ERROR
 
@@ -413,7 +435,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         mock_sign_up_sheet.return_value = False
         b.check_sign_up_sheet = mock_sign_up_sheet
         await b.tournament_signup(
-            mock_ctx, "first last", 12, 2000, "deckname", "standard"
+            mock_ctx, "first last", 12, 2000, "deckname"
         )
         assert mock_ctx.last_response == SIGN_UP_SHEET_MISSING_ERROR
 
@@ -421,7 +443,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         b.tournament_signup_response = AsyncMock()
         mock_validate.return_value = (False, "the error")
         await b.tournament_signup(
-            mock_ctx, "first last", 12, 2000, "deckname", "standard"
+            mock_ctx, "first last", 12, 2000, "deckname"
         )
         deck_info = b.user_decklists["303"]["deckname"]
         for format in ("standard", "expanded"):
@@ -434,7 +456,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
 
         mock_validate.return_value = (True, "")
         await b.tournament_signup(
-            mock_ctx, "first last", 12, 2000, "deckname", "standard"
+            mock_ctx, "first last", 12, 2000, "deckname"
         )
         deck_info = b.user_decklists["303"]["deckname"]
         for format in ("standard", "expanded"):

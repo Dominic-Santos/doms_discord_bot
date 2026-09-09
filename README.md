@@ -19,13 +19,14 @@ sign-ups, primarily focused on the Pokemon TCG.
 - [How to Use the Bot](#how-to-use-the-bot)
 - [Role-Based Commands](#role-based-commands)
 - [Commands](#commands)
-- [Tournament Signup Window Behavior](#tournament-signup-window-behavior)
+- [Tournament Management](#tournament-management)
 - [Timed Tasks](#timed-tasks)
 - [Configuration Reference](#configuration-reference)
 - [Operational Notes](#operational-notes)
 - [Troubleshooting](#troubleshooting)
 - [Architecture](#architecture)
 - [Create Your Own Bot](#create-your-own-bot)
+- [Documentation](#documentation)
 
 ## About The Project
 
@@ -69,7 +70,8 @@ python main.py
 
 - `/about`
 - `/admin maintenance check`
-- `/admin pokemon test_tournament_channel`
+- `/admin pokemon set_tournament_channel`
+- `/admin tournament create name:"Test Tournament" expire_datetime:"2099-12-31 23:59:59" password:"your_password"`
 
 ## How to Use the Bot
 
@@ -117,13 +119,14 @@ User command groups:
 | `/admin maintenance check` | Admin | - | Check whether maintenance mode is on or off. |
 | `/admin maintenance toggle` | Admin | `password` | Toggle maintenance mode. |
 
-### Admin - Tournament Window
+### Admin - Tournament Management
 
 | Command | Required Role | Parameters | Description |
 | --- | --- | --- | --- |
-| `/admin tournament open_signups` | Admin | `expire_datetime`, `password` | Open sign-ups until the provided expiration datetime. |
-| `/admin tournament close_signups` | Admin | `password` | Close tournament sign-ups immediately. |
-| `/admin tournament status` | Admin | - | Show the current in-memory sign-up expiration. |
+| `/admin tournament create` | Admin | `name`, `expire_datetime`, `password` | Create a new named tournament with expiration datetime. |
+| `/admin tournament list` | Admin | - | List all tournaments with their status (OPEN/CLOSED). |
+| `/admin tournament delete` | Admin | `tournament_id`, `password` | Delete a tournament. |
+| `/admin tournament status` | Admin | - | Show tournament status information. |
 
 ### Admin - Pokemon
 
@@ -183,41 +186,68 @@ User command groups:
 | `/tournament pokemon_expanded signup` | User | `name`, `pokemon_id`, `year_of_birth`, `deck_name` | Sign up with a saved deck (Expanded path). |
 | `/tournament pokemon_expanded signup_url` | User | `name`, `pokemon_id`, `year_of_birth`, `limitless_url` | Sign up with a Limitless URL (Expanded path). |
 
-## Tournament Signup Window Behavior
+## Tournament Management
 
-The tournament signup window is controlled by admin commands and checked before
-deck validation in tournament sign-up commands.
+The bot now supports multiple tournaments running simultaneously, each with their own expiration dates and names.
 
-Admin control:
+### Tournament Creation and Management
 
-- `/admin tournament open_signups {expire_datetime} {password}`
-- `/admin tournament close_signups {password}`
-- `/admin tournament status`
+Admins use `/admin tournament` commands to manage tournaments:
 
-Datetime format:
+```
+/admin tournament create name:"Regional Championship" expire_datetime:"2026-05-21 18:30:00" password:"yourpass"
+/admin tournament create name:"Local Qualifier" expire_datetime:"2026-05-15 14:00:00" password:"yourpass"
+/admin tournament list
+/admin tournament delete tournament_id:"regional_championship" password:"yourpass"
+```
 
-- Uses Python ISO parsing, example: `2026-05-21 18:30:00`
+### Tournament Storage
+
+Tournaments are persisted in `data/tournaments.json` and automatically loaded when the bot restarts. Each tournament stores:
+
+- `name`: Display name for the tournament
+- `expires_at`: Expiration datetime (ISO format: `YYYY-MM-DD HH:MM:SS`)
+- `created_at`: Creation timestamp
+
+Example tournament data:
+```json
+{
+    "tournaments": {
+        "regional_championship": {
+            "name": "Regional Championship",
+            "expires_at": "2026-05-21 18:30:00",
+            "created_at": "2026-05-01 10:00:00"
+        },
+        "local_qualifier": {
+            "name": "Local Qualifier",
+            "expires_at": "2026-05-15 14:00:00",
+            "created_at": "2026-05-01 10:00:00"
+        }
+    }
+}
+```
+
+### Tournament Signup Flow
+
+When a user signs up for a tournament:
+
+1. **Single Tournament Open**: Automatically selected, user signs up directly
+2. **Multiple Tournaments Open**: User shown dropdown menu to select tournament
+3. **No Tournaments Open**: Error message returned - "No tournaments are open at this moment."
+
+Each signup records:
+- Tournament ID (for tracking which tournament the signup is for)
+- Standard tournament fields (name, Pokemon ID, year of birth, decklist)
+
+Signup listing with `/admin pokemon list_signups` includes tournament_id in the CSV export.
+
+### Datetime Format
+
+Tournament expiration dates use Python ISO parsing:
+
+- Format: `YYYY-MM-DD HH:MM:SS` (example: `2026-05-21 18:30:00`)
 - Timezone-aware ISO datetimes are accepted and converted to local server time
-
-Important runtime behavior:
-
-- The expiration value is stored in memory only
-- It is not read from `config.json`
-- It is not persisted to `config.json`
-- It resets to `None` when the bot restarts
-
-Signup listing behavior:
-
-- Successful tournament sign-ups are stored in memory for the current window
-- Opening a new sign-up window clears the previous player list for that guild
-- If a player signs up again with the same `pokemon_id`, the previous entry is replaced
-- `/admin pokemon list_signups` returns current guild sign-ups as CSV text (format, full_name, pokemon_id, year_of_birth)
-
-User-facing responses after expiration:
-
-- If up to 1 day late: `tournament sign ups are closed`
-- If more than 1 day late:
-  `no tournaments are being held at this moment`
+- Date comparison uses current server local time
 
 ## Timed Tasks
 
@@ -252,9 +282,12 @@ Config example:
 ## Operational Notes
 
 - Maintenance mode affects multiple command groups and scheduled jobs.
-- Tournament sign-up checks happen before deck validation in tournament flows.
+- Tournament data is persisted to `data/tournaments.json` and automatically loaded on bot startup.
+- Tournament expiration is checked in real-time when users attempt to sign up.
+- When multiple tournaments are open, users see a dropdown selector (pycord View component).
 - Event and newsfeed features rely on configured output channels.
 - Schedule times are based on server runtime local time.
+- Signups in memory are cleared only when manually removed; they persist across bot restarts with tournament data.
 
 ## Troubleshooting
 
@@ -270,8 +303,10 @@ Common issues and quick fixes:
   - Run `/admin pokemon update_signup_sheet`.
 - Legal cards are not loaded. Please try again later.
   - Run `/admin pokemon update_legal_cards`.
-- No tournament sign-ups are currently open.
-  - Run `/admin tournament open_signups` with an expiration datetime.
+- No tournaments are open at this moment.
+  - Create tournaments using `/admin tournament create` with a future expiration date.
+- No tournament selected (when dropdown is shown).
+  - User must select a tournament from the dropdown menu. Timeout is 30 seconds.
 
 ## Architecture
 
@@ -285,18 +320,20 @@ flowchart TD
     B --> G[Legal Cards Module]
     B --> H[Admin Module]
 
-    D --> I[In-Memory Signup Expiry]
-    D --> J[Tournament Output Channel]
+    D --> I[Tournaments DB<br/>tournaments.json]
+    D --> J[Signup Data<br/>In-Memory]
+    D --> K[Tournament Output Channel]
+    D --> L[Dropdown Selector<br/>Select View]
 
-    B --> K[Scheduled Tasks]
-    K --> G
-    K --> D
-    K --> E
-    K --> F
+    B --> M[Scheduled Tasks]
+    M --> G
+    M --> D
+    M --> E
+    M --> F
 
-    C --> L[Limitless URL Parsing]
-    E --> M[Pokemon Event Data]
-    F --> N[Pokebeach Data]
+    C --> N[Limitless URL Parsing]
+    E --> O[Pokemon Event Data]
+    F --> P[Pokebeach Data]
 ```
 
 ## Create Your Own Bot
@@ -327,3 +364,9 @@ pip install -r requirements.txt
 ```sh
 python main.py
 ```
+
+## Documentation
+
+For detailed guides on specific features:
+
+- **[Tournament System Guide](TOURNAMENTS.md)** - Comprehensive documentation on creating, managing, and running tournaments, including user sign-up flow and best practices.

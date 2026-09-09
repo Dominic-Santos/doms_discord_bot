@@ -96,7 +96,7 @@ def save_cards_to_file(
 
 def get_standard_format_from_date(date: datetime.date) -> str:
     format_year = date.year
-    if date.month >= 4:
+    if date.month >= 4 and date.day >= 10:
         format_year += 1
     format_letter = chr(ord("d") + (format_year - 2023))
     return f"{format_letter}-on-standard-{format_year}"

@@ -99,18 +99,22 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
         b.tournament_signup_expires_at = None
         await b.tournament_status(mock_ctx)
         assert mock_ctx.last_response == (
-            "No tournament sign-ups are currently open."
+            "No tournaments created yet."
         )
 
-        b.tournament_signup_expires_at = "2026-05-21 18:30:00"
+        # Create a tournament and check status
+        b.tournaments["test"] = {
+            "name": "Test Tournament",
+            "format": "standard",
+            "expires_at": "2026-05-21 18:30:00",
+            "created_at": "2026-05-20 00:00:00"
+        }
         await b.tournament_status(mock_ctx)
-        assert mock_ctx.last_response == (
-            "Tournament sign-ups expire at 2026-05-21 18:30:00"
-        )
+        assert "Test Tournament" in mock_ctx.last_response
+        assert "2026-05-21 18:30:00" in mock_ctx.last_response
 
         await b.close_tournament_signups(mock_ctx, "fake")
         assert mock_ctx.last_response == "Invalid admin password"
-        assert b.tournament_signup_expires_at == "2026-05-21 18:30:00"
 
         await b.close_tournament_signups(mock_ctx, b.password)
         assert mock_ctx.last_response == "Tournament sign-ups are now closed."
