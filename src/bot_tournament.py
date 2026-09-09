@@ -9,6 +9,7 @@ from .core import fill_sheet, DATA_FOLDER
 from .pokemon import get_decklist_png as get_sign_up_sheet
 
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
+from .modals import CommandModal
 
 OUTPUT_CHANNEL_NOT_SET_ERROR = (
     "Tournament output channel is not set for this server."
@@ -183,47 +184,50 @@ class TournamentBot:
             name="signup_url",
             description="Sign up for a tournament with a limitless url"
         )
-        async def signup_url(
-            ctx,
-            name: discord.Option(
-                str, "Full name of the player"
-            ),  # type: ignore
-            pokemon_id: discord.Option(
-                int, "Pokemon ID of the player"
-            ),  # type: ignore
-            year_of_birth: discord.Option(
-                int, "Year of birth of the player"
-            ),  # type: ignore
-            limitless_url: str = discord.Option(
-                str, "Limitless URL of the decklist"
-            ),
-        ):
-            await self.tournament_signup_url(
-                ctx, name, pokemon_id, year_of_birth, limitless_url
-            )  # pragma: no cover
+        async def signup_url(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Tournament Sign-up",
+                [
+                    ("name", "Full name", "Ash Ketchum", str),
+                    ("pokemon_id", "Pokemon ID", "123456", int),
+                    ("year_of_birth", "Year of birth", "1990", int),
+                    (
+                        "limitless_url",
+                        "Limitless deck URL",
+                        "https://limitlesstcg.com/...",
+                        str
+                    ),
+                ],
+                lambda modal_ctx, values: self.tournament_signup_url(
+                    modal_ctx,
+                    values["name"],
+                    values["pokemon_id"],
+                    values["year_of_birth"],
+                    values["limitless_url"]
+                )
+            ))
 
         @tournament.command(
             name="signup",
             description="Sign up for a tournament with a saved deck"
         )
-        async def signup(
-            ctx,
-            name: discord.Option(
-                str, "Full name of the player"
-            ),  # type: ignore
-            pokemon_id: discord.Option(
-                int, "Pokemon ID of the player"
-            ),  # type: ignore
-            year_of_birth: discord.Option(
-                int, "Year of birth of the player"
-            ),  # type: ignore
-            deck_name: str = discord.Option(
-                str, "Name of the deck"
-            ),
-        ):
-            await self.tournament_signup(
-                ctx, name, pokemon_id, year_of_birth, deck_name
-            )  # pragma: no cover
+        async def signup(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Tournament Sign-up",
+                [
+                    ("name", "Full name", "Ash Ketchum", str),
+                    ("pokemon_id", "Pokemon ID", "123456", int),
+                    ("year_of_birth", "Year of birth", "1990", int),
+                    ("deck_name", "Saved deck name", "My deck", str),
+                ],
+                lambda modal_ctx, values: self.tournament_signup(
+                    modal_ctx,
+                    values["name"],
+                    values["pokemon_id"],
+                    values["year_of_birth"],
+                    values["deck_name"]
+                )
+            ))
 
         @self.admin_pokemon.command(description="Update the sign-up sheet")
         async def update_signup_sheet(ctx):

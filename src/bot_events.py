@@ -1,5 +1,4 @@
 import json
-import discord
 from datetime import datetime, timedelta
 
 from .pokemon import (
@@ -8,6 +7,7 @@ from .pokemon import (
 )
 from .helpers import MAINTENANCE_MODE_MESSAGE, CustomThread
 from .core import DATA_FOLDER
+from .modals import CommandModal
 
 EVENTS_FILE = f"{DATA_FOLDER}/events_data.json"
 
@@ -64,25 +64,27 @@ class EventsBot:
             name="follow_store",
             description="Follow store events"
         )
-        async def follow_events(
-            ctx,
-            guid: discord.Option(
-                str, "Store GUID on event locator"
-            ),  # type: ignore
-        ):
-            await self.follow_events(ctx, guid)  # pragma: no cover
+        async def follow_events(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Follow Store Events",
+                [("guid", "Store GUID", "abc-123", str)],
+                lambda modal_ctx, values: self.follow_events(
+                    modal_ctx, values["guid"]
+                )
+            ))
 
         @pokemon.command(
             name="unfollow_store",
             description="Unfollow store events"
         )
-        async def unfollow_events(
-            ctx,
-            guid: discord.Option(
-                str, "Store GUID on event locator"
-            ),  # type: ignore
-        ):
-            await self.unfollow_events(ctx, guid)  # pragma: no cover
+        async def unfollow_events(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Unfollow Store Events",
+                [("guid", "Store GUID", "abc-123", str)],
+                lambda modal_ctx, values: self.unfollow_events(
+                    modal_ctx, values["guid"]
+                )
+            ))
 
         @pokemon.command(
             name="sync",

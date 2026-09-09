@@ -1,10 +1,10 @@
 import json
-import discord
 from datetime import datetime
 
 from .limitless import get_decklist_from_url
 from .core import validate_decklist, DATA_FOLDER
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
+from .modals import CommandModal
 
 USER_DECKLIST_FILE = f"{DATA_FOLDER}/user_decklists.json"
 
@@ -36,62 +36,70 @@ class DecklistBot:
         @pokemon_decklist.command(
             description="Check a limitless decklist is legal"
         )
-        async def check_url(
-            ctx,
-            limitless_url: discord.Option(
-                str, "Limitless URL of the decklist"
-            ),  # type: ignore
-        ):
-            await self.decklist_check_url(
-                ctx, limitless_url
-            )  # pragma: no cover
+        async def check_url(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Check Deck URL",
+                [("limitless_url", "Limitless URL", "https://limitlesstcg.com/...", str)],
+                lambda modal_ctx, values: self.decklist_check_url(
+                    modal_ctx, values["limitless_url"]
+                )
+            ))
 
         @pokemon_decklist.command(
             description="Check a saved deck is legal"
         )
-        async def check(
-            ctx,
-            name: discord.Option(
-                str, "Deck name"
-            ),  # type: ignore
-        ):
-            await self.decklist_check(ctx, name)  # pragma: no cover
+        async def check(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Check Saved Deck",
+                [("name", "Deck name", "My deck", str)],
+                lambda modal_ctx, values: self.decklist_check(
+                    modal_ctx, values["name"]
+                )
+            ))
 
         @pokemon_decklist.command(description="Create a deck")
-        async def create(
-            ctx,
-            name: discord.Option(
-                str, "Deck name"
-            ),  # type: ignore
-            limitless_url: discord.Option(
-                str, "Limitless URL of the decklist"
-            ),  # type: ignore
-        ):
-            await self.decklist_create(
-                ctx, name, limitless_url
-            )  # pragma: no cover
+        async def create(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Create Deck",
+                [
+                    ("name", "Deck name", "My deck", str),
+                    (
+                        "limitless_url",
+                        "Limitless URL",
+                        "https://limitlesstcg.com/...",
+                        str
+                    ),
+                ],
+                lambda modal_ctx, values: self.decklist_create(
+                    modal_ctx,
+                    values["name"],
+                    values["limitless_url"]
+                )
+            ))
 
         @pokemon_decklist.command(description="Delete a saved deck")
-        async def delete(
-            ctx,
-            name: discord.Option(
-                str, "Deck name"
-            ),  # type: ignore
-        ):
-            await self.decklist_delete(ctx, name)  # pragma: no cover
+        async def delete(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Delete Saved Deck",
+                [("name", "Deck name", "My deck", str)],
+                lambda modal_ctx, values: self.decklist_delete(
+                    modal_ctx, values["name"]
+                )
+            ))
 
         @pokemon_decklist.command(name="list", description="List saved decks")
         async def list_all(ctx):
             await self.decklist_list(ctx)  # pragma: no cover
 
         @pokemon_decklist.command(description="Show deck info")
-        async def info(
-            ctx,
-            name: discord.Option(
-                str, "Deck name"
-            ),  # type: ignore
-        ):
-            await self.decklist_info(ctx, name)  # pragma: no cover
+        async def info(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Saved Deck Info",
+                [("name", "Deck name", "My deck", str)],
+                lambda modal_ctx, values: self.decklist_info(
+                    modal_ctx, values["name"]
+                )
+            ))
 
     async def decklist_info(self, ctx, name: str):
         user_id = str(ctx.author.id)

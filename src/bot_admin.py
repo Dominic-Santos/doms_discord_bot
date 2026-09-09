@@ -1,60 +1,6 @@
-import discord
 from datetime import datetime
 
-
-class TournamentCreateModal(discord.ui.Modal):
-    def __init__(self, tournament_bot):
-        super().__init__(title="Create Tournament")
-        self.tournament_bot = tournament_bot
-
-        self.name_input = discord.ui.InputText(
-            label="Tournament name",
-            placeholder="League Cup",
-            required=True,
-        )
-        self.expire_datetime_input = discord.ui.InputText(
-            label="Expiration datetime",
-            placeholder="2026-05-21 18:30:00",
-            required=True,
-        )
-        self.format_input = discord.ui.InputText(
-            label="Tournament format",
-            placeholder="standard or expanded",
-            required=True,
-        )
-        self.password_input = discord.ui.InputText(
-            label="Bot admin password",
-            required=True,
-        )
-
-        for input_field in (
-            self.name_input,
-            self.expire_datetime_input,
-            self.format_input,
-            self.password_input,
-        ):
-            self.add_item(input_field)
-
-    async def on_submit(self, interaction: discord.Interaction):
-        await self.tournament_bot.create_tournament(
-            ModalInteractionContext(interaction),
-            self.name_input.value,
-            self.expire_datetime_input.value,
-            self.format_input.value,
-            self.password_input.value,
-        )
-
-
-class ModalInteractionContext:
-    def __init__(self, interaction: discord.Interaction):
-        self.interaction = interaction
-        self.guild = interaction.guild
-
-    async def defer(self, ephemeral=False):
-        await self.interaction.response.defer(ephemeral=ephemeral)
-
-    async def respond(self, message, ephemeral=False):
-        await self.interaction.followup.send(message, ephemeral=ephemeral)
+from .modals import CommandModal, choice_converter
 
 
 class AdminBot:
@@ -73,19 +19,50 @@ class AdminBot:
             await self.maintenance_status(ctx)  # pragma: no cover
 
         @maintenance.command(description="Toggle bot maintenance mode")
-        async def toggle(
-            ctx,
-            password: discord.Option(
-                str, "Bot admin password"
-            ),  # type: ignore
-        ):
-            await self.toggle_maintenance(ctx, password)  # pragma: no cover
+        async def toggle(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Toggle Maintenance",
+                [("password", "Bot admin password", "Password", str)],
+                lambda modal_ctx, values: self.toggle_maintenance(
+                    modal_ctx, values["password"]
+                )
+            ))
 
         @tournament.command(
             description="Create a new tournament"
         )
-        async def create(ctx):
-            await ctx.send_modal(TournamentCreateModal(self))
+        async def create(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Create Tournament",
+                [
+                    ("name", "Tournament name", "League Cup", str),
+                    (
+                        "expire_datetime",
+                        "Expiration datetime",
+                        "2026-05-21 18:30:00",
+                        str
+                    ),
+                    (
+                        "format",
+                        "Tournament format",
+                        "standard or expanded",
+                        choice_converter("standard", "expanded")
+                    ),
+                    (
+                        "password",
+                        "Bot admin password",
+                        "Password",
+                        str
+                    ),
+                ],
+                lambda modal_ctx, values: self.create_tournament(
+                    modal_ctx,
+                    values["name"],
+                    values["expire_datetime"],
+                    values["format"],
+                    values["password"]
+                )
+            ))
 
         @tournament.command(
             description="List all tournaments"
@@ -96,20 +73,19 @@ class AdminBot:
         @tournament.command(
             description="Delete a tournament"
         )
-        async def delete(
-            ctx,
-            tournament_id: discord.Option(
-                str, "Tournament ID to delete"
-            ),  # type: ignore
-            password: discord.Option(
-                str, "Bot admin password"
-            ),  # type: ignore
-        ):
-            await self.delete_tournament(
-                ctx,
-                tournament_id,
-                password
-            )  # pragma: no cover
+        async def delete(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Delete Tournament",
+                [
+                    ("tournament_id", "Tournament ID", "league_cup", str),
+                    ("password", "Bot admin password", "Password", str),
+                ],
+                lambda modal_ctx, values: self.delete_tournament(
+                    modal_ctx,
+                    values["tournament_id"],
+                    values["password"]
+                )
+            ))
 
         @tournament.command(
             description="Check current tournament sign-up expiration"
@@ -120,16 +96,14 @@ class AdminBot:
         @tournament.command(
             description="Close tournament sign-ups (deprecated - use individual tournament deletion)"
         )
-        async def close_signups(
-            ctx,
-            password: discord.Option(
-                str, "Bot admin password"
-            ),  # type: ignore
-        ):
-            await self.close_tournament_signups(
-                ctx,
-                password
-            )  # pragma: no cover
+        async def close_signups(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Close Tournament Sign-ups",
+                [("password", "Bot admin password", "Password", str)],
+                lambda modal_ctx, values: self.close_tournament_signups(
+                    modal_ctx, values["password"]
+                )
+            ))
 
     async def maintenance_status(self, ctx):
         await ctx.defer(ephemeral=True)
