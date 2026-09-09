@@ -2,6 +2,61 @@ import discord
 from datetime import datetime
 
 
+class TournamentCreateModal(discord.ui.Modal):
+    def __init__(self, tournament_bot):
+        super().__init__(title="Create Tournament")
+        self.tournament_bot = tournament_bot
+
+        self.name_input = discord.ui.InputText(
+            label="Tournament name",
+            placeholder="League Cup",
+            required=True,
+        )
+        self.expire_datetime_input = discord.ui.InputText(
+            label="Expiration datetime",
+            placeholder="2026-05-21 18:30:00",
+            required=True,
+        )
+        self.format_input = discord.ui.InputText(
+            label="Tournament format",
+            placeholder="standard or expanded",
+            required=True,
+        )
+        self.password_input = discord.ui.InputText(
+            label="Bot admin password",
+            required=True,
+        )
+
+        for input_field in (
+            self.name_input,
+            self.expire_datetime_input,
+            self.format_input,
+            self.password_input,
+        ):
+            self.add_item(input_field)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await self.tournament_bot.create_tournament(
+            ModalInteractionContext(interaction),
+            self.name_input.value,
+            self.expire_datetime_input.value,
+            self.format_input.value,
+            self.password_input.value,
+        )
+
+
+class ModalInteractionContext:
+    def __init__(self, interaction: discord.Interaction):
+        self.interaction = interaction
+        self.guild = interaction.guild
+
+    async def defer(self, ephemeral=False):
+        await self.interaction.response.defer(ephemeral=ephemeral)
+
+    async def respond(self, message, ephemeral=False):
+        await self.interaction.followup.send(message, ephemeral=ephemeral)
+
+
 class AdminBot:
     def add_admin_commands(self):
         maintenance = self.admin.create_subgroup(
@@ -29,34 +84,8 @@ class AdminBot:
         @tournament.command(
             description="Create a new tournament"
         )
-        async def create(
-            ctx,
-            name: discord.Option(
-                str, "Tournament name"
-            ),  # type: ignore
-            expire_datetime: discord.Option(
-                str,
-                (
-                    "Expiration datetime string "
-                    "(ISO format, ex: 2026-05-21 18:30:00)"
-                )
-            ),  # type: ignore
-            format: discord.Option(
-                str,
-                "Tournament format (standard or expanded)",
-                choices=["standard", "expanded"]
-            ),  # type: ignore
-            password: discord.Option(
-                str, "Bot admin password"
-            ),  # type: ignore
-        ):
-            await self.create_tournament(
-                ctx,
-                name,
-                expire_datetime,
-                format,
-                password
-            )  # pragma: no cover
+        async def create(ctx):
+            await ctx.send_modal(TournamentCreateModal(self))
 
         @tournament.command(
             description="List all tournaments"
