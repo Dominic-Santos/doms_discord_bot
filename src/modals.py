@@ -58,7 +58,7 @@ class CommandModal(discord.ui.Modal):
             self.converters[name] = field[3]
             self.add_item(input_field)
 
-    async def on_submit(self, interaction: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction):
         self.logger.info("Modal submitted: %s", self.title)
         values = {}
         for name, input_field in self.inputs.items():
@@ -73,5 +73,5 @@ class CommandModal(discord.ui.Modal):
 
         await self.handler(ModalInteractionContext(interaction), values)
 
-    async def on_error(self, error, item, interaction):
+    async def on_error(self, error, interaction):
         self.logger.error("Modal submission failed", exc_info=error)

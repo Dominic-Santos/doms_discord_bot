@@ -44,7 +44,7 @@ class TestCommandModal(unittest.IsolatedAsyncioTestCase):
         modal.inputs["count"].value = "42"
 
         interaction = MagicMock()
-        await modal.on_submit(interaction)
+        await modal.callback(interaction)
 
         handler.assert_awaited_once()
         values = handler.await_args.args[1]
@@ -61,7 +61,7 @@ class TestCommandModal(unittest.IsolatedAsyncioTestCase):
 
         interaction = MagicMock()
         interaction.response.send_message = AsyncMock()
-        await modal.on_submit(interaction)
+        await modal.callback(interaction)
 
         interaction.response.send_message.assert_awaited_once_with(
             "Invalid value for count.",
