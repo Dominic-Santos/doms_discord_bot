@@ -53,6 +53,22 @@ class TestCommandModal(unittest.IsolatedAsyncioTestCase):
         values = handler.await_args.args[1]
         assert values == {"count": 42}
 
+    async def test_context_respond_allows_file_attachment(self):
+        response = MagicMock()
+        response.is_done.return_value = False
+        response.send_message = AsyncMock()
+        interaction = MagicMock(response=response)
+        context = ModalInteractionContext(interaction)
+        file_obj = object()
+
+        await context.respond("done", file=file_obj)
+
+        response.send_message.assert_awaited_once_with(
+            "done",
+            ephemeral=False,
+            file=file_obj,
+        )
+
     async def test_submit_reports_invalid_values(self):
         handler = AsyncMock()
         modal = CommandModal(

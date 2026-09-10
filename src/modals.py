@@ -28,17 +28,19 @@ class ModalInteractionContext:
     async def defer(self, ephemeral=False):
         await self.interaction.response.defer(ephemeral=ephemeral)
 
-    async def respond(self, message, ephemeral=False):
+    async def respond(self, message=None, ephemeral=False, **kwargs):
         if self.interaction.response.is_done():
             await self.interaction.followup.send(
                 message,
-                ephemeral=ephemeral
+                ephemeral=ephemeral,
+                **kwargs,
             )
             return
 
         await self.interaction.response.send_message(
             message,
-            ephemeral=ephemeral
+            ephemeral=ephemeral,
+            **kwargs,
         )
 
 
