@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 from src.bot import Bot
 from src.helpers import MAINTENANCE_MODE_MESSAGE
 
@@ -17,12 +17,61 @@ class MockCtx():
 
     async def respond(self, message, *args, **kwargs):
         self.last_response = message
+        self.last_respond_kwargs = kwargs
 
     async def defer(self, ephemeral=False):
         return
 
 
 class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
+
+    async def test_decklist_check_select_uses_saved_deck_choice(self):
+        b = Bot("faketoken", False, "123")
+        ctx = MockCtx()
+        b.user_decklists = {
+            "303": {
+                "deckname": {"url": "https://my.limitlesstcg.com/builder?i=abc123abc"},
+                "otherdeck": {"url": "https://my.limitlesstcg.com/builder?i=def456def"},
+            }
+        }
+
+        await b.decklist_check_select(ctx)
+        assert ctx.last_response == "Select a saved deck to check:"
+        assert ctx.last_respond_kwargs["ephemeral"] is True
+        assert "view" in ctx.last_respond_kwargs
+
+        b.user_decklists = {"303": {}}
+        await b.decklist_check_select(ctx)
+        assert ctx.last_response == "You have no saved decks"
+
+    async def test_decklist_check_from_selection_with_interaction_response(self):
+        b = Bot("faketoken", False, "123")
+        interaction = MagicMock()
+        interaction.user.id = 303
+        interaction.response.send_message = AsyncMock()
+
+        b.user_decklists = {
+            "303": {
+                "deckname": {"url": "https://my.limitlesstcg.com/builder?i=abc123abc"}
+            }
+        }
+        b.do_user_decklist_check = MagicMock(return_value=(
+            {"standard": {"valid": False, "error": "bad"}, "expanded": {"valid": True, "error": ""}},
+            None,
+        ))
+
+        await b.decklist_check_from_selection(interaction, " deckname ")
+        interaction.response.send_message.assert_awaited_once_with(
+            "Deck is:\n- standard not valid! bad\n- expanded valid!",
+            ephemeral=True,
+        )
+
+        b.do_user_decklist_check = MagicMock(return_value=(None, "Deck not found"))
+        await b.decklist_check_from_selection(interaction, "deckname")
+        interaction.response.send_message.assert_any_await(
+            "Error checking deck: Deck not found",
+            ephemeral=True,
+        )
 
     async def test_decklist_info_unchecked_statuses(self):
         b = Bot("faketoken", False, "123")

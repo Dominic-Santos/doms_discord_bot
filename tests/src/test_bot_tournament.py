@@ -1,5 +1,8 @@
+import json
+import os
 import unittest
 from datetime import datetime, timedelta
+from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock, PropertyMock
 from src.bot import Bot
 from src.helpers import MAINTENANCE_MODE_MESSAGE
@@ -59,6 +62,93 @@ def create_closed_tournament(expiry_days=-1, format="standard"):
 
 
 class TestBotTournament(unittest.IsolatedAsyncioTestCase):
+
+    def test_tournament_data_load_missing_file(self):
+        tournaments_file = Path("data/tournaments.json")
+        original_exists = tournaments_file.exists()
+        if original_exists:
+            tournaments_file.rename("data/tournaments.json.bak")
+
+        try:
+            with self.assertRaises(unittest.SkipTest):
+                self.test_tournament_data_load_and_status()
+        finally:
+            if original_exists:
+                Path("data/tournaments.json.bak").rename("data/tournaments.json")
+
+    def test_tournament_data_load_valid_file(self):
+        tournaments_file = Path("data/tournaments.json")
+        backup_file = Path("data/tournaments.json.bak")
+        tournaments_file.rename(backup_file)
+        tournaments_file.write_text(
+            '{"tournaments": {"demo": {"name": "Demo Tournament", '
+            '"expires_at": "2099-01-01T00:00:00", '
+            '"created_at": "2024-01-01T00:00:00"}}}',
+            encoding="utf-8",
+        )
+
+        try:
+            self.test_tournament_data_load_and_status()
+        finally:
+            tournaments_file.unlink(missing_ok=True)
+            backup_file.rename(tournaments_file)
+
+    def test_tournament_data_load_invalid_expiry(self):
+        tournaments_file = Path("data/tournaments.json")
+        backup_file = Path("data/tournaments.json.bak")
+        tournaments_file.rename(backup_file)
+        tournaments_file.write_text(
+            '{"tournaments": {"bad": {"name": "Bad Tournament", '
+            '"expires_at": "not-a-date"}}}',
+            encoding="utf-8",
+        )
+
+        try:
+            with self.assertRaises(AssertionError):
+                self.test_tournament_data_load_and_status()
+        finally:
+            tournaments_file.unlink(missing_ok=True)
+            backup_file.rename(tournaments_file)
+
+    def test_tournament_data_load_temporary_valid_file(self):
+        tournaments_file = Path("data/tournaments.json")
+        backup_file = Path("data/tournaments.json.bak")
+        tournaments_file.rename(backup_file)
+        tournaments_file.write_text(
+            '{"tournaments": {"demo": {"name": "Demo Tournament", '
+            '"expires_at": "2099-01-01T00:00:00"}}}',
+            encoding="utf-8",
+        )
+
+        try:
+            self.test_tournament_data_load_and_status()
+        finally:
+            tournaments_file.unlink(missing_ok=True)
+            backup_file.rename(tournaments_file)
+
+    def test_tournament_data_load_and_status(self):
+        tournaments_file = Path("data/tournaments.json")
+        if not tournaments_file.exists():
+            self.skipTest("No tournament data found.")
+
+        with tournaments_file.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        tournaments = data.get("tournaments", {})
+        self.assertIsInstance(tournaments, dict)
+
+        now = datetime.now()
+        for tournament_id, tournament_data in tournaments.items():
+            self.assertIsInstance(tournament_data, dict)
+            expires_at = tournament_data.get("expires_at")
+            if expires_at:
+                try:
+                    exp_dt = datetime.fromisoformat(expires_at)
+                except ValueError as exc:
+                    self.fail(f"Invalid expires_at for {tournament_id}: {exc}")
+                self.assertIsInstance(exp_dt, datetime)
+                self.assertIn("name", tournament_data)
+                self.assertIsInstance(now <= exp_dt, bool)
 
     async def test_tournament_selection_and_views(self):
         b = Bot("faketoken", False, "123")
@@ -604,6 +694,52 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             assert deck_info[format]["valid"]
             assert deck_info[format]["error"] == ""
         b.tournament_signup_response.assert_called_once()
+
+    @patch("src.bot_tournament.discord")
+    @patch("src.bot_tournament.fill_sheet")
+    @patch("src.bot.create_logger")
+    @patch("builtins.open")
+    async def test_tournament_signup_private_followup_path(
+        self,
+        mock_open,
+        mock_logger,
+        mock_fill,
+        mock_discord,
+    ):
+        mock_bot = MagicMock()
+        mock_discord.Bot.return_value = mock_bot
+        b = Bot("faketoken", False, "123")
+        b.tournaments = {"open": create_tournament()}
+        mock_fill.return_value = None
+
+        mock_ctx = MockCtx()
+        mock_ctx.interaction = MagicMock()
+        mock_ctx.interaction.followup = MagicMock()
+        mock_ctx.interaction.followup.send = AsyncMock()
+        mock_ctx.channel.send = AsyncMock()
+        mock_ctx.guild.id = 202
+        mock_ctx.author.id = 303
+        mock_ctx.author.mention = "testuser"
+
+        output_filename = "data/sign_up_sheet_202_303.png"
+        os.makedirs("data", exist_ok=True)
+        Path(output_filename).touch()
+
+        deck_data = {"pokemon": [{"name": "Pikachu", "number": "25", "set": "JTG", "quantity": 4}]}
+        await b.tournament_signup_response(
+            mock_ctx,
+            mock_ctx.channel,
+            deck_data,
+            "Test User",
+            1234,
+            1990,
+            "https://my.limitlesstcg.com/builder?i=abc123abc",
+            "standard",
+            "open",
+        )
+
+        mock_ctx.interaction.followup.send.assert_awaited_once()
+        assert mock_ctx.interaction.followup.send.await_args.kwargs["ephemeral"] is True
 
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")

@@ -1,11 +1,39 @@
 import json
 
+import discord
+
 from .limitless import get_decklist_from_url
 from .core import validate_decklist, DATA_FOLDER
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
 from .modals import CommandModal
 
 USER_DECKLIST_FILE = f"{DATA_FOLDER}/user_decklists.json"
+
+
+class SavedDeckCheckView(discord.ui.View):  # pragma: no cover
+    def __init__(self, decklist_bot, saved_decks):
+        super().__init__(timeout=120)
+        self.decklist_bot = decklist_bot
+
+        options = [
+            discord.SelectOption(label=name[:100], value=name)
+            for name in saved_decks
+        ]
+        select = discord.ui.Select(
+            placeholder="Select a deck to check",
+            options=options[:25],
+        )
+
+        async def select_callback(interaction):
+            selected = select.values[0]
+            await self.decklist_bot.decklist_check_from_selection(
+                interaction,
+                selected,
+            )
+            self.stop()
+
+        select.callback = select_callback
+        self.add_item(select)
 
 
 class DecklistBot:
@@ -49,14 +77,7 @@ class DecklistBot:
             description="Check a saved deck is legal"
         )
         async def check(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Check Saved Deck",
-                [("name", "Deck name", "My deck", str)],
-                lambda modal_ctx, values: self.decklist_check(
-                    modal_ctx, values["name"]
-                ),
-                self.logger
-            ))
+            await self.decklist_check_select(ctx)
 
         @pokemon_decklist.command(description="Create a deck")
         async def create(ctx):  # pragma: no cover
@@ -93,17 +114,6 @@ class DecklistBot:
         @pokemon_decklist.command(name="list", description="List saved decks")
         async def list_all(ctx):
             await self.decklist_list(ctx)  # pragma: no cover
-
-        @pokemon_decklist.command(description="Show deck info")
-        async def info(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Saved Deck Info",
-                [("name", "Deck name", "My deck", str)],
-                lambda modal_ctx, values: self.decklist_info(
-                    modal_ctx, values["name"]
-                ),
-                self.logger
-            ))
 
     async def decklist_info(self, ctx, name: str):
         user_id = str(ctx.author.id)
@@ -203,15 +213,46 @@ class DecklistBot:
         decks = "\n".join(f"\t{deck}" for deck in sorted(user_decks.keys()))
         await ctx.respond(f"Your decks:\n{decks}", ephemeral=True)
 
+    async def decklist_check_select(self, ctx):
+        user_id = str(ctx.author.id)
+        user_decks = self.user_decklists.get(user_id, {})
+
+        if len(user_decks.keys()) == 0:
+            await ctx.respond("You have no saved decks", ephemeral=True)
+            return
+
+        view = SavedDeckCheckView(self, user_decks)
+        await ctx.respond(
+            "Select a saved deck to check:",
+            view=view,
+            ephemeral=True,
+        )
+
     async def decklist_check(self, ctx, name: str):
         await ctx.defer(ephemeral=True)
         user_id = str(ctx.author.id)
+        await self.decklist_check_from_selection(ctx, name, user_id=user_id)
+
+    async def decklist_check_from_selection(
+        self,
+        interaction,
+        name: str,
+        user_id: str = None,
+    ):
+        if user_id is None:
+            user_id = str(interaction.user.id)
         name = name.strip()
 
         result, error = self.do_user_decklist_check(user_id, name)
 
         if error is not None:
-            await ctx.respond(f"Error checking deck: {error}", ephemeral=True)
+            if hasattr(interaction, "response"):
+                await interaction.response.send_message(
+                    f"Error checking deck: {error}",
+                    ephemeral=True,
+                )
+                return
+            await interaction.respond(f"Error checking deck: {error}", ephemeral=True)
             return
 
         result_text = "Deck is:\n- standard "
@@ -226,7 +267,10 @@ class DecklistBot:
         else:
             result_text += f"not valid! {result['expanded']['error']}"
 
-        await ctx.respond(result_text, ephemeral=True)
+        if hasattr(interaction, "response"):
+            await interaction.response.send_message(result_text, ephemeral=True)
+            return
+        await interaction.respond(result_text, ephemeral=True)
 
     async def decklist_create(self, ctx, name: str, limitless_url: str):
         await ctx.defer(ephemeral=True)
