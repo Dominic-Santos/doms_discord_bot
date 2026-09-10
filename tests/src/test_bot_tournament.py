@@ -1,6 +1,6 @@
 import unittest
 from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, MagicMock, AsyncMock, PropertyMock
 from src.bot import Bot
 from src.helpers import MAINTENANCE_MODE_MESSAGE
 from src.bot_tournament import (
@@ -58,6 +58,88 @@ def create_closed_tournament(expiry_days=-1, format="standard"):
 
 
 class TestBotTournament(unittest.IsolatedAsyncioTestCase):
+
+    async def test_tournament_selection_and_views(self):
+        b = Bot("faketoken", False, "123")
+        ctx = MockCtx()
+        tournament = {"one": create_tournament()}
+
+        assert await b.get_tournament_selection(ctx, {}) is None
+        assert await b.get_tournament_selection(ctx, tournament) == "one"
+
+        b.user_decklists = {}
+        signup_view = __import__(
+            "src.bot_tournament", fromlist=["TournamentSignupView"]
+        ).TournamentSignupView(b, tournament, str(ctx.author.id))
+        interaction = MagicMock()
+        interaction.response.send_modal = AsyncMock()
+        await signup_view.show_deck_choice(interaction, "one")
+        interaction.response.send_modal.assert_awaited_once()
+
+        b.user_decklists = {
+            str(ctx.author.id): {
+                "saved": {"url": "https://example.com/deck"}
+            }
+        }
+        signup_view = __import__(
+            "src.bot_tournament", fromlist=["TournamentSignupView"]
+        ).TournamentSignupView(b, tournament, str(ctx.author.id))
+        interaction.response.edit_message = AsyncMock()
+        await signup_view.show_deck_choice(interaction, "one")
+        interaction.response.edit_message.assert_awaited_once()
+
+        saved_view = __import__(
+            "src.bot_tournament", fromlist=["SavedDeckSelectView"]
+        ).SavedDeckSelectView(b, "one", b.user_decklists[str(ctx.author.id)])
+        select = saved_view.children[0]
+        interaction.response.send_modal = AsyncMock()
+        with patch.object(
+            type(select), "values", new_callable=PropertyMock,
+            return_value=["saved"],
+        ):
+            await select.callback(interaction)
+        interaction.response.send_modal.assert_awaited_once()
+
+    async def test_tournament_selection_and_signup_error_branches(self):
+        b = Bot("faketoken", False, "123")
+        ctx = MockCtx()
+        open_tournaments = {
+            "one": create_tournament(),
+            "two": create_tournament(),
+        }
+
+        with patch("src.bot_tournament.TournamentSelectView") as view_class:
+            view = view_class.return_value
+            view.wait = AsyncMock(side_effect=Exception("timeout"))
+            assert await b.get_tournament_selection(ctx, open_tournaments) is None
+
+        with patch("src.bot_tournament.TournamentSelectView") as view_class:
+            view = view_class.return_value
+            view.wait = AsyncMock()
+            view.selected_tournament_id = "two"
+            assert await b.get_tournament_selection(ctx, open_tournaments) == "two"
+
+        b.tournaments = {"invalid": {"expires_at": "bad"}}
+        assert b.get_open_tournaments() == {}
+        with patch("builtins.open", side_effect=OSError("write failed")):
+            b.save_tournaments()
+
+        b.get_open_tournaments = MagicMock(return_value=open_tournaments)
+        b.get_tournament_selection = AsyncMock(return_value=None)
+        await b.tournament_signup(ctx, "Name", 1, 2000, "deck")
+        assert ctx.last_response == "No tournament selected."
+        await b.tournament_signup_url(
+            ctx, "Name", 1, 2000, "https://example.com/deck"
+        )
+        assert ctx.last_response == "No tournament selected."
+
+        b.get_tournament_selection = AsyncMock(return_value="missing")
+        await b.tournament_signup(ctx, "Name", 1, 2000, "deck")
+        assert ctx.last_response == "Selected tournament is not open."
+        await b.tournament_signup_url(
+            ctx, "Name", 1, 2000, "https://example.com/deck"
+        )
+        assert ctx.last_response == "Selected tournament is not open."
 
     @patch("src.bot_tournament.os.remove")
     @patch("src.bot_tournament.fill_sheet")
@@ -238,6 +320,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         b = Bot("faketoken", False, "123")
         mock_ctx = MockCtx()
         guild_key = str(mock_ctx.guild.id)
+        b.tournament_signups = {}
 
         b.tournaments["open_tournament"] = create_tournament(2)
         b.tournaments["open_tournament"]["name"] = "Open Tourney"

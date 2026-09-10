@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 
 from .limitless import get_decklist_from_url
 from .core import validate_decklist, DATA_FOLDER

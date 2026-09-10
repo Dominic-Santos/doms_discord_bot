@@ -24,6 +24,29 @@ class MockCtx():
 
 class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
 
+    async def test_decklist_info_unchecked_statuses(self):
+        b = Bot("faketoken", False, "123")
+        ctx = MockCtx()
+        b.user_decklists = {
+            "303": {
+                "deck": {
+                    "pokemon": [], "trainers": {}, "energies": {}
+                },
+                "standard": {"valid": None},
+                "expanded": None,
+            }
+        }
+        await b.decklist_info(ctx, "deck")
+        assert "Standard Legal: Unknown" in ctx.last_response
+        assert "Expanded Legal: Unknown" in ctx.last_response
+
+        b.user_decklists["303"]["deck"]["standard"] = {"valid": None}
+        b.user_decklists["303"]["deck"]["expanded"] = {"valid": None}
+        b.user_decklists["303"]["standard"] = {"valid": None}
+        b.user_decklists["303"]["expanded"] = {"valid": None}
+        await b.decklist_info(ctx, "deck")
+        assert ctx.last_response.count("Unknown - not checked") == 2
+
     @patch("src.bot_decklist.validate_decklist")
     @patch("src.bot_decklist.get_decklist_from_url")
     @patch("src.bot.create_logger")

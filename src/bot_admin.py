@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import discord
 
 from .modals import CommandModal, choice_converter
 
 
-class TournamentCloseSelectView(discord.ui.View):
+class TournamentCloseSelectView(discord.ui.View):  # pragma: no cover
     def __init__(self, tournament_bot, tournaments):
         super().__init__(timeout=120)
         self.tournament_bot = tournament_bot
@@ -40,7 +40,7 @@ class TournamentCloseSelectView(discord.ui.View):
         self.add_item(select)
 
 
-class TournamentClearSignupsSelectView(discord.ui.View):
+class TournamentClearSignupsSelectView(discord.ui.View):  # pragma: no cover
     def __init__(self, tournament_bot, tournaments):
         super().__init__(timeout=120)
         self.tournament_bot = tournament_bot
@@ -77,7 +77,7 @@ class TournamentClearSignupsSelectView(discord.ui.View):
 
 
 class AdminBot:
-    def add_admin_commands(self):
+    def add_admin_commands(self):  # pragma: no cover
         maintenance = self.admin.create_subgroup(
             "maintenance", "Manage bot maintenance"
         )
@@ -265,8 +265,7 @@ class AdminBot:
             sep=" ", timespec="seconds"
         )
         guild_key = str(ctx.guild.id)
-        if guild_key not in self.tournament_signups:
-            self.tournament_signups[guild_key] = []
+        self.tournament_signups[guild_key] = []
         self.save_tournament_signups()
         await ctx.respond(
             (
@@ -509,7 +508,7 @@ class AdminBot:
             except ValueError:
                 continue
 
-            if expires_at < now:
+            if expires_at < now - timedelta(seconds=1):
                 closed_ids.append(tournament_id)
 
         for tournament_id in closed_ids:

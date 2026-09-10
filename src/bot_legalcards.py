@@ -174,7 +174,7 @@ class LegalCardsBot:
         await ctx.respond(
             "Banned cards list has been updated!", ephemeral=True)
 
-    def do_get_legal_cards(self) -> Exception | None:
+    def do_get_legal_cards(self) -> Exception:
         standard_count = 0
         expanded_count = 0
         if self.legal_cards is not None:
@@ -193,7 +193,7 @@ class LegalCardsBot:
         self.load_legal_cards()
         return error
 
-    def do_get_pokemon_sets(self) -> Exception | None:
+    def do_get_pokemon_sets(self) -> Exception:
         t = CustomThread(get_pokemon_sets, kwargs={
             "filename": SETS_FILE
         })
@@ -202,7 +202,7 @@ class LegalCardsBot:
         self.load_card_sets()
         return error
 
-    def do_get_banned_cards(self) -> Exception | None:
+    def do_get_banned_cards(self) -> Exception:
         t = CustomThread(get_banned_cards)
         t.start()
         banned_cards, error = t.join()

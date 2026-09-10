@@ -5,6 +5,12 @@ from src.modals import CommandModal, ModalInteractionContext, choice_converter
 
 
 class TestCommandModal(unittest.IsolatedAsyncioTestCase):
+    async def test_modal_on_error_logs(self):
+        logger = MagicMock()
+        modal = CommandModal("Test", [], AsyncMock(), logger)
+        await modal.on_error(Exception("failed"), MagicMock())
+        logger.error.assert_called_once()
+
     async def test_context_responds_before_and_after_defer(self):
         response = MagicMock()
         response.is_done.side_effect = [False, True]

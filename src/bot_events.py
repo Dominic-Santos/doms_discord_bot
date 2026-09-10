@@ -1,4 +1,5 @@
 import json
+import discord
 from datetime import datetime, timedelta
 
 from .pokemon import (

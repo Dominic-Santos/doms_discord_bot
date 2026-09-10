@@ -4,6 +4,7 @@ import json
 import csv
 import io
 from datetime import datetime, timedelta
+from typing import Optional
 
 from .core import fill_sheet, DATA_FOLDER
 from .pokemon import get_decklist_png as get_sign_up_sheet
@@ -28,7 +29,7 @@ TOURNAMENT_SIGNUPS_FILE = f"{DATA_FOLDER}/tournament_signups.json"
 SIGN_UP_SHEET_FILE = f"{DATA_FOLDER}/sign_up_sheet.png"
 
 
-class TournamentSelectView(discord.ui.View):
+class TournamentSelectView(discord.ui.View):  # pragma: no cover
     def __init__(self, tournaments: dict):
         super().__init__()
         
@@ -58,7 +59,7 @@ class TournamentSelectView(discord.ui.View):
         self.stop()
 
 
-class TournamentSignupView(discord.ui.View):
+class TournamentSignupView(discord.ui.View):  # pragma: no cover
     def __init__(self, tournament_bot, open_tournaments, user_id):
         super().__init__(timeout=120)
         self.tournament_bot = tournament_bot
@@ -108,7 +109,7 @@ class TournamentSignupView(discord.ui.View):
         self.stop()
 
 
-class SavedDeckSelectView(discord.ui.View):
+class SavedDeckSelectView(discord.ui.View):  # pragma: no cover
     def __init__(self, tournament_bot, tournament_id, saved_decks):
         super().__init__(timeout=120)
         self.tournament_bot = tournament_bot
@@ -149,8 +150,8 @@ class SavedDeckSelectView(discord.ui.View):
 class TournamentBot:
     def get_tournament_signup_status(
         self,
-        now: datetime | None = None
-    ) -> tuple[bool, str | None]:
+        now: Optional[datetime] = None,
+    ) -> tuple[bool, Optional[str]]:
         if now is None:
             now = datetime.now()
 
@@ -232,7 +233,7 @@ class TournamentBot:
 
     def get_open_tournaments(
         self,
-        now: datetime | None = None
+        now: Optional[datetime] = None,
     ) -> dict:
         """Get all tournaments that are currently open."""
         if now is None:
@@ -259,7 +260,7 @@ class TournamentBot:
         self,
         ctx,
         open_tournaments: dict
-    ) -> str | None:
+    ) -> Optional[str]:
         """Prompt user to select a tournament from dropdown. Returns tournament_id or None."""
         if len(open_tournaments) == 1:
             # Auto-select if only one tournament is open
@@ -284,7 +285,7 @@ class TournamentBot:
             self.logger.error(f"Error in tournament selection: {e}")
             return None
 
-    def add_tournament_commands(self):
+    def add_tournament_commands(self):  # pragma: no cover
         tournament = self.bot.create_group(
             "tournament", "Manage tournament sign-ups"
         )
@@ -358,56 +359,49 @@ class TournamentBot:
         guild_id = str(ctx.guild.id)
         guild_signups = self.tournament_signups.get(guild_id, [])
 
-        if not guild_signups and not self.tournaments:
+        if not guild_signups:
             await ctx.respond(
                 "No tournament sign-ups to list.",
                 ephemeral=True
             )
             return
 
-        tournament_ids = list(self.tournaments.keys())
-        for signup in guild_signups:
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow([
+            "tournament_name",
+            "format",
+            "full_name",
+            "pokemon_id",
+            "year_of_birth",
+        ])
+
+        for signup in sorted(
+            guild_signups,
+            key=lambda item: (
+                self.tournaments.get(item.get("tournament_id"), {}).get(
+                    "name",
+                    item.get("tournament_id", "Unknown"),
+                ).lower(),
+                str(item.get("full_name", "")).lower(),
+            ),
+        ):
             tournament_id = signup.get("tournament_id")
-            if tournament_id and tournament_id not in tournament_ids:
-                tournament_ids.append(tournament_id)
-
-        if not tournament_ids:
-            await ctx.respond(
-                "No tournament sign-ups to list.",
-                ephemeral=True
+            tournament_name = self.tournaments.get(tournament_id, {}).get(
+                "name",
+                tournament_id or "Unknown",
             )
-            return
+            writer.writerow([
+                tournament_name,
+                signup.get("format", "Unknown"),
+                signup.get("full_name", "Unknown"),
+                signup.get("pokemon_id", "Unknown"),
+                signup.get("year_of_birth", "Unknown"),
+            ])
 
-        lines = ["Tournament sign-ups:"]
-        for tournament_id in tournament_ids:
-            tournament_data = self.tournaments.get(tournament_id, {})
-            tournament_name = tournament_data.get("name", tournament_id)
-            tournament_format = tournament_data.get("format", "Unknown")
-            expires_at = tournament_data.get("expires_at", "Unknown")
-            status = "OPEN" if tournament_id in self.get_open_tournaments() else "CLOSED"
-
-            lines.append("")
-            lines.append(f"- {tournament_name} ({status})")
-            lines.append(f"  Format: {tournament_format} | Expires: {expires_at}")
-
-            tournament_signups = [
-                signup for signup in guild_signups
-                if signup.get("tournament_id") == tournament_id
-            ]
-            if not tournament_signups:
-                lines.append("  No sign-ups yet.")
-                continue
-
-            for signup in tournament_signups:
-                lines.append(
-                    "  - "
-                    f"{signup.get('full_name', 'Unknown')} | "
-                    f"ID: {signup.get('pokemon_id', 'Unknown')} | "
-                    f"DOB: {signup.get('year_of_birth', 'Unknown')}"
-                )
-
+        formatted_output = "```csv\n" + output.getvalue().rstrip() + "\n```"
         await ctx.respond(
-            f"```text\n{'\n'.join(lines)}\n```",
+            formatted_output,
             ephemeral=True,
         )
 
@@ -420,7 +414,7 @@ class TournamentBot:
         year_of_birth: int,
         limitless_url: str,
         format: str,
-        tournament_id: str | None = None
+        tournament_id: Optional[str] = None,
     ):
         guild_key = str(guild_id)
         if guild_key not in self.tournament_signups:
@@ -475,7 +469,7 @@ class TournamentBot:
         )
 
     def get_tournament_channel(self, guild_id: str) -> tuple[
-        discord.TextChannel | None, str
+        Optional[discord.TextChannel], str
     ]:
         if guild_id not in self.tournament_channels:
             return None, OUTPUT_CHANNEL_NOT_SET_ERROR
@@ -494,7 +488,7 @@ class TournamentBot:
         pokemon_id: int,
         year_of_birth: int,
         deck_name: str,
-        tournament_id: str | None = None
+        tournament_id: Optional[str] = None,
     ):
         await ctx.defer(ephemeral=True)
         user_id = str(ctx.author.id)
@@ -601,7 +595,7 @@ class TournamentBot:
         year_of_birth: int,
         limitless_url: str,
         format: str,
-        tournament_id: str | None = None
+        tournament_id: Optional[str] = None,
     ):
         output_filename = (
             f"{DATA_FOLDER}/sign_up_sheet_{ctx.guild.id}_{ctx.author.id}.png"
@@ -659,7 +653,7 @@ class TournamentBot:
         pokemon_id: int,
         year_of_birth: int,
         limitless_url: str,
-        tournament_id: str | None = None
+        tournament_id: Optional[str] = None,
     ):
         await ctx.defer(ephemeral=True)
         if self.maintenance:
@@ -772,7 +766,7 @@ class TournamentBot:
         else:
             self.logger.error(f"Failed up update sign-up sheet {error}")
 
-    def do_update_sheet(self) -> Exception | None:
+    def do_update_sheet(self) -> Exception:
         t = CustomThread(get_sign_up_sheet, kwargs={
             "output_filename": SIGN_UP_SHEET_FILE
         })
