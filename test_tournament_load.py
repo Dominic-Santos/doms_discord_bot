@@ -1,9 +1,15 @@
 from datetime import datetime
 import json
+from pathlib import Path
 
 # Load tournament data
-with open('data/tournaments.json', 'r') as f:
-    data = json.load(f)
+tournaments_file = Path("data/tournaments.json")
+if tournaments_file.exists():
+    with tournaments_file.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+else:
+    print("No tournament data found; skipping tournament inspection.")
+    data = {"tournaments": {}}
 
 tournaments = data.get('tournaments', {})
 print(f"Loaded tournaments: {list(tournaments.keys())}")
