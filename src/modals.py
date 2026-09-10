@@ -63,7 +63,6 @@ class CommandModal(discord.ui.Modal):
             self.add_item(input_field)
 
     async def callback(self, interaction: discord.Interaction):
-        self.logger.info("Modal submitted: %s", self.title)
         values = {}
         for name, input_field in self.inputs.items():
             try:
