@@ -639,10 +639,25 @@ class TournamentBot:
             tournament_id
         )
 
-        await ctx.respond(
-            "Tournament signup has been processed!",
-            file=discord.File(output_filename, filename="sign_up_sheet.png")
-        )
+        private_response = getattr(ctx, "interaction", None)
+        if private_response is not None:
+            await private_response.followup.send(
+                "Tournament signup has been processed!",
+                ephemeral=True,
+                file=discord.File(
+                    output_filename,
+                    filename="sign_up_sheet.png",
+                ),
+            )
+        else:
+            await ctx.respond(
+                "Tournament signup has been processed!",
+                ephemeral=True,
+                file=discord.File(
+                    output_filename,
+                    filename="sign_up_sheet.png",
+                ),
+            )
 
         os.remove(output_filename)  # Clean up the temporary file
 

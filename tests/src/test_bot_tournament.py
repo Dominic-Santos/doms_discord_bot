@@ -31,6 +31,7 @@ class MockCtx():
 
     async def send(self, message, *args, **kwargs):
         self.last_send = message
+        self.last_send_kwargs = kwargs
 
 
 def create_tournament(expiry_days=2, format="standard"):
@@ -283,7 +284,13 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         assert mock_ctx.last_response == (
             "Tournament signup has been processed!"
         )
-        assert mock_ctx.last_respond_kwargs["file"].filename == "sign_up_sheet.png"
+        assert mock_ctx.last_respond_kwargs["ephemeral"] is True
+        assert mock_ctx.last_respond_kwargs["file"].filename == (
+            "sign_up_sheet.png"
+        )
+        assert mock_ctx.last_send_kwargs["file"].filename == (
+            "sign_up_sheet.png"
+        )
         mock_remove.assert_called_once()
 
         await b.export_tournament_signups(mock_ctx)
