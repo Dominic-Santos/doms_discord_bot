@@ -24,6 +24,29 @@ class MockCtx():
 
 class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
 
+    async def test_decklist_info_unchecked_statuses(self):
+        b = Bot("faketoken", False, "123")
+        ctx = MockCtx()
+        b.user_decklists = {
+            "303": {
+                "deck": {
+                    "pokemon": [], "trainers": {}, "energies": {}
+                },
+                "standard": {"valid": None},
+                "expanded": None,
+            }
+        }
+        await b.decklist_info(ctx, "deck")
+        assert "Standard Legal: Unknown" in ctx.last_response
+        assert "Expanded Legal: Unknown" in ctx.last_response
+
+        b.user_decklists["303"]["deck"]["standard"] = {"valid": None}
+        b.user_decklists["303"]["deck"]["expanded"] = {"valid": None}
+        b.user_decklists["303"]["standard"] = {"valid": None}
+        b.user_decklists["303"]["expanded"] = {"valid": None}
+        await b.decklist_info(ctx, "deck")
+        assert ctx.last_response.count("Unknown - not checked") == 2
+
     @patch("src.bot_decklist.validate_decklist")
     @patch("src.bot_decklist.get_decklist_from_url")
     @patch("src.bot.create_logger")
@@ -145,11 +168,9 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         valid, error = b.do_user_decklist_check("123", "deckname")
         assert valid is not None
         assert error is None
-        for format in ("standard", "expanded"):
-            assert b.user_decklists["123"]["deckname"][format]["valid"]
-            assert b.user_decklists["123"]["deckname"][format]["error"] == ""
-        assert b.user_decklists["123"]["deckname"]["last_checked"] != ""
-        assert b.user_decklists["123"]["deckname"]["deck"] == {}
+        assert b.user_decklists["123"]["deckname"] == {
+            "url": "https://my.limitlesstcg.com/builder?i=abc123abc"
+        }
 
         b.user_decklists = {
             "123": {
@@ -161,69 +182,35 @@ class TestBotDecklist(unittest.IsolatedAsyncioTestCase):
         valid, error = b.do_user_decklist_check("123", "deckname")
         assert valid == {}
         assert error == "Invalid Limitless URL."
-        for format in ("standard", "expanded"):
-            deck_data = b.user_decklists["123"]["deckname"][format]
-            assert deck_data["valid"] is False
-            assert deck_data["error"] == "Invalid Limitless URL."
+        assert b.user_decklists["123"]["deckname"] == {
+            "url": "https://my.lsstcg.com/builder?i=abc123abc"
+        }
 
         b.user_decklists = {}
         b.do_user_decklist_check = MagicMock()
-        b.do_user_decklist_check.return_value = ({
-            "standard": {
-                "valid": True,
-                "error": ""
-            },
-            "expanded": {
-                "valid": True,
-                "error": ""
-            }
-        }, None)
         await b.decklist_create(
             mock_ctx,
             "deckname",
             "https://my.limitlesstcg.com/builder?i=abc123abc"
         )
-        assert mock_ctx.last_response == (
-            "Deck saved, deck is:\n"
-            "- standard valid!\n"
-            "- expanded valid!"
-        )
+        assert mock_ctx.last_response == "Deck saved."
+        b.do_user_decklist_check.assert_not_called()
         assert "303" in b.user_decklists
         assert "deckname" in b.user_decklists["303"]
         assert b.user_decklists["303"]["deckname"]["url"] == (
             "https://my.limitlesstcg.com/builder?i=abc123abc"
         )
 
-        b.do_user_decklist_check.return_value = ({
-            "standard": {
-                "valid": False,
-                "error": "err"
-            },
-            "expanded": {
-                "valid": False,
-                "error": "err2"
-            }
-        }, None)
-        await b.decklist_create(
-            mock_ctx,
-            "deckname",
-            "https://my.limitlesstcg.com/builder?i=abc123abc"
-        )
-        assert mock_ctx.last_response == (
-            "Deck saved, deck is:\n"
-            "- standard not valid! err\n"
-            "- expanded not valid! err2"
-        )
+        assert b.user_decklists["303"]["deckname"] == {
+            "url": "https://my.limitlesstcg.com/builder?i=abc123abc"
+        }
 
-        b.do_user_decklist_check.return_value = (False, "err")
         await b.decklist_create(
             mock_ctx,
             "deckname2",
             "https://my.limitlesstcg.com/builder?i=abc123abc"
         )
-        assert mock_ctx.last_response == (
-            "Deck saved, error checking deck: err"
-        )
+        b.do_user_decklist_check.return_value = (False, "err")
 
         await b.decklist_check(mock_ctx, "deckname2")
         assert mock_ctx.last_response == (

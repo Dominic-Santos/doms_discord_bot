@@ -45,7 +45,7 @@ def fill_sheet(
     sheet_location: str = "sign_up_sheet.png",
     player: dict = {},
     cards: dict = {},
-    output_filename: str | None = None
+    output_filename: str = None
 ):
 
     if not sheet_location.endswith(".png"):
@@ -201,8 +201,8 @@ def load_card_database(
 
 def validate_decklist(
     decklist: dict,
-    legal_cards: dict | None = None,
-    banned_cards: dict | None = None,
+    legal_cards: dict = None,
+    banned_cards: dict = None,
 ) -> tuple[bool, str]:
     # check 60 card deck
     pokemon_count = sum(

@@ -1,10 +1,9 @@
 import json
-import discord
-from datetime import datetime
 
 from .limitless import get_decklist_from_url
 from .core import validate_decklist, DATA_FOLDER
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
+from .modals import CommandModal
 
 USER_DECKLIST_FILE = f"{DATA_FOLDER}/user_decklists.json"
 
@@ -36,62 +35,75 @@ class DecklistBot:
         @pokemon_decklist.command(
             description="Check a limitless decklist is legal"
         )
-        async def check_url(
-            ctx,
-            limitless_url: discord.Option(
-                str, "Limitless URL of the decklist"
-            ),  # type: ignore
-        ):
-            await self.decklist_check_url(
-                ctx, limitless_url
-            )  # pragma: no cover
+        async def check_url(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Check Deck URL",
+                [("limitless_url", "Limitless URL", "https://limitlesstcg.com/...", str)],
+                lambda modal_ctx, values: self.decklist_check_url(
+                    modal_ctx, values["limitless_url"]
+                ),
+                self.logger
+            ))
 
         @pokemon_decklist.command(
             description="Check a saved deck is legal"
         )
-        async def check(
-            ctx,
-            name: discord.Option(
-                str, "Deck name"
-            ),  # type: ignore
-        ):
-            await self.decklist_check(ctx, name)  # pragma: no cover
+        async def check(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Check Saved Deck",
+                [("name", "Deck name", "My deck", str)],
+                lambda modal_ctx, values: self.decklist_check(
+                    modal_ctx, values["name"]
+                ),
+                self.logger
+            ))
 
         @pokemon_decklist.command(description="Create a deck")
-        async def create(
-            ctx,
-            name: discord.Option(
-                str, "Deck name"
-            ),  # type: ignore
-            limitless_url: discord.Option(
-                str, "Limitless URL of the decklist"
-            ),  # type: ignore
-        ):
-            await self.decklist_create(
-                ctx, name, limitless_url
-            )  # pragma: no cover
+        async def create(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Create Deck",
+                [
+                    ("name", "Deck name", "My deck", str),
+                    (
+                        "limitless_url",
+                        "Limitless URL",
+                        "https://limitlesstcg.com/...",
+                        str
+                    ),
+                ],
+                lambda modal_ctx, values: self.decklist_create(
+                    modal_ctx,
+                    values["name"],
+                    values["limitless_url"]
+                ),
+                self.logger
+            ))
 
         @pokemon_decklist.command(description="Delete a saved deck")
-        async def delete(
-            ctx,
-            name: discord.Option(
-                str, "Deck name"
-            ),  # type: ignore
-        ):
-            await self.decklist_delete(ctx, name)  # pragma: no cover
+        async def delete(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Delete Saved Deck",
+                [("name", "Deck name", "My deck", str)],
+                lambda modal_ctx, values: self.decklist_delete(
+                    modal_ctx, values["name"]
+                ),
+                self.logger
+            ))
 
         @pokemon_decklist.command(name="list", description="List saved decks")
         async def list_all(ctx):
             await self.decklist_list(ctx)  # pragma: no cover
 
         @pokemon_decklist.command(description="Show deck info")
-        async def info(
-            ctx,
-            name: discord.Option(
-                str, "Deck name"
-            ),  # type: ignore
-        ):
-            await self.decklist_info(ctx, name)  # pragma: no cover
+        async def info(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Saved Deck Info",
+                [("name", "Deck name", "My deck", str)],
+                lambda modal_ctx, values: self.decklist_info(
+                    modal_ctx, values["name"]
+                ),
+                self.logger
+            ))
 
     async def decklist_info(self, ctx, name: str):
         user_id = str(ctx.author.id)
@@ -102,19 +114,32 @@ class DecklistBot:
             await ctx.respond("Deck not found", ephemeral=True)
             return
 
+        standard_status = deck_data.get("standard")
+        expanded_status = deck_data.get("expanded")
+
         deck_info = f"{name}\nStandard Legal: "
-        if deck_data["standard"]["valid"]:
+        if standard_status is None:
+            deck_info += "Unknown - not checked"
+        elif standard_status["valid"] is None:
+            deck_info += "Unknown - not checked"
+        elif standard_status["valid"]:
             deck_info += ":white_check_mark:"
         else:
-            deck_info += f":x: - {deck_data['standard']['error']}"
+            deck_info += f":x: - {standard_status['error']}"
 
         deck_info += "\nExpanded Legal: "
-        if deck_data["expanded"]["valid"]:
+        if expanded_status is None:
+            deck_info += "Unknown - not checked"
+        elif expanded_status["valid"] is None:
+            deck_info += "Unknown - not checked"
+        elif expanded_status["valid"]:
             deck_info += ":white_check_mark:"
         else:
-            deck_info += f":x: - {deck_data['expanded']['error']}"
+            deck_info += f":x: - {expanded_status['error']}"
 
-        deck_info += f"\nLast Checked: {deck_data['last_checked']}"
+        deck_info += (
+            f"\nLast Checked: {deck_data.get('last_checked', 'Never')}"
+        )
 
         if "deck" in deck_data:
             if (
@@ -213,30 +238,11 @@ class DecklistBot:
         self.user_decklists[user_id][name] = {
             "url": limitless_url
         }
-
-        result, error = self.do_user_decklist_check(user_id, name)
-
-        if error is not None:
-            await ctx.respond(
-                f"Deck saved, error checking deck: {error}",
-                ephemeral=True
-            )
-            return
-
-        result_text = "Deck saved, deck is:\n- standard "
-        if result["standard"]["valid"]:
-            result_text += "valid!"
-        else:
-            result_text += f"not valid! {result['standard']['error']}"
-
-        result_text += "\n- expanded "
-        if result["expanded"]["valid"]:
-            result_text += "valid!"
-        else:
-            result_text += f"not valid! {result['expanded']['error']}"
-
-        await ctx.respond(result_text, ephemeral=True)
         self.save_user_decklists()
+        await ctx.respond(
+            "Deck saved.",
+            ephemeral=True
+        )
 
     async def decklist_check_url(self, ctx, deck_url: str):
         await ctx.defer(ephemeral=True)
@@ -278,30 +284,7 @@ class DecklistBot:
 
         decklist_url = deck_data["url"]
 
-        valid, deck_data, error = self.do_decklist_check(decklist_url)
-        self.user_decklists[user_id][deck_name].update(
-            {
-                "deck": deck_data,
-                "last_checked": str(datetime.now().date())
-            }
-        )
-        if error is not None:
-            self.user_decklists[user_id][deck_name].update(
-                {
-                    "standard": {
-                        "valid": False,
-                        "error": error
-                    },
-                    "expanded": {
-                        "valid": False,
-                        "error": error
-                    }
-                }
-            )
-        else:
-            self.user_decklists[user_id][deck_name].update(valid)
-
-        self.save_user_decklists()
+        valid, _, error = self.do_decklist_check(decklist_url)
         return valid, error
 
     def do_decklist_check(self, limitless_url: str) -> tuple[dict, dict, str]:

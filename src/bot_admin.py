@@ -1,9 +1,83 @@
+from datetime import datetime, timedelta
 import discord
-from datetime import datetime
+
+from .modals import CommandModal, choice_converter
+
+
+class TournamentCloseSelectView(discord.ui.View):  # pragma: no cover
+    def __init__(self, tournament_bot, tournaments):
+        super().__init__(timeout=120)
+        self.tournament_bot = tournament_bot
+
+        options = [
+            discord.SelectOption(
+                label=data.get("name", tournament_id)[:100],
+                value=tournament_id,
+                description=f"Expires: {data.get('expires_at', 'Unknown')}"[:100],
+            )
+            for tournament_id, data in tournaments.items()
+        ]
+        select = discord.ui.Select(
+            placeholder="Select a tournament to close",
+            options=options,
+        )
+
+        async def select_callback(interaction):
+            tournament_id = select.values[0]
+            await interaction.response.send_modal(CommandModal(
+                "Close Tournament",
+                [("password", "Bot admin password", "Password", str)],
+                lambda modal_ctx, values: self.tournament_bot.close_tournament(
+                    modal_ctx,
+                    tournament_id,
+                    values["password"],
+                ),
+                self.tournament_bot.logger,
+            ))
+            self.stop()
+
+        select.callback = select_callback
+        self.add_item(select)
+
+
+class TournamentClearSignupsSelectView(discord.ui.View):  # pragma: no cover
+    def __init__(self, tournament_bot, tournaments):
+        super().__init__(timeout=120)
+        self.tournament_bot = tournament_bot
+
+        options = [
+            discord.SelectOption(
+                label=data.get("name", tournament_id)[:100],
+                value=tournament_id,
+                description=f"Expires: {data.get('expires_at', 'Unknown')}"[:100],
+            )
+            for tournament_id, data in tournaments.items()
+        ]
+        select = discord.ui.Select(
+            placeholder="Select a tournament to clear signups for",
+            options=options,
+        )
+
+        async def select_callback(interaction):
+            tournament_id = select.values[0]
+            await interaction.response.send_modal(CommandModal(
+                "Clear Tournament Signups",
+                [("password", "Bot admin password", "Password", str)],
+                lambda modal_ctx, values: self.tournament_bot.clear_tournament_signups(
+                    modal_ctx,
+                    tournament_id,
+                    values["password"],
+                ),
+                self.tournament_bot.logger,
+            ))
+            self.stop()
+
+        select.callback = select_callback
+        self.add_item(select)
 
 
 class AdminBot:
-    def add_admin_commands(self):
+    def add_admin_commands(self):  # pragma: no cover
         maintenance = self.admin.create_subgroup(
             "maintenance", "Manage bot maintenance"
         )
@@ -18,69 +92,77 @@ class AdminBot:
             await self.maintenance_status(ctx)  # pragma: no cover
 
         @maintenance.command(description="Toggle bot maintenance mode")
-        async def toggle(
-            ctx,
-            password: discord.Option(
-                str, "Bot admin password"
-            ),  # type: ignore
-        ):
-            await self.toggle_maintenance(ctx, password)  # pragma: no cover
+        async def toggle(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Toggle Maintenance",
+                [("password", "Bot admin password", "Password", str)],
+                lambda modal_ctx, values: self.toggle_maintenance(
+                    modal_ctx, values["password"]
+                ),
+                self.logger
+            ))
 
         @tournament.command(
             description="Create a new tournament"
         )
-        async def create(
-            ctx,
-            name: discord.Option(
-                str, "Tournament name"
-            ),  # type: ignore
-            expire_datetime: discord.Option(
-                str,
-                (
-                    "Expiration datetime string "
-                    "(ISO format, ex: 2026-05-21 18:30:00)"
-                )
-            ),  # type: ignore
-            format: discord.Option(
-                str,
-                "Tournament format (standard or expanded)",
-                choices=["standard", "expanded"]
-            ),  # type: ignore
-            password: discord.Option(
-                str, "Bot admin password"
-            ),  # type: ignore
-        ):
-            await self.create_tournament(
-                ctx,
-                name,
-                expire_datetime,
-                format,
-                password
-            )  # pragma: no cover
+        async def create(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Create Tournament",
+                [
+                    ("name", "Tournament name", "League Cup", str),
+                    (
+                        "expire_datetime",
+                        "Expiration datetime",
+                        "2026-05-21 18:30:00",
+                        str
+                    ),
+                    (
+                        "format",
+                        "Tournament format",
+                        "standard or expanded",
+                        choice_converter("standard", "expanded")
+                    ),
+                    (
+                        "password",
+                        "Bot admin password",
+                        "Password",
+                        str
+                    ),
+                ],
+                lambda modal_ctx, values: self.create_tournament(
+                    modal_ctx,
+                    values["name"],
+                    values["expire_datetime"],
+                    values["format"],
+                    values["password"]
+                ),
+                self.logger
+            ))
 
         @tournament.command(
+            name="list",
             description="List all tournaments"
         )
-        async def list_tournaments(ctx):
+        async def list_tournaments_command(ctx):
             await self.list_tournaments(ctx)  # pragma: no cover
 
         @tournament.command(
             description="Delete a tournament"
         )
-        async def delete(
-            ctx,
-            tournament_id: discord.Option(
-                str, "Tournament ID to delete"
-            ),  # type: ignore
-            password: discord.Option(
-                str, "Bot admin password"
-            ),  # type: ignore
-        ):
-            await self.delete_tournament(
-                ctx,
-                tournament_id,
-                password
-            )  # pragma: no cover
+        async def delete(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Delete Tournament",
+                [
+                    ("tournament_id", "Tournament ID", "league_cup", str),
+                    ("password", "Bot admin password", "Password", str),
+                ],
+                lambda modal_ctx, values: self.delete_tournament(
+                    modal_ctx,
+                    values["tournament_id"],
+                    values["password"]
+                ),
+                self.logger
+            ))
 
         @tournament.command(
             description="Check current tournament sign-up expiration"
@@ -88,19 +170,54 @@ class AdminBot:
         async def status(ctx):
             await self.tournament_status(ctx)  # pragma: no cover
 
+        @tournament.command(description="Close a tournament")
+        async def close(ctx):  # pragma: no cover
+            open_tournaments = self.get_open_tournaments()
+            if not open_tournaments:
+                await ctx.respond(
+                    "No open tournaments to close.",
+                    ephemeral=True,
+                )
+                return
+
+            await ctx.respond(
+                "Select a tournament to close:",
+                view=TournamentCloseSelectView(self, open_tournaments),
+                ephemeral=True,
+            )
+
         @tournament.command(
-            description="Close tournament sign-ups (deprecated - use individual tournament deletion)"
+            description="Delete all closed tournaments"
         )
-        async def close_signups(
-            ctx,
-            password: discord.Option(
-                str, "Bot admin password"
-            ),  # type: ignore
-        ):
-            await self.close_tournament_signups(
-                ctx,
-                password
-            )  # pragma: no cover
+        async def delete_closed(ctx):  # pragma: no cover
+            await ctx.send_modal(CommandModal(
+                "Delete Closed Tournaments",
+                [
+                    ("password", "Bot admin password", "Password", str),
+                ],
+                lambda modal_ctx, values: self.delete_closed_tournaments(
+                    modal_ctx,
+                    values["password"],
+                ),
+                self.logger,
+            ))
+
+        @tournament.command(
+            description="Clear tournament sign-ups for a specific tournament"
+        )
+        async def clear_signups(ctx):  # pragma: no cover
+            if not self.tournaments:
+                await ctx.respond(
+                    "No tournaments created yet.",
+                    ephemeral=True,
+                )
+                return
+
+            await ctx.respond(
+                "Select a tournament to clear sign-ups for:",
+                view=TournamentClearSignupsSelectView(self, self.tournaments),
+                ephemeral=True,
+            )
 
     async def maintenance_status(self, ctx):
         await ctx.defer(ephemeral=True)
@@ -147,7 +264,9 @@ class AdminBot:
         self.tournament_signup_expires_at = expire.isoformat(
             sep=" ", timespec="seconds"
         )
-        self.tournament_signups[str(ctx.guild.id)] = []
+        guild_key = str(ctx.guild.id)
+        self.tournament_signups[guild_key] = []
+        self.save_tournament_signups()
         await ctx.respond(
             (
                 "Tournament sign-ups are now open until "
@@ -200,6 +319,31 @@ class AdminBot:
         await ctx.respond(
             "Tournament sign-ups are now closed.",
             ephemeral=True
+        )
+
+    async def close_tournament(self, ctx, tournament_id: str, password: str):
+        await ctx.defer(ephemeral=True)
+
+        if password != self.password:
+            await ctx.respond("Invalid admin password", ephemeral=True)
+            return
+
+        tournament = self.tournaments.get(tournament_id)
+        if tournament is None:
+            await ctx.respond(
+                f"Tournament '{tournament_id}' not found.",
+                ephemeral=True,
+            )
+            return
+
+        tournament["expires_at"] = datetime.now().isoformat(
+            sep=" ",
+            timespec="seconds",
+        )
+        self.save_tournaments()
+        await ctx.respond(
+            f"Tournament '{tournament.get('name', tournament_id)}' is now closed.",
+            ephemeral=True,
         )
 
     async def create_tournament(
@@ -315,4 +459,65 @@ class AdminBot:
         await ctx.respond(
             f"Tournament '{tournament_name}' has been deleted.",
             ephemeral=True
+        )
+
+    async def clear_tournament_signups(
+        self,
+        ctx,
+        tournament_id: str,
+        password: str
+    ):
+        await ctx.defer(ephemeral=True)
+
+        if password != self.password:
+            await ctx.respond("Invalid admin password", ephemeral=True)
+            return
+
+        guild_id = str(ctx.guild.id)
+        guild_signups = self.tournament_signups.get(guild_id, [])
+        filtered_signups = [
+            signup for signup in guild_signups
+            if str(signup.get("tournament_id") or "") != str(tournament_id)
+        ]
+
+        self.tournament_signups[guild_id] = filtered_signups
+        self.save_tournament_signups()
+
+        tournament_name = self.tournaments.get(tournament_id, {}).get(
+            "name", tournament_id
+        )
+        await ctx.respond(
+            f"Cleared sign-ups for tournament '{tournament_name}'.",
+            ephemeral=True,
+        )
+
+    async def delete_closed_tournaments(self, ctx, password: str):
+        await ctx.defer(ephemeral=True)
+
+        if password != self.password:
+            await ctx.respond("Invalid admin password", ephemeral=True)
+            return
+
+        now = datetime.now()
+        closed_ids = []
+        for tournament_id, tournament_data in self.tournaments.items():
+            try:
+                expires_at = datetime.fromisoformat(
+                    tournament_data.get("expires_at", "")
+                )
+            except ValueError:
+                continue
+
+            if expires_at < now - timedelta(seconds=1):
+                closed_ids.append(tournament_id)
+
+        for tournament_id in closed_ids:
+            del self.tournaments[tournament_id]
+
+        if closed_ids:
+            self.save_tournaments()
+
+        await ctx.respond(
+            f"Deleted {len(closed_ids)} closed tournament(s).",
+            ephemeral=True,
         )
