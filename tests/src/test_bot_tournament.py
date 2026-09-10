@@ -201,6 +201,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         assert mock_ctx.last_response == (
             "Tournament signup has been processed!"
         )
+        assert mock_ctx.last_respond_kwargs["file"].filename == "sign_up_sheet.png"
         mock_remove.assert_called_once()
 
         await b.export_tournament_signups(mock_ctx)

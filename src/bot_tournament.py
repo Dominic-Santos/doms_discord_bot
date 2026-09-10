@@ -649,7 +649,6 @@ class TournamentBot:
 
         await ctx.respond(
             "Tournament signup has been processed!",
-            ephemeral=True,
             file=discord.File(output_filename, filename="sign_up_sheet.png")
         )
 
