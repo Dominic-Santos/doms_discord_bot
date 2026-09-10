@@ -129,6 +129,7 @@ User command groups:
 | --- | --- | --- | --- |
 | `/admin tournament create` | Admin | `name`, `expire_datetime`, `format`, `password` | Open a form to create a new named tournament. |
 | `/admin tournament list` | Admin | - | List all tournaments with their status (OPEN/CLOSED). |
+| `/admin tournament clear_signups` | Admin | Select a tournament, then `password` | Clear sign-ups for one specific tournament while leaving other tournaments alone. |
 | `/admin tournament delete` | Admin | `tournament_id`, `password` | Open a form to delete a tournament. |
 | `/admin tournament close` | Admin | Select a tournament, then `password` | Select an open tournament and close only that tournament. |
 | `/admin tournament delete_closed` | Admin | `password` | Delete every tournament whose expiration has passed. |
@@ -140,7 +141,7 @@ User command groups:
 | --- | --- | --- | --- |
 | `/admin pokemon set_tournament_channel` | Admin | - | Set current channel as tournament output channel. |
 | `/admin pokemon test_tournament_channel` | Admin | - | Send a test message to the tournament output channel. |
-| `/admin pokemon list_signups` | Admin | - | Return current server tournament sign-ups as a CSV string. |
+| `/admin pokemon list_signups` | Admin | - | Show sign-ups grouped by tournament, including closed tournaments; each entry lists name, ID, and DOB only. |
 | `/admin pokemon update_legal_cards` | Admin | - | Refresh legal cards used for validation. |
 | `/admin pokemon update_banned_cards` | Admin | - | Refresh banned cards used for validation. |
 | `/admin pokemon update_signup_sheet` | Admin | - | Refresh tournament sign-up sheet image. |
@@ -194,8 +195,8 @@ Admins use `/admin tournament` commands to manage tournaments:
 
 ```
 /admin tournament create  # complete the form
-/admin tournament create  # complete the form
 /admin tournament list
+/admin tournament clear_signups  # select a tournament, then enter the password
 /admin tournament delete   # complete the form
 /admin tournament close    # select a tournament, then enter the password
 /admin tournament delete_closed  # enter the password

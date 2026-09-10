@@ -403,9 +403,7 @@ class TournamentBot:
                     "  - "
                     f"{signup.get('full_name', 'Unknown')} | "
                     f"ID: {signup.get('pokemon_id', 'Unknown')} | "
-                    f"Birth year: {signup.get('year_of_birth', 'Unknown')} | "
-                    f"Format: {signup.get('format', 'Unknown')} | "
-                    f"Deck: {signup.get('limitless_url', 'Unknown')}"
+                    f"DOB: {signup.get('year_of_birth', 'Unknown')}"
                 )
 
         await ctx.respond(
