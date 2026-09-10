@@ -173,11 +173,10 @@ User command groups:
 | Command | Required Role | Form fields | Description |
 | --- | --- | --- | --- |
 | `/deck pokemon check_url` | User | `limitless_url` | Open a form to validate a Limitless deck URL. |
-| `/deck pokemon check` | User | `name` | Open a form to validate a saved deck by name. |
+| `/deck pokemon check` | User | - | Select a saved deck to validate. |
 | `/deck pokemon create` | User | `name`, `limitless_url` | Open a form to save a deck and run validation. |
 | `/deck pokemon delete` | User | `name` | Open a form to delete a saved deck. |
 | `/deck pokemon list` | User | - | List saved decks. |
-| `/deck pokemon info` | User | `name` | Open a form to show saved deck details and validation state. |
 
 ### Tournament Signup
 
