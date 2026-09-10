@@ -24,6 +24,7 @@ SIGN_UP_SHEET_MISSING_ERROR = (
 
 TOURNAMENT_CHANNELS_FILE = f"{DATA_FOLDER}/tournament_channels.json"
 TOURNAMENTS_FILE = f"{DATA_FOLDER}/tournaments.json"
+TOURNAMENT_SIGNUPS_FILE = f"{DATA_FOLDER}/tournament_signups.json"
 SIGN_UP_SHEET_FILE = f"{DATA_FOLDER}/sign_up_sheet.png"
 
 
@@ -209,6 +210,26 @@ class TournamentBot:
         except Exception as e:
             self.logger.error(f"Error saving {TOURNAMENTS_FILE}: {e}")
 
+    def load_tournament_signups(self):
+        try:
+            with open(TOURNAMENT_SIGNUPS_FILE, "r") as f:
+                data = json.load(f)
+                self.tournament_signups = data.get("signups", {})
+        except Exception as e:
+            self.logger.warning(
+                f"Error loading {TOURNAMENT_SIGNUPS_FILE}: {e}"
+            )
+            self.tournament_signups = {}
+
+    def save_tournament_signups(self):
+        try:
+            with open(TOURNAMENT_SIGNUPS_FILE, "w") as f:
+                json.dump({"signups": self.tournament_signups}, f, indent=4)
+        except Exception as e:
+            self.logger.error(
+                f"Error saving {TOURNAMENT_SIGNUPS_FILE}: {e}"
+            )
+
     def get_open_tournaments(
         self,
         now: datetime | None = None
@@ -335,34 +356,60 @@ class TournamentBot:
     async def export_tournament_signups(self, ctx):
         await ctx.defer(ephemeral=True)
         guild_id = str(ctx.guild.id)
-        signups = self.tournament_signups.get(guild_id, [])
+        guild_signups = self.tournament_signups.get(guild_id, [])
 
-        if len(signups) == 0:
+        if not guild_signups and not self.tournaments:
             await ctx.respond(
                 "No tournament sign-ups to list.",
                 ephemeral=True
             )
             return
 
-        fieldnames = [
-            "format",
-            "full_name",
-            "pokemon_id",
-            "year_of_birth",
-            "tournament_id"
-        ]
+        tournament_ids = list(self.tournaments.keys())
+        for signup in guild_signups:
+            tournament_id = signup.get("tournament_id")
+            if tournament_id and tournament_id not in tournament_ids:
+                tournament_ids.append(tournament_id)
 
-        output = io.StringIO()
-        writer = csv.DictWriter(output, fieldnames=fieldnames)
-        writer.writeheader()
-        for signup in signups:
-            filtered_signup = {k: signup[k] for k in fieldnames if k in signup}
-            writer.writerow(filtered_signup)
+        if not tournament_ids:
+            await ctx.respond(
+                "No tournament sign-ups to list.",
+                ephemeral=True
+            )
+            return
 
-        csv_text = output.getvalue().strip()
+        lines = ["Tournament sign-ups:"]
+        for tournament_id in tournament_ids:
+            tournament_data = self.tournaments.get(tournament_id, {})
+            tournament_name = tournament_data.get("name", tournament_id)
+            tournament_format = tournament_data.get("format", "Unknown")
+            expires_at = tournament_data.get("expires_at", "Unknown")
+            status = "OPEN" if tournament_id in self.get_open_tournaments() else "CLOSED"
+
+            lines.append("")
+            lines.append(f"- {tournament_name} ({status})")
+            lines.append(f"  Format: {tournament_format} | Expires: {expires_at}")
+
+            tournament_signups = [
+                signup for signup in guild_signups
+                if signup.get("tournament_id") == tournament_id
+            ]
+            if not tournament_signups:
+                lines.append("  No sign-ups yet.")
+                continue
+
+            for signup in tournament_signups:
+                lines.append(
+                    "  - "
+                    f"{signup.get('full_name', 'Unknown')} | "
+                    f"ID: {signup.get('pokemon_id', 'Unknown')} | "
+                    f"Birth year: {signup.get('year_of_birth', 'Unknown')} | "
+                    f"Format: {signup.get('format', 'Unknown')} | "
+                    f"Deck: {signup.get('limitless_url', 'Unknown')}"
+                )
 
         await ctx.respond(
-            f"```csv\n{csv_text}\n```",
+            f"```text\n{'\n'.join(lines)}\n```",
             ephemeral=True,
         )
 
@@ -393,11 +440,15 @@ class TournamentBot:
         }
 
         for i, signup in enumerate(self.tournament_signups[guild_key]):
-            if str(signup.get("pokemon_id")) == str(pokemon_id):
+            same_pokemon = str(signup.get("pokemon_id")) == str(pokemon_id)
+            same_tournament = str(signup.get("tournament_id") or "") == str(tournament_id or "")
+            if same_pokemon and same_tournament:
                 self.tournament_signups[guild_key][i] = updated_signup
+                self.save_tournament_signups()
                 return
 
         self.tournament_signups[guild_key].append(updated_signup)
+        self.save_tournament_signups()
 
     def create_signup_modal(self, tournament_id, deck_url=None):
         return CommandModal(

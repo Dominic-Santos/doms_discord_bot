@@ -210,7 +210,10 @@ class AdminBot:
         self.tournament_signup_expires_at = expire.isoformat(
             sep=" ", timespec="seconds"
         )
-        self.tournament_signups[str(ctx.guild.id)] = []
+        guild_key = str(ctx.guild.id)
+        if guild_key not in self.tournament_signups:
+            self.tournament_signups[guild_key] = []
+        self.save_tournament_signups()
         await ctx.respond(
             (
                 "Tournament sign-ups are now open until "

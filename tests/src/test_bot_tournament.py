@@ -233,6 +233,51 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         )
         assert mock_ctx.last_response == "Deck is not valid: err"
 
+    async def test_tournament_signup_persistence_and_listing_by_tournament(self):
+        b = Bot("faketoken", False, "123")
+        mock_ctx = MockCtx()
+        guild_key = str(mock_ctx.guild.id)
+
+        b.tournaments["open_tournament"] = create_tournament(2)
+        b.tournaments["open_tournament"]["name"] = "Open Tourney"
+        b.tournaments["closed_tournament"] = create_closed_tournament(-1)
+        b.tournaments["closed_tournament"]["name"] = "Closed Tourney"
+
+        b.record_tournament_signup(
+            mock_ctx.guild.id,
+            mock_ctx.author.id,
+            "Alice",
+            111,
+            1990,
+            "https://example.com/deck1",
+            "standard",
+            "open_tournament",
+        )
+        b.record_tournament_signup(
+            mock_ctx.guild.id,
+            mock_ctx.author.id,
+            "Bob",
+            222,
+            1991,
+            "https://example.com/deck2",
+            "expanded",
+            "closed_tournament",
+        )
+        b.save_tournament_signups()
+
+        b.tournament_signups = {}
+        b.load_tournament_signups()
+        assert len(b.tournament_signups[guild_key]) == 2
+
+        await b.export_tournament_signups(mock_ctx)
+        response = mock_ctx.last_response
+
+        assert "Open Tourney" in response
+        assert "Closed Tourney" in response
+        assert "Alice" in response
+        assert "Bob" in response
+        assert "open_tournament" not in response.lower()
+
     @patch("src.bot_tournament.os.remove")
     @patch("src.bot_tournament.get_sign_up_sheet")
     @patch("src.bot.create_logger")

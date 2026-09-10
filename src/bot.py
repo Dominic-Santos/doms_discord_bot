@@ -35,6 +35,7 @@ class Bot(
         self.load_user_decklists()
         self.load_tournament_channels()
         self.load_tournaments()
+        self.load_tournament_signups()
         self.load_newsfeed_channels()
         self.load_events_data()
         self.load_banned_cards()
