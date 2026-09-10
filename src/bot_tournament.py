@@ -1,8 +1,6 @@
 import os
 import discord
 import json
-import csv
-import io
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -326,12 +324,6 @@ class TournamentBot:
         async def test_tournament_channel(ctx):
             await self.test_tournament_channel(ctx)  # pragma: no cover
 
-        @self.admin_pokemon.command(
-            description="List tournament sign-ups as CSV text"
-        )
-        async def list_signups(ctx):
-            await self.export_tournament_signups(ctx)  # pragma: no cover
-
     async def set_tournament_channel(self, ctx):
         channel_id = ctx.channel.id
         self.tournament_channels[str(ctx.guild.id)] = channel_id
@@ -366,40 +358,36 @@ class TournamentBot:
             )
             return
 
-        output = io.StringIO()
-        writer = csv.writer(output)
-        writer.writerow([
-            "tournament_name",
-            "format",
-            "full_name",
-            "pokemon_id",
-            "year_of_birth",
-        ])
+        tournament_ids = list(self.tournaments)
+        tournament_ids.extend(
+            signup.get("tournament_id")
+            for signup in guild_signups
+            if signup.get("tournament_id")
+            and signup.get("tournament_id") not in tournament_ids
+        )
 
-        for signup in sorted(
-            guild_signups,
-            key=lambda item: (
-                self.tournaments.get(item.get("tournament_id"), {}).get(
-                    "name",
-                    item.get("tournament_id", "Unknown"),
-                ).lower(),
-                str(item.get("full_name", "")).lower(),
-            ),
-        ):
-            tournament_id = signup.get("tournament_id")
-            tournament_name = self.tournaments.get(tournament_id, {}).get(
-                "name",
-                tournament_id or "Unknown",
+        lines = ["Tournament sign-ups:"]
+        for tournament_id in tournament_ids:
+            tournament = self.tournaments.get(tournament_id, {})
+            tournament_name = tournament.get("name", tournament_id)
+            tournament_signups = [
+                signup for signup in guild_signups
+                if signup.get("tournament_id") == tournament_id
+            ]
+            format_name = (
+                tournament_signups[0].get("format", "Unknown")
+                if tournament_signups
+                else tournament.get("format", "Unknown")
             )
-            writer.writerow([
-                tournament_name,
-                signup.get("format", "Unknown"),
-                signup.get("full_name", "Unknown"),
-                signup.get("pokemon_id", "Unknown"),
-                signup.get("year_of_birth", "Unknown"),
-            ])
+            lines.append(f"\n{tournament_name} | {format_name}")
+            for signup in tournament_signups:
+                lines.append(
+                    f"{signup.get('full_name', 'Unknown')} | "
+                    f"{signup.get('pokemon_id', 'Unknown')} | "
+                    f"DOB: {signup.get('year_of_birth', 'Unknown')}"
+                )
 
-        formatted_output = "```csv\n" + output.getvalue().rstrip() + "\n```"
+        formatted_output = "```text\n" + "\n".join(lines) + "\n```"
         await ctx.respond(
             formatted_output,
             ephemeral=True,

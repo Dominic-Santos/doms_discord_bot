@@ -147,6 +147,13 @@ class AdminBot:
             await self.list_tournaments(ctx)  # pragma: no cover
 
         @tournament.command(
+            name="signups",
+            description="List tournament sign-ups by tournament",
+        )
+        async def signups(ctx):  # pragma: no cover
+            await self.export_tournament_signups(ctx)
+
+        @tournament.command(
             description="Delete a tournament"
         )
         async def delete(ctx):  # pragma: no cover

@@ -294,8 +294,9 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         mock_remove.assert_called_once()
 
         await b.export_tournament_signups(mock_ctx)
-        assert mock_ctx.last_response.startswith("```csv\n")
-        assert "pokemon_id" in mock_ctx.last_response
+        assert mock_ctx.last_response.startswith("```text\n")
+        assert "Test Tournament | standard" in mock_ctx.last_response
+        assert "test person | 1234 | DOB: 1990" in mock_ctx.last_response
         assert "test person" in mock_ctx.last_response
         assert "file" not in mock_ctx.last_respond_kwargs
 
@@ -367,6 +368,10 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         assert "Closed Tourney" in response
         assert "Alice" in response
         assert "Bob" in response
+        assert "Alice | 111 | DOB: 1990" in response
+        assert "Bob | 222 | DOB: 1991" in response
+        assert "Open Tourney | standard" in response
+        assert "Closed Tourney | expanded" in response
         assert "open_tournament" not in response.lower()
 
     @patch("src.bot_tournament.os.remove")
