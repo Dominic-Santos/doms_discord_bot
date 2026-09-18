@@ -32,7 +32,10 @@ class TestCommandModal(unittest.IsolatedAsyncioTestCase):
         response.send_message.assert_awaited_once_with(
             "first", ephemeral=True
         )
-        response.defer.assert_awaited_once_with(ephemeral=True)
+        response.defer.assert_awaited_once_with(
+            ephemeral=True,
+            invisible=False,
+        )
         followup.send.assert_awaited_once_with(
             "second", ephemeral=True
         )

@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 import discord
@@ -239,15 +240,26 @@ class DecklistBot:
         name: str,
         user_id: str = None,
     ):
+        is_component_interaction = hasattr(interaction, "response")
+        if (
+            is_component_interaction and
+            not interaction.response.is_done()
+        ):
+            await interaction.response.defer(ephemeral=True)
+
         if user_id is None:
             user_id = str(interaction.user.id)
         name = name.strip()
 
-        result, error = self.do_user_decklist_check(user_id, name)
+        result, error = await asyncio.to_thread(
+            self.do_user_decklist_check,
+            user_id,
+            name,
+        )
 
         if error is not None:
-            if hasattr(interaction, "response"):
-                await interaction.response.send_message(
+            if is_component_interaction:
+                await interaction.followup.send(
                     f"Error checking deck: {error}",
                     ephemeral=True,
                 )
@@ -267,8 +279,8 @@ class DecklistBot:
         else:
             result_text += f"not valid! {result['expanded']['error']}"
 
-        if hasattr(interaction, "response"):
-            await interaction.response.send_message(result_text, ephemeral=True)
+        if is_component_interaction:
+            await interaction.followup.send(result_text, ephemeral=True)
             return
         await interaction.respond(result_text, ephemeral=True)
 
@@ -295,7 +307,10 @@ class DecklistBot:
             await ctx.respond(MAINTENANCE_MODE_MESSAGE, ephemeral=True)
             return
 
-        result, _, error = self.do_decklist_check(deck_url)
+        result, _, error = await asyncio.to_thread(
+            self.do_decklist_check,
+            deck_url,
+        )
         if error is not None:
             await ctx.respond(
                 f"Error checking deck: {error}",

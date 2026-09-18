@@ -26,7 +26,10 @@ class ModalInteractionContext:
         return getattr(self.interaction, name)
 
     async def defer(self, ephemeral=False):
-        await self.interaction.response.defer(ephemeral=ephemeral)
+        await self.interaction.response.defer(
+            ephemeral=ephemeral,
+            invisible=False,
+        )
 
     async def respond(self, message=None, ephemeral=False, **kwargs):
         if self.interaction.response.is_done():
