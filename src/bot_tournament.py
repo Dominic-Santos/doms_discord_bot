@@ -469,6 +469,28 @@ class TournamentBot:
 
         return None, OUTPUT_CHANNEL_NOT_FOUND_ERROR
 
+    def log_failed_deck_submission(
+        self,
+        ctx,
+        full_name: str,
+        pokemon_id: int,
+        tournament_id: str,
+        error: str,
+    ):
+        tournament_name = self.tournaments.get(
+            tournament_id, {}
+        ).get("name", tournament_id)
+        self.logger.warning(
+            "Failed deck submission: player_id=%s discord_id=%s "
+            "player_name=%s tournament_id=%s tournament_name=%s error=%s",
+            pokemon_id,
+            ctx.author.id,
+            full_name,
+            tournament_id,
+            tournament_name,
+            error,
+        )
+
     async def tournament_signup(
         self,
         ctx,
@@ -557,13 +579,16 @@ class TournamentBot:
         self.save_user_decklists()
 
         if valid[format]["valid"] is False:
-            log_text = (
-                f"Decklist for user {full_name} failed validation: "
-                f"{valid[format]['error']}"
+            validation_error = valid[format]["error"]
+            self.log_failed_deck_submission(
+                ctx,
+                full_name,
+                pokemon_id,
+                tournament_id,
+                validation_error,
             )
-            self.logger.info(log_text)
             await ctx.respond(
-                f"Decklist is not valid: {valid[format]['error']}",
+                f"Decklist is not valid: {validation_error}",
                 ephemeral=True
             )
             return
@@ -718,19 +743,29 @@ class TournamentBot:
         result, deck_data, error = self.do_decklist_check(limitless_url)
 
         if error is not None:
+            self.log_failed_deck_submission(
+                ctx,
+                full_name,
+                pokemon_id,
+                tournament_id,
+                error,
+            )
             await ctx.respond(
                 f"Error checking decklist: {error}", ephemeral=True
             )
             return
 
         if result[format]["valid"] is False:
-            log_text = (
-                f"Decklist for {full_name} failed validation: "
-                f"{result[format]['error']}"
+            validation_error = result[format]["error"]
+            self.log_failed_deck_submission(
+                ctx,
+                full_name,
+                pokemon_id,
+                tournament_id,
+                validation_error,
             )
-            self.logger.info(log_text)
             await ctx.respond(
-                f"Deck is not valid: {result[format]['error']}",
+                f"Deck is not valid: {validation_error}",
                 ephemeral=True
             )
             return

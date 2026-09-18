@@ -353,6 +353,16 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         assert mock_ctx.last_response == (
             "Error checking decklist: Invalid Limitless URL."
         )
+        mock_logger_instance.warning.assert_called_with(
+            "Failed deck submission: player_id=%s discord_id=%s "
+            "player_name=%s tournament_id=%s tournament_name=%s error=%s",
+            1234,
+            303,
+            "test person",
+            "test_tournament",
+            "Test Tournament",
+            "Invalid Limitless URL.",
+        )
 
         await b.tournament_signup_url(
             mock_ctx,
@@ -413,6 +423,16 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             "test_tournament"
         )
         assert mock_ctx.last_response == "Deck is not valid: err"
+        mock_logger_instance.warning.assert_called_with(
+            "Failed deck submission: player_id=%s discord_id=%s "
+            "player_name=%s tournament_id=%s tournament_name=%s error=%s",
+            1234,
+            303,
+            "test person",
+            "test_tournament",
+            "Test Tournament",
+            "err",
+        )
 
     async def test_tournament_signup_persistence_and_listing_by_tournament(self):
         b = Bot("faketoken", False, "123")
@@ -567,6 +587,7 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
         mock_fill,
         mock_remove
     ):
+        mock_logger_instance = mock_logger.return_value
         mock_bot = MagicMock()
         mock_discord.Bot.return_value = mock_bot
         mock_dl_json.load.side_effect = Exception("failed")
@@ -684,6 +705,16 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             str(datetime.now().date())
         )
         assert b.tournament_signup_response.call_count == 0
+        mock_logger_instance.warning.assert_called_with(
+            "Failed deck submission: player_id=%s discord_id=%s "
+            "player_name=%s tournament_id=%s tournament_name=%s error=%s",
+            12,
+            303,
+            "first last",
+            "test_tournament",
+            "Test Tournament",
+            "the error",
+        )
 
         mock_validate.return_value = (True, "")
         await b.tournament_signup(
