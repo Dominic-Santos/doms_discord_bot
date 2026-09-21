@@ -22,15 +22,15 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
         b = Bot("faketoken", False, "123")
         ctx = MockCtx()
 
-        await b.create_tournament(ctx, "League Cup", "not-a-date", "standard", "123")
+        await b.create_tournament(ctx, "League Cup", "not-a-date", "standard")
         assert ctx.last_response.startswith("Invalid datetime format")
 
         await b.create_tournament(
-            ctx, "League Cup", "2099-05-21 18:30:00", "standard", "123"
+            ctx, "League Cup", "2099-05-21 18:30:00", "standard"
         )
         assert "created successfully" in ctx.last_response
         await b.create_tournament(
-            ctx, "League Cup", "2099-05-21 18:30:00", "expanded", "123"
+            ctx, "League Cup", "2099-05-21 18:30:00", "expanded"
         )
         assert "league_cup_1" in b.tournaments
 
@@ -40,18 +40,16 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
         await b.list_tournaments(ctx)
         assert "INVALID" in ctx.last_response
 
-        await b.delete_tournament(ctx, "missing", "123")
+        await b.delete_tournament(ctx, "missing")
         assert "not found" in ctx.last_response
-        await b.delete_tournament(ctx, "league_cup_1", "123")
+        await b.delete_tournament(ctx, "league_cup_1")
         assert "deleted" in ctx.last_response
 
         b.tournament_signups[str(ctx.guild.id)] = [
             {"tournament_id": "league_cup"},
             {"tournament_id": "other"},
         ]
-        await b.clear_tournament_signups(ctx, "league_cup", "bad")
-        assert ctx.last_response == "Invalid admin password"
-        await b.clear_tournament_signups(ctx, "league_cup", "123")
+        await b.clear_tournament_signups(ctx, "league_cup")
         assert len(b.tournament_signups[str(ctx.guild.id)]) == 1
 
     async def test_tournament_admin_error_branches(self):
@@ -62,23 +60,23 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
         await b.tournament_status(ctx)
         assert "INVALID" in ctx.last_response
         await b.create_tournament(
-            ctx, "Name", "2099-01-01", "standard", "bad"
+            ctx, "Name", "2099-01-01", "standard"
         )
-        assert ctx.last_response == "Invalid admin password"
-        await b.delete_tournament(ctx, "invalid", "bad")
-        assert ctx.last_response == "Invalid admin password"
+        assert "created successfully" in ctx.last_response
+        await b.delete_tournament(ctx, "invalid")
+        assert "deleted" in ctx.last_response
 
         b.tournaments = {}
         await b.list_tournaments(ctx)
         assert ctx.last_response == "No tournaments created yet."
         await b.create_tournament(
-            ctx, "Timezone", "2099-01-01T00:00:00+00:00", "standard", "123"
+            ctx, "Timezone", "2099-01-01T00:00:00+00:00", "standard"
         )
         assert "created successfully" in ctx.last_response
         b.tournaments["duplicate"] = {}
         b.tournaments["duplicate_1"] = {}
         await b.create_tournament(
-            ctx, "Duplicate", "2099-01-01", "standard", "123"
+            ctx, "Duplicate", "2099-01-01", "standard"
         )
         assert "duplicate_2" in b.tournaments
 
@@ -119,23 +117,14 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
 
         await b.open_tournament_signups(
             mock_ctx,
-            (datetime.now() + timedelta(hours=2)).isoformat(sep=" "),
-            "fake"
-        )
-        assert mock_ctx.last_response == "Invalid admin password"
-
-        await b.open_tournament_signups(
-            mock_ctx,
-            "not a datetime",
-            b.password
+            "not a datetime"
         )
         assert mock_ctx.last_response.startswith("Invalid datetime format")
 
         future_dt = (datetime.now() + timedelta(hours=3)).isoformat(sep=" ")
         await b.open_tournament_signups(
             mock_ctx,
-            future_dt,
-            b.password
+            future_dt
         )
         assert mock_ctx.last_response.startswith(
             "Tournament sign-ups are now open until"
@@ -146,15 +135,13 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
         b.tournament_signups[str(mock_ctx.guild.id)] = [{"full_name": "x"}]
         await b.open_tournament_signups(
             mock_ctx,
-            future_dt,
-            b.password
+            future_dt
         )
         assert b.tournament_signups[str(mock_ctx.guild.id)] == []
 
         await b.open_tournament_signups(
             mock_ctx,
-            "2026-05-21T18:30:00+00:00",
-            b.password
+            "2026-05-21T18:30:00+00:00"
         )
         assert mock_ctx.last_response.startswith(
             "Tournament sign-ups are now open until"
@@ -177,10 +164,7 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
         assert "Test Tournament" in mock_ctx.last_response
         assert "2026-05-21 18:30:00" in mock_ctx.last_response
 
-        await b.close_tournament_signups(mock_ctx, "fake")
-        assert mock_ctx.last_response == "Invalid admin password"
-
-        await b.close_tournament_signups(mock_ctx, b.password)
+        await b.close_tournament_signups(mock_ctx)
         assert mock_ctx.last_response == "Tournament sign-ups are now closed."
         assert b.tournament_signup_expires_at is None
 
@@ -196,16 +180,10 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
                 "expires_at": "2099-06-21 18:30:00",
             },
         }
-        await b.close_tournament(mock_ctx, "open_one", "fake")
-        assert mock_ctx.last_response == "Invalid admin password"
-        assert b.tournaments["open_one"]["expires_at"] == (
-            "2099-05-21 18:30:00"
-        )
-
-        await b.close_tournament(mock_ctx, "missing", b.password)
+        await b.close_tournament(mock_ctx, "missing")
         assert mock_ctx.last_response == "Tournament 'missing' not found."
 
-        await b.close_tournament(mock_ctx, "open_one", b.password)
+        await b.close_tournament(mock_ctx, "open_one")
         assert mock_ctx.last_response == (
             "Tournament 'Open One' is now closed."
         )
@@ -237,11 +215,7 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
         }
         b.save_tournaments = MagicMock()
         b.save_tournament_signups = MagicMock()
-        await b.delete_closed_tournaments(mock_ctx, "fake")
-        assert mock_ctx.last_response == "Invalid admin password"
-        assert "closed" in b.tournaments
-
-        await b.delete_closed_tournaments(mock_ctx, b.password)
+        await b.delete_closed_tournaments(mock_ctx)
         assert mock_ctx.last_response == "Deleted 1 closed tournament(s)."
         assert "closed" not in b.tournaments
         assert "open_two" in b.tournaments

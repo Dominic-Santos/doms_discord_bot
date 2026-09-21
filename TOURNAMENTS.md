@@ -17,17 +17,19 @@ The tournament system allows server admins to create and manage multiple tournam
 ### Create a Tournament
 
 ```
-/admin tournament create name:"Tournament Name" expire_datetime:"2026-05-21 18:30:00" password:"your_password"
+/admin tournament create
 ```
 
 **Parameters:**
 - `name` (string): Display name for the tournament
 - `expire_datetime` (string): Expiration date/time in ISO format: `YYYY-MM-DD HH:MM:SS`
-- `password` (string): Your admin password from `config.json`
+- `format` (choice): `standard` or `expanded`
 
 **Example:**
 ```
-/admin tournament create name:"Regional Championship" expire_datetime:"2026-05-21 18:30:00" password:"abc123"
+Name: Regional Championship
+Expiration datetime: 2026-05-21 18:30:00
+Tournament format: standard
 ```
 
 ### List Tournaments
@@ -54,16 +56,15 @@ Local Qualifier (ID: `local_qualifier`)
 ### Delete a Tournament
 
 ```
-/admin tournament delete tournament_id:"tournament_id" password:"your_password"
+/admin tournament delete
 ```
 
 **Parameters:**
 - `tournament_id` (string): The ID of the tournament to delete (shown in list command)
-- `password` (string): Your admin password
 
 **Example:**
 ```
-/admin tournament delete tournament_id:"local_qualifier" password:"abc123"
+Tournament ID: local_qualifier
 ```
 
 ### Tournament Status
@@ -211,10 +212,10 @@ Saturday 10:00 AM - Tournament runs (everyone already checked in)
 Delete closed tournaments to keep the list manageable:
 
 ```
-/admin tournament delete tournament_id:"old_tournament" password:"abc123"
+/admin tournament delete_closed
 ```
 
-Note: This only removes the tournament definition, not existing signups.
+This also removes signups associated with the deleted tournaments.
 
 ## Datetime Format Reference
 

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import discord
 
-from .modals import CommandModal, choice_converter
+from .modals import CommandModal, ModalInteractionContext, choice_converter
 
 
 class TournamentCloseSelectView(discord.ui.View):  # pragma: no cover
@@ -24,16 +24,10 @@ class TournamentCloseSelectView(discord.ui.View):  # pragma: no cover
 
         async def select_callback(interaction):
             tournament_id = select.values[0]
-            await interaction.response.send_modal(CommandModal(
-                "Close Tournament",
-                [("password", "Bot admin password", "Password", str)],
-                lambda modal_ctx, values: self.tournament_bot.close_tournament(
-                    modal_ctx,
-                    tournament_id,
-                    values["password"],
-                ),
-                self.tournament_bot.logger,
-            ))
+            await self.tournament_bot.close_tournament(
+                ModalInteractionContext(interaction),
+                tournament_id,
+            )
             self.stop()
 
         select.callback = select_callback
@@ -60,16 +54,10 @@ class TournamentClearSignupsSelectView(discord.ui.View):  # pragma: no cover
 
         async def select_callback(interaction):
             tournament_id = select.values[0]
-            await interaction.response.send_modal(CommandModal(
-                "Clear Tournament Signups",
-                [("password", "Bot admin password", "Password", str)],
-                lambda modal_ctx, values: self.tournament_bot.clear_tournament_signups(
-                    modal_ctx,
-                    tournament_id,
-                    values["password"],
-                ),
-                self.tournament_bot.logger,
-            ))
+            await self.tournament_bot.clear_tournament_signups(
+                ModalInteractionContext(interaction),
+                tournament_id,
+            )
             self.stop()
 
         select.callback = select_callback
@@ -122,19 +110,12 @@ class AdminBot:
                         "standard or expanded",
                         choice_converter("standard", "expanded")
                     ),
-                    (
-                        "password",
-                        "Bot admin password",
-                        "Password",
-                        str
-                    ),
                 ],
                 lambda modal_ctx, values: self.create_tournament(
                     modal_ctx,
                     values["name"],
                     values["expire_datetime"],
                     values["format"],
-                    values["password"]
                 ),
                 self.logger
             ))
@@ -161,12 +142,10 @@ class AdminBot:
                 "Delete Tournament",
                 [
                     ("tournament_id", "Tournament ID", "league_cup", str),
-                    ("password", "Bot admin password", "Password", str),
                 ],
                 lambda modal_ctx, values: self.delete_tournament(
                     modal_ctx,
                     values["tournament_id"],
-                    values["password"]
                 ),
                 self.logger
             ))
@@ -197,17 +176,7 @@ class AdminBot:
             description="Delete all closed tournaments"
         )
         async def delete_closed(ctx):  # pragma: no cover
-            await ctx.send_modal(CommandModal(
-                "Delete Closed Tournaments",
-                [
-                    ("password", "Bot admin password", "Password", str),
-                ],
-                lambda modal_ctx, values: self.delete_closed_tournaments(
-                    modal_ctx,
-                    values["password"],
-                ),
-                self.logger,
-            ))
+            await self.delete_closed_tournaments(ctx)
 
         @tournament.command(
             description="Clear tournament sign-ups for a specific tournament"
@@ -248,13 +217,8 @@ class AdminBot:
         self,
         ctx,
         expire_datetime: str,
-        password: str
     ):
         await ctx.defer(ephemeral=True)
-
-        if password != self.password:
-            await ctx.respond("Invalid admin password", ephemeral=True)
-            return
 
         try:
             expire = datetime.fromisoformat(expire_datetime.strip())
@@ -315,12 +279,8 @@ class AdminBot:
 
         await ctx.respond(tournament_list, ephemeral=True)
 
-    async def close_tournament_signups(self, ctx, password: str):
+    async def close_tournament_signups(self, ctx):
         await ctx.defer(ephemeral=True)
-
-        if password != self.password:
-            await ctx.respond("Invalid admin password", ephemeral=True)
-            return
 
         self.tournament_signup_expires_at = None
         await ctx.respond(
@@ -328,12 +288,8 @@ class AdminBot:
             ephemeral=True
         )
 
-    async def close_tournament(self, ctx, tournament_id: str, password: str):
+    async def close_tournament(self, ctx, tournament_id: str):
         await ctx.defer(ephemeral=True)
-
-        if password != self.password:
-            await ctx.respond("Invalid admin password", ephemeral=True)
-            return
 
         tournament = self.tournaments.get(tournament_id)
         if tournament is None:
@@ -359,13 +315,8 @@ class AdminBot:
         name: str,
         expire_datetime: str,
         format: str,
-        password: str
     ):
         await ctx.defer(ephemeral=True)
-
-        if password != self.password:
-            await ctx.respond("Invalid admin password", ephemeral=True)
-            return
 
         try:
             expire = datetime.fromisoformat(expire_datetime.strip())
@@ -444,13 +395,8 @@ class AdminBot:
         self,
         ctx,
         tournament_id: str,
-        password: str
     ):
         await ctx.defer(ephemeral=True)
-
-        if password != self.password:
-            await ctx.respond("Invalid admin password", ephemeral=True)
-            return
 
         if tournament_id not in self.tournaments:
             await ctx.respond(
@@ -472,13 +418,8 @@ class AdminBot:
         self,
         ctx,
         tournament_id: str,
-        password: str
     ):
         await ctx.defer(ephemeral=True)
-
-        if password != self.password:
-            await ctx.respond("Invalid admin password", ephemeral=True)
-            return
 
         guild_id = str(ctx.guild.id)
         guild_signups = self.tournament_signups.get(guild_id, [])
@@ -498,12 +439,8 @@ class AdminBot:
             ephemeral=True,
         )
 
-    async def delete_closed_tournaments(self, ctx, password: str):
+    async def delete_closed_tournaments(self, ctx):
         await ctx.defer(ephemeral=True)
-
-        if password != self.password:
-            await ctx.respond("Invalid admin password", ephemeral=True)
-            return
 
         now = datetime.now()
         closed_ids = []

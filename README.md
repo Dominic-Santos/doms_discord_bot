@@ -127,13 +127,13 @@ User command groups:
 
 | Command | Required Role | Parameters | Description |
 | --- | --- | --- | --- |
-| `/admin tournament create` | Admin | `name`, `expire_datetime`, `format`, `password` | Open a form to create a new named tournament. |
+| `/admin tournament create` | Admin | `name`, `expire_datetime`, `format` | Open a form to create a new named tournament. |
 | `/admin tournament list` | Admin | - | List all tournaments with their status (OPEN/CLOSED). |
 | `/admin tournament signups` | Admin | - | List every tournament and its players as compact name, ID, and DOB entries. |
-| `/admin tournament clear_signups` | Admin | Select a tournament, then `password` | Clear sign-ups for one specific tournament while leaving other tournaments alone. |
-| `/admin tournament delete` | Admin | `tournament_id`, `password` | Open a form to delete a tournament. |
-| `/admin tournament close` | Admin | Select a tournament, then `password` | Select an open tournament and close only that tournament. |
-| `/admin tournament delete_closed` | Admin | `password` | Delete every tournament whose expiration has passed. |
+| `/admin tournament clear_signups` | Admin | Select a tournament | Clear sign-ups for one specific tournament while leaving other tournaments alone. |
+| `/admin tournament delete` | Admin | `tournament_id` | Open a form to delete a tournament. |
+| `/admin tournament close` | Admin | Select a tournament | Select an open tournament and close only that tournament. |
+| `/admin tournament delete_closed` | Admin | - | Delete every tournament whose expiration has passed. |
 | `/admin tournament status` | Admin | - | Show tournament status information. |
 
 ### Admin - Pokemon
@@ -195,10 +195,10 @@ Admins use `/admin tournament` commands to manage tournaments:
 ```
 /admin tournament create  # complete the form
 /admin tournament list
-/admin tournament clear_signups  # select a tournament, then enter the password
+/admin tournament clear_signups  # select a tournament
 /admin tournament delete   # complete the form
-/admin tournament close    # select a tournament, then enter the password
-/admin tournament delete_closed  # enter the password
+/admin tournament close    # select a tournament
+/admin tournament delete_closed
 ```
 
 ### Tournament Storage
@@ -266,7 +266,7 @@ The bot includes scheduled tasks that run automatically.
 | Key | Required | Type | Default | Description |
 | --- | --- | --- | --- | --- |
 | `app_token` | Yes | string | none | Discord bot token from Discord Developer Portal. |
-| `admin_password` | Yes | string | `abc123` | Password for admin-protected commands. |
+| `admin_password` | Yes | string | `abc123` | Password for `/admin maintenance toggle`. |
 | `maintenance_mode` | No | boolean | `true` | Whether the bot starts in maintenance mode. |
 
 Config example:
@@ -294,7 +294,7 @@ Config example:
 Common issues and quick fixes:
 
 - Invalid admin password
-  - Verify `admin_password` in `config.json` and command input.
+  - Verify `admin_password` in `config.json` when using `/admin maintenance toggle`.
 - Tournament output channel is not set for this server
   - Run `/admin pokemon set_tournament_channel` in the desired channel.
 - Tournament output channel not found. Please set it again.
