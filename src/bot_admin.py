@@ -522,7 +522,14 @@ class AdminBot:
             del self.tournaments[tournament_id]
 
         if closed_ids:
+            closed_id_set = set(closed_ids)
+            for guild_id, guild_signups in self.tournament_signups.items():
+                self.tournament_signups[guild_id] = [
+                    signup for signup in guild_signups
+                    if signup.get("tournament_id") not in closed_id_set
+                ]
             self.save_tournaments()
+            self.save_tournament_signups()
 
         await ctx.respond(
             f"Deleted {len(closed_ids)} closed tournament(s).",

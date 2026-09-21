@@ -224,6 +224,19 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
             "name": "Invalid",
             "expires_at": "not a datetime",
         }
+        guild_id = str(mock_ctx.guild.id)
+        b.tournament_signups = {
+            guild_id: [
+                {"tournament_id": "closed", "full_name": "Remove"},
+                {"tournament_id": "open_two", "full_name": "Keep"},
+            ],
+            "303": [
+                {"tournament_id": "closed", "full_name": "Remove too"},
+                {"tournament_id": "invalid", "full_name": "Keep too"},
+            ],
+        }
+        b.save_tournaments = MagicMock()
+        b.save_tournament_signups = MagicMock()
         await b.delete_closed_tournaments(mock_ctx, "fake")
         assert mock_ctx.last_response == "Invalid admin password"
         assert "closed" in b.tournaments
@@ -233,3 +246,11 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
         assert "closed" not in b.tournaments
         assert "open_two" in b.tournaments
         assert "invalid" in b.tournaments
+        assert b.tournament_signups[guild_id] == [
+            {"tournament_id": "open_two", "full_name": "Keep"},
+        ]
+        assert b.tournament_signups["303"] == [
+            {"tournament_id": "invalid", "full_name": "Keep too"},
+        ]
+        b.save_tournaments.assert_called_once_with()
+        b.save_tournament_signups.assert_called_once_with()
