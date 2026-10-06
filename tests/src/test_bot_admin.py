@@ -1,6 +1,6 @@
 import unittest
 from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
 from src.bot import Bot
 
 
@@ -17,6 +17,11 @@ class MockCtx():
 
 
 class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
+
+    def setUp(self):
+        file_patch = patch("builtins.open", mock_open(read_data="{}"))
+        file_patch.start()
+        self.addCleanup(file_patch.stop)
 
     async def test_tournament_admin_crud_and_signup_cleanup(self):
         b = Bot("faketoken", False, "123")
