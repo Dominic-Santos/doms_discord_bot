@@ -94,11 +94,12 @@ def save_cards_to_file(
     json.dump(to_save, open(filename, "w"), indent=4)
 
 
-def get_standard_format_from_date(date: datetime.date) -> str:
-    format_year = date.year
-    if date.month >= 4 and date.day >= 10:
+def get_standard_format_from_date(the_date: datetime.date) -> str:
+    format_year = the_date.year
+    if (the_date.month >= 4 and the_date.day >= 10) or the_date.month > 4:
         format_year += 1
     format_letter = chr(ord("d") + (format_year - 2023))
+    print(f"Current format: {format_letter}-on-standard-{format_year}")
     return f"{format_letter}-on-standard-{format_year}"
 
 
