@@ -99,7 +99,6 @@ def get_standard_format_from_date(the_date: datetime.date) -> str:
     if (the_date.month >= 4 and the_date.day >= 10) or the_date.month > 4:
         format_year += 1
     format_letter = chr(ord("d") + (format_year - 2023))
-    print(f"Current format: {format_letter}-on-standard-{format_year}")
     return f"{format_letter}-on-standard-{format_year}"
 
 
