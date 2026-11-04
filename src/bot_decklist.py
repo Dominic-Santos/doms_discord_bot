@@ -1,9 +1,10 @@
 import asyncio
 import json
+import re
 
 import discord
 
-from .limitless import get_decklist_from_url
+from .limitless import get_decklist_from_url, build_card_lookup
 from .core import validate_decklist, DATA_FOLDER
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
 from .modals import CommandModal
@@ -350,7 +351,13 @@ class DecklistBot:
         valid = self.check_limitless_url(limitless_url)
         if not valid:
             return {}, {}, "Invalid Limitless URL."
-        t = CustomThread(get_decklist_from_url, args=(limitless_url,))
+        card_lookup = build_card_lookup(
+            getattr(self, "raw_expanded_cards", {}),
+            getattr(self, "raw_standard_cards", {}),
+        )
+        t = CustomThread(
+            get_decklist_from_url, args=(limitless_url, card_lookup)
+        )
         t.start()
         deck_data, error = t.join()
 
@@ -379,7 +386,7 @@ class DecklistBot:
         return result
 
     def check_limitless_url(self, url: str) -> tuple[bool]:
-        clean = url.strip("https://").strip("http://")
+        clean = re.sub(r"^\s*(?:https?://)?", "", url, flags=re.IGNORECASE)
         if clean.startswith("my.limitlesstcg.com/builder?i="):
             return True
         return False
