@@ -135,6 +135,30 @@ def get_legal_card_list(
     return group_cards(cards), total
 
 
+def get_banned_cards() -> dict[str, dict]:
+    banned = {}
+    for current_format in ("standard", "expanded"):
+        url = SEARCH_URL.replace(
+            "{query}", quote_plus(f"bans:{current_format}")
+        )
+        cards, _ = get_all_pages(url)
+        format_bans = {"pokemon": {}, "trainers": [], "energies": []}
+        for card in cards:
+            if card["type"].startswith("Pkmn"):
+                format_bans["pokemon"].setdefault(
+                    card["set"], []
+                ).append(card["number"])
+                continue
+            category = (
+                "energies" if card["type"].startswith("Energy")
+                else "trainers"
+            )
+            if card["name"] not in format_bans[category]:
+                format_bans[category].append(card["name"])
+        banned[current_format] = format_bans
+    return banned
+
+
 def get_legal_cards(
     filename: str = "legal_cards.json",
     expanded_filename: str = "legal_expanded_cards.json",

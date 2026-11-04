@@ -143,7 +143,7 @@ User command groups:
 | `/admin pokemon set_tournament_channel` | Admin | - | Set current channel as tournament output channel. |
 | `/admin pokemon test_tournament_channel` | Admin | - | Send a test message to the tournament output channel. |
 | `/admin pokemon refresh_card_data` | Admin | - | Refresh legal cards, set codes and the full card database used for validation. |
-| `/admin pokemon update_banned_cards` | Admin | - | Refresh banned cards used for validation. |
+| `/admin pokemon update_banned_cards` | Admin | - | Refresh banned cards (Limitless `bans:` search) used for validation. |
 | `/admin pokemon update_signup_sheet` | Admin | - | Refresh tournament sign-up sheet image. |
 
 ### Events - Pokemon
@@ -256,7 +256,7 @@ The bot includes scheduled tasks that run automatically.
 | Task | Schedule | Purpose |
 | --- | --- | --- |
 | Refresh card data | Daily at 7:00 | Refresh legal card data, set codes and the full card database for validation. |
-| Update banned cards | Daily at 8:00 | Refresh banned card data for validation. |
+| Update banned cards | Daily at 8:00 | Refresh banned card data from Limitless for validation. |
 | Update sign-up sheet | Daily at 9:00 | Refresh tournament sign-up sheet image. |
 | Update events | Daily at 11:00 | Sync latest followed event data. |
 | Check newsfeed | Every 6 hours | Fetch latest Pokemon newsfeed posts from the PokéBeach Front Page News RSS feed. |
@@ -296,6 +296,7 @@ Decklists are decoded directly from the Limitless builder URL, the bot never ope
 | `data/legal_cards.json` | limitlesstcg.com/cards search `f:standard` | Cards legal in standard, ACE SPECs flagged with `ace_spec`. |
 | `data/legal_expanded_cards.json` | limitlesstcg.com/cards search `f:expanded` | Cards legal in expanded. |
 | `data/card_sets.json` | limitlesstcg.com/cards | Set names mapped to set codes. |
+| `data/banned_cards.json` | limitlesstcg.com/cards search `bans:standard` / `bans:expanded` | Banned cards per format: Pokémon by set code and number, trainers and energies by name. |
 | `data/card_database.json` | limitlesstcg.com/cards/<set code>?display=list | Every card in every set, refetched in full on each update, used to resolve cards from the URL. |
 
 Each refresh re-downloads every set (one request per set, about 5 minutes in total) because the per-set card counts shown on the site are not always accurate. Progress is saved after each set, and the legal lists are only re-downloaded when their card count changes.

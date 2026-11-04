@@ -1,8 +1,7 @@
-import json
 from unittest.mock import patch, MagicMock
 from src.core import (
     validate_decklist, fill_sheet, load_card_database,
-    get_offset, convert_banned_cards
+    get_offset
 )
 
 
@@ -372,76 +371,3 @@ def test_fill_sheet(mock_draw, mock_font, mock_image):
     assert draw_instance.text.call_count == 11
     mock_image.open.assert_called_once()
     image_instance.save.assert_called_once()
-
-
-def test_convert_banned_cards():
-    banned_cards = {
-        "standard": [
-            ("Sewaddle", "white", "087"),
-            ("Tool Scrapper", "white", "085"),
-            ("Prism Energy", "black", "086"),
-            ("Prism Energy Promo", "black promo", "086"),
-        ]
-    }
-
-    sets = {
-        "white": "WHT",
-        "black": "BLK",
-        "black promos": "BLK-PROMO"
-    }
-
-    with open("tests/src/test_legal_cards.json", "r") as f:
-        legal_cards = json.load(f)
-
-    result = convert_banned_cards(
-        banned_cards, sets, legal_cards["cards"]
-    )
-    assert result["standard"]["pokemon"] == {
-        "WHT": ["087"]
-    }
-    assert result["standard"]["trainers"] == [
-        "Tool Scrapper"
-    ]
-    assert result["standard"]["energies"] == [
-        "Prism Energy", "Prism Energy Promo"
-    ]
-
-    error = None
-    try:
-        convert_banned_cards(
-            banned_cards, sets, {}
-        )
-    except Exception as e:
-        error = e
-
-    assert str(error) == (
-        "Set code WHT not found in expanded cards."
-    )
-
-    error = None
-    try:
-        convert_banned_cards(
-            banned_cards, sets, {"WHT": {}}
-        )
-    except Exception as e:
-        error = e
-
-    assert str(error) == (
-        "Card number WHT-087 "
-        "not found in expanded cards."
-    )
-
-    error = None
-    try:
-        convert_banned_cards(
-            banned_cards, sets, {"WHT": {"087": {
-                "type": "dunno"
-            }}}
-        )
-    except Exception as e:
-        error = e
-
-    assert str(error) == (
-        "Card WHT-087 "
-        "has unknown type dunno."
-    )

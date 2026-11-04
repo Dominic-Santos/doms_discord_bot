@@ -1,10 +1,9 @@
 import json
 
-from .core import load_card_database, convert_banned_cards, DATA_FOLDER
+from .core import load_card_database, DATA_FOLDER
 from .limitless_cards import (
-    get_legal_cards, get_pokemon_sets, get_all_cards
+    get_legal_cards, get_pokemon_sets, get_all_cards, get_banned_cards
 )
-from .pokemon import get_banned_cards
 
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
 
@@ -243,10 +242,6 @@ class LegalCardsBot:
         if error is not None:
             return error
 
-        self.banned_cards = convert_banned_cards(
-            banned_cards,
-            self.card_sets,
-            self.raw_expanded_cards.get("cards", {})
-        )
+        self.banned_cards = banned_cards
         self.save_banned_cards()
         return None

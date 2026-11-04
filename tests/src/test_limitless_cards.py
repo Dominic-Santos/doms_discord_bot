@@ -177,3 +177,24 @@ def test_get_all_cards_without_existing_file():
             patch("json.dump") as dump:
         lc.get_all_cards("db.json")
     assert dump.call_args[0][0] == {"cards": {"TWM": {}}}
+
+
+def test_get_banned_cards():
+    medicham = row("EVS", "83", "Medicham V", '<span class="ptcg-symbol">F</span> Basic')
+    net = row("RCL", "165", "Scoop Up Net", "Item")
+    net_again = row("RCL", "207", "Scoop Up Net", "Item")
+    energy = row("XYZ", "1", "Prism Energy", "Special Energy")
+
+    def fetch(url):
+        if "bans%3Aexpanded" in url:
+            return page([medicham, net, net_again, energy])
+        return page([])
+
+    with patch.object(lc, "fetch_html", side_effect=fetch):
+        banned = lc.get_banned_cards()
+    assert banned["standard"] == {"pokemon": {}, "trainers": [], "energies": []}
+    assert banned["expanded"] == {
+        "pokemon": {"EVS": ["83"]},
+        "trainers": ["Scoop Up Net"],
+        "energies": ["Prism Energy"],
+    }
