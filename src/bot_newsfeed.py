@@ -101,6 +101,12 @@ class NewsfeedBot:
                 )
                 continue
 
+            # the previous post is unknown after a source change, so only
+            # remember the newest post instead of posting the whole feed
+            if latest_post is not None and latest_post not in posts:
+                self.newsfeed_channels[guild_id]["latest_post"] = posts[0]
+                continue
+
             should_post = []
             for post in posts:
                 if post == latest_post:

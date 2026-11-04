@@ -1,26 +1,20 @@
-from seleniumbase import Driver
+import urllib.request
+import xml.etree.ElementTree as ET
+
+NEWSFEED_URL = "https://www.pokebeach.com/forums/forums/front-page-news.18/index.rss"
+USER_AGENT = "Mozilla/5.0"
+REQUEST_TIMEOUT = 60
 
 
 def get_newsfeed() -> list[str]:
-    posts = []
-    sb = Driver(uc=True, locale_code="en", ad_block=True)
-    sb.uc_activate_cdp_mode("https://www.pokebeach.com/")
-    sb.sleep(10)
-    post_div = sb.cdp.find_visible_elements("div.xpress_articleList")[0]
-    for post in post_div.children:
-        a_element = post
-        empty_post = False
-        for _ in range(6):
-            if len(a_element.children) == 0:
-                empty_post = True
-                break
-            a_element = a_element.children[0]
+    request = urllib.request.Request(
+        NEWSFEED_URL, headers={"User-Agent": USER_AGENT}
+    )
+    with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT) as response:
+        feed = ET.fromstring(response.read())
 
-        if empty_post:
-            continue
-
-        post_url = a_element["href"]
-        posts.append(post_url)
-
-    sb.quit()
-    return posts
+    return [
+        link.strip()
+        for item in feed.iter("item")
+        if (link := item.findtext("link"))
+    ]

@@ -259,7 +259,7 @@ The bot includes scheduled tasks that run automatically.
 | Update banned cards | Daily at 8:00 | Refresh banned card data for validation. |
 | Update sign-up sheet | Daily at 9:00 | Refresh tournament sign-up sheet image. |
 | Update events | Daily at 11:00 | Sync latest followed event data. |
-| Check newsfeed | Every 6 hours | Fetch latest Pokemon newsfeed posts. |
+| Check newsfeed | Every 6 hours | Fetch latest Pokemon newsfeed posts from the PokéBeach Front Page News RSS feed. |
 
 ## Configuration Reference
 

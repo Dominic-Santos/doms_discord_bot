@@ -126,6 +126,11 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         await b.do_get_newsfeed()
         assert mock_ctx.last_response == "nothing"
 
+        b.newsfeed_channels["1234"]["latest_post"] = "https://old-source/post"
+        await b.do_get_newsfeed()
+        assert mock_ctx.last_response == "nothing"
+        assert b.newsfeed_channels["1234"]["latest_post"] == "this is a post"
+
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
     @patch("builtins.open")
