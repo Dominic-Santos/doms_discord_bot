@@ -142,7 +142,7 @@ User command groups:
 | --- | --- | --- | --- |
 | `/admin pokemon set_tournament_channel` | Admin | - | Set current channel as tournament output channel. |
 | `/admin pokemon test_tournament_channel` | Admin | - | Send a test message to the tournament output channel. |
-| `/admin pokemon update_legal_cards` | Admin | - | Refresh legal cards, set codes and the full card database used for validation. |
+| `/admin pokemon refresh_card_data` | Admin | - | Refresh legal cards, set codes and the full card database used for validation. |
 | `/admin pokemon update_banned_cards` | Admin | - | Refresh banned cards used for validation. |
 | `/admin pokemon update_signup_sheet` | Admin | - | Refresh tournament sign-up sheet image. |
 
@@ -323,7 +323,7 @@ Common issues and quick fixes:
 - Sign-up sheet is not available. Please try again later.
   - Run `/admin pokemon update_signup_sheet`.
 - Legal cards are not loaded. Please try again later.
-  - Run `/admin pokemon update_legal_cards`.
+  - Run `/admin pokemon refresh_card_data`.
 - No tournaments are open at this moment.
   - Create tournaments using `/admin tournament create` with a future expiration date.
 - No tournament selected (when dropdown is shown).

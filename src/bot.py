@@ -88,14 +88,14 @@ class Bot(
             self.add_tasks()  # pragma: no cover
 
     def add_tasks(self):
-        time_update_legal_cards = datetime.time(hour=7)
+        time_refresh_card_data = datetime.time(hour=7)
         time_update_signup_sheet = datetime.time(hour=9)
         # time_update_events = datetime.time(hour=11)
         time_update_banned_cards = datetime.time(hour=8)
         interval_update_newsfeed = {"hours": 6}
 
-        @tasks.loop(time=time_update_legal_cards)
-        async def update_legal_cards():
+        @tasks.loop(time=time_refresh_card_data)
+        async def refresh_card_data():
             self.get_legal_cards_task()  # pragma: no cover
 
         @tasks.loop(time=time_update_banned_cards)
@@ -114,7 +114,7 @@ class Bot(
         # async def update_events():
         #     await self.sync_events_task()   # pragma: no cover
 
-        update_legal_cards.start()
+        refresh_card_data.start()
         update_signup_sheet.start()
         update_newsfeed.start()
         # update_events.start()

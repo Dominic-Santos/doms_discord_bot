@@ -100,7 +100,7 @@ class LegalCardsBot:
         @self.admin_pokemon.command(
             description="Sync the legal cards list for deck validation"
         )
-        async def update_legal_cards(ctx):
+        async def refresh_card_data(ctx):
             await self.get_legal_cards(ctx)  # pragma: no cover
 
         @self.admin_pokemon.command(
