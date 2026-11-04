@@ -255,7 +255,7 @@ The bot includes scheduled tasks that run automatically.
 
 | Task | Schedule | Purpose |
 | --- | --- | --- |
-| Update legal cards | Daily at 7:00 | Refresh legal card data, set codes and the full card database for validation. |
+| Refresh card data | Daily at 7:00 | Refresh legal card data, set codes and the full card database for validation. |
 | Update banned cards | Daily at 8:00 | Refresh banned card data for validation. |
 | Update sign-up sheet | Daily at 9:00 | Refresh tournament sign-up sheet image. |
 | Update events | Daily at 11:00 | Sync latest followed event data. |
@@ -298,7 +298,7 @@ Decklists are decoded directly from the Limitless builder URL, the bot never ope
 | `data/card_sets.json` | limitlesstcg.com/cards | Set names mapped to set codes. |
 | `data/card_database.json` | limitlesstcg.com/cards/<set code>?display=list | Every card in every set, refetched in full on each update, used to resolve cards from the URL. |
 
-The card database is updated incrementally: a set is only scraped again when it is missing or the number of cards on the site differs from the stored count. The first sync scrapes every set and takes a while.
+Each refresh re-downloads every set (one request per set, about 5 minutes in total) because the per-set card counts shown on the site are not always accurate. Progress is saved after each set, and the legal lists are only re-downloaded when their card count changes.
 
 ## Operational Notes
 

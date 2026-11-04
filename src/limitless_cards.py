@@ -48,11 +48,7 @@ def clean_text(text: str) -> str:
 
 
 def convert_card_type(type_cell: str) -> tuple[str, str]:
-    """Returns the (type, color) of a card from its type cell.
-
-    Types are normalised to "Pkmn > Basic", "Trainer > Item" and
-    "Energy > Basic" so the rest of the app can tell the categories apart.
-    """
+    # normalised to "Pkmn > Basic", "Trainer > Item" and "Energy > Basic"
     symbol = SYMBOL.search(type_cell)
     text = clean_text(SYMBOL.sub("", type_cell))
     if symbol is not None:
@@ -89,7 +85,6 @@ def get_total_cards(page: str) -> int:
 
 
 def get_all_pages(url: str) -> tuple[list[dict], str]:
-    """Reads every page of a card list, returns the cards and first page."""
     first_page = fetch_html(url.format(page=1))
     cards = parse_card_rows(first_page)
     last_page = LAST_PAGE.search(first_page)
@@ -110,7 +105,6 @@ def group_cards(cards: list[dict]) -> dict:
 
 
 def get_set_list() -> dict[str, str]:
-    """Returns a mapping of set code to set name."""
     sets_page = fetch_html(SETS_URL)
     return {
         code: clean_text(name) for code, name in SET_ROW.findall(sets_page)
@@ -120,7 +114,7 @@ def get_set_list() -> dict[str, str]:
 def get_legal_card_list(
     current_format: str, previous_count: int
 ) -> tuple[dict, int]:
-    """Returns the cards legal in the format, empty if there is no update."""
+    # returns no cards when the total is unchanged since the last update
     url = SEARCH_URL.replace("{query}", quote_plus(f"f:{current_format}"))
     first_page = fetch_html(url.format(page=1))
     total = get_total_cards(first_page)
