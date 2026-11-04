@@ -2,7 +2,9 @@ import fitz  # PyMuPDF
 import os
 from seleniumbase import Driver
 from datetime import datetime, timedelta
-import shutil
+import html
+import re
+from urllib.parse import urljoin
 from urllib.request import urlretrieve
 import requests
 from .core import DATA_FOLDER
@@ -14,6 +16,18 @@ POKEMON_RULES_URL = (
 )
 POKEMON_EVENTS_URL = f"{POKEMON_EVENTS_BASE_URL}/EventLocator/LocationDetail"
 POKEMON_PREMIER_EVENTS_URL = f"{POKEMON_EVENTS_BASE_URL}/EventLocator/Home"
+BROWSER_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/pdf,application/xhtml+xml,*/*",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+REQUEST_TIMEOUT = 60
+DECKLIST_LINK_TEXT = "Play! Pokémon Deck List (A4)"
+DECKLIST_LINK = re.compile(r'<a [^>]*href="([^"]+)"[^>]*>(.*?)</a>', re.DOTALL)
 EVENT_DATE_FORMAT = "%b %d %Y"
 TMP_FILE = f"{DATA_FOLDER}/tmp.pdf"
 
@@ -83,38 +97,29 @@ def convert_pdf_to_png(in_file: str, out_file: str):
 
 
 def get_decklist_pdf(output_filename: str):
-    sb = Driver(uc=True, locale_code="en", ad_block=True, external_pdf=True)
-    sb.uc_activate_cdp_mode(POKEMON_RULES_URL)
-    sb.sleep(10)
-    a_elements = sb.cdp.find_visible_elements("a")
+    # the site rejects requests that don't look like a browser
+    page = requests.get(
+        POKEMON_RULES_URL, headers=BROWSER_HEADERS, timeout=REQUEST_TIMEOUT
+    )
+    page.raise_for_status()
 
-    for a in a_elements:
-        if (
-            a.get_attribute("innerHTML").strip()
-            == "Play! Pokémon Deck List (A4)"
-        ):
-            a.click()
-            sb.sleep(5)
+    for href, text in DECKLIST_LINK.findall(page.text):
+        if html.unescape(text).strip() == DECKLIST_LINK_TEXT:
             break
     else:
         raise Exception("Couldn't find sheet in page")
 
-    for file in os.listdir("downloaded_files"):
-        if file.endswith(".pdf"):
-            pdf_path = os.path.join("downloaded_files", file)
-            if os.path.exists(pdf_path):
-                if os.path.exists(output_filename):
-                    os.remove(
-                        output_filename
-                    )  # Remove existing file if it exists
-                os.rename(pdf_path, output_filename)
-            break
-    else:
-        raise Exception("No pdf in downloaded files")
+    pdf = requests.get(
+        urljoin(POKEMON_RULES_URL, html.unescape(href)),
+        headers={**BROWSER_HEADERS, "Referer": POKEMON_RULES_URL},
+        timeout=REQUEST_TIMEOUT,
+    )
+    pdf.raise_for_status()
+    if not pdf.content.startswith(b"%PDF"):
+        raise Exception("Downloaded sheet is not a pdf")
 
-    sb.quit()
-    # Clean up the directory
-    shutil.rmtree("downloaded_files", ignore_errors=True)
+    with open(output_filename, "wb") as f:
+        f.write(pdf.content)
 
 
 def get_decklist_png(output_filename: str = "sign_up_sheet.png"):

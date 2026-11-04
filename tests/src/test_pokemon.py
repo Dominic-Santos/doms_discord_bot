@@ -1,11 +1,11 @@
-import os
 from src.pokemon import (
     get_decklist_png, get_decklist_pdf, convert_pdf_to_png,
     get_premier_events, get_store_events, extract_event_info,
     PokemonEvent, get_logo
 )
 from src.core import DATA_FOLDER
-from unittest.mock import patch, call, MagicMock
+import pytest
+from unittest.mock import patch, MagicMock, mock_open
 
 
 @patch("src.pokemon.get_decklist_pdf")
@@ -25,70 +25,51 @@ def test_get_decklist_png(mock_remove, mock_convert, mock_get_pdf):
     mock_remove.assert_called_once_with(pdf_file)
 
 
-@patch("shutil.rmtree")
-@patch("os.rename")
-@patch("os.remove")
-@patch("os.path.exists")
-@patch("os.listdir")
-@patch("src.pokemon.Driver")
-def test_get_decklist_pdf(
-    mock_driver,
-    mock_listdir,
-    mock_exists,
-    mock_remove,
-    mock_rename,
-    mock_rmtree
-):
-    mock_driver_instance = mock_driver.return_value
-    elm = mock_driver_instance.cdp.find_visible_elements.return_value[0]
-    mock_driver_instance.cdp.find_visible_elements.return_value = [
-        elm
+PAGE = (
+    '<a href="/sheets/us.pdf">Play! Pok&eacute;mon Deck List (8.5x11)</a>'
+    '<a href="/sheets/a4.pdf" target="_blank">'
+    "Play! Pok&eacute;mon Deck List (A4)</a>"
+)
+
+
+def mock_response(text="", content=b""):
+    response = MagicMock(text=text, content=content)
+    return response
+
+
+@patch("src.pokemon.requests.get")
+def test_get_decklist_pdf(mock_get):
+    mock_get.side_effect = [
+        mock_response(text=PAGE), mock_response(content=b"%PDF-1.4 data")
     ]
-    elm.get_attribute.return_value = "Play! Pokémon Deck List (A4)"
-    elm.click.return_value = None
-
-    mock_listdir.return_value = ["decklist.pdf"]
-    mock_exists.return_value = True
-
-    get_decklist_pdf("output.pdf")
-
-    mock_driver.assert_called_once_with(
-        uc=True,
-        locale_code="en",
-        ad_block=True,
-        external_pdf=True
-    )
-    mock_driver_instance.uc_activate_cdp_mode.assert_called_once_with(
-        (
-            "https://www.pokemon.com/us/play-pokemon/"
-            "about/tournaments-rules-and-resources"
-        )
-    )
-    assert mock_driver_instance.sleep.call_count == 2
-    mock_driver_instance.cdp.find_visible_elements.assert_called_once_with("a")
-    elm.click.assert_called_once()
-    mock_listdir.assert_called_once_with("downloaded_files")
-    mock_exists.assert_has_calls([
-        call(f"downloaded_files{os.sep}decklist.pdf"),
-        call("output.pdf")
-    ])
-    mock_remove.assert_called_once_with("output.pdf")
-    mock_rename.assert_called_once_with(
-        f"downloaded_files{os.sep}decklist.pdf", "output.pdf"
-    )
-    mock_rmtree.assert_called_once_with("downloaded_files", ignore_errors=True)
-
-    mock_listdir.return_value = ["fakefile.png"]
-    try:
+    m = mock_open()
+    with patch("builtins.open", m):
         get_decklist_pdf("output.pdf")
-    except Exception as e:
-        assert str(e) == "No pdf in downloaded files"
 
-    elm.get_attribute.return_value = "Play! Pokémon Deck List (A2)"
-    try:
+    assert mock_get.call_args_list[1][0][0] == (
+        "https://www.pokemon.com/sheets/a4.pdf"
+    )
+    assert mock_get.call_args_list[1][1]["headers"]["Referer"] == (
+        "https://www.pokemon.com/us/play-pokemon/"
+        "about/tournaments-rules-and-resources"
+    )
+    m.assert_called_once_with("output.pdf", "wb")
+    m().write.assert_called_once_with(b"%PDF-1.4 data")
+
+
+@patch("src.pokemon.requests.get")
+def test_get_decklist_pdf_errors(mock_get):
+    mock_get.side_effect = [mock_response(text="<a href='/x'>Other</a>")]
+    with pytest.raises(Exception, match="Couldn't find sheet in page"):
         get_decklist_pdf("output.pdf")
-    except Exception as e:
-        assert str(e) == "Couldn't find sheet in page"
+
+    mock_get.side_effect = [
+        mock_response(text=PAGE), mock_response(content=b"<html>blocked")
+    ]
+    with patch("builtins.open", mock_open()) as m:
+        with pytest.raises(Exception, match="not a pdf"):
+            get_decklist_pdf("output.pdf")
+    m.assert_not_called()
 
 
 @patch("src.pokemon.fitz.open")

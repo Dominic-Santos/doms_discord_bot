@@ -144,7 +144,7 @@ User command groups:
 | `/admin pokemon test_tournament_channel` | Admin | - | Send a test message to the tournament output channel. |
 | `/admin pokemon refresh_card_data` | Admin | - | Refresh legal cards, set codes and the full card database used for validation. |
 | `/admin pokemon update_banned_cards` | Admin | - | Refresh banned cards (Limitless `bans:` search) used for validation. |
-| `/admin pokemon update_signup_sheet` | Admin | - | Refresh tournament sign-up sheet image. |
+| `/admin pokemon update_signup_sheet` | Admin | - | Refresh tournament sign-up sheet image from the Play! Pokémon deck list PDF. |
 
 ### Events - Pokemon
 
@@ -257,7 +257,7 @@ The bot includes scheduled tasks that run automatically.
 | --- | --- | --- |
 | Refresh card data | Daily at 7:00 | Refresh legal card data, set codes and the full card database for validation. |
 | Update banned cards | Daily at 8:00 | Refresh banned card data from Limitless for validation. |
-| Update sign-up sheet | Daily at 9:00 | Refresh tournament sign-up sheet image. |
+| Update sign-up sheet | Daily at 9:00 | Refresh tournament sign-up sheet image from the Play! Pokémon deck list PDF. |
 | Update events | Daily at 11:00 | Sync latest followed event data. |
 | Check newsfeed | Every 6 hours | Fetch latest Pokemon newsfeed posts from the PokéBeach Front Page News RSS feed. |
 
