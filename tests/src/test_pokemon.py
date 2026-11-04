@@ -1,9 +1,11 @@
 from src.pokemon import (
     get_decklist_png, get_decklist_pdf, convert_pdf_to_png,
-    get_premier_events, get_store_events, extract_event_info,
-    PokemonEvent, get_logo
+    get_premier_events, get_store_events, open_event_locator,
+    call_event_locator, parse_event_date, PokemonEvent, get_logo
 )
 from src.core import DATA_FOLDER
+from datetime import datetime
+import json
 import pytest
 from unittest.mock import patch, MagicMock, mock_open
 
@@ -88,196 +90,141 @@ def test_convert_pdf_to_png(mock_fitz_open):
     mock_pix.save.assert_called_once_with("output.png")
 
 
-class MockEventDiv:
-    def __init__(self, data={}, store=False):
-        img_head = MagicMock()
-        base_head = MagicMock()
-        self.children = [base_head, img_head]
-
-        img_children = 2
-        if store:
-            img_children += 1
-
-        for _ in range(img_children):
-            img_head.children = [MagicMock()]
-            img_head = img_head.children[0]
-        img_head.children = [{"src": data.get("logo", "logo")}]
-
-        base_children = 4
-        for _ in range(base_children):
-            base_head.children = [MagicMock()]
-            base_head = base_head.children[0]
-
-        base_head.children = [
-            MagicMock(children=[MagicMock(text=data.get("type", "type"))]),
-            MagicMock(children=[MagicMock(text=data.get("name", "name"))]),
-            MagicMock(children=[
-                None,
-                MagicMock(children=[
-                    MagicMock(text=data.get("location", "location"))
-                ])
-            ]),
-            MagicMock(children=[
-                None,
-                MagicMock(children=[
-                    MagicMock(text=data.get("date", "date"))
-                ])
-            ])
-        ]
-
-
-MOCK_EVENT_DATA = {
-    "logo": "test.png",
-    "type": "friendly",
-    "name": "test event",
-    "location": "hell",
-    "date": "Friday, Oct 10 - Sunday, 12, 2025"
-}
-
-MOCK_EVENT = PokemonEvent(
-    MOCK_EVENT_DATA["name"],
-    MOCK_EVENT_DATA["type"],
-    MOCK_EVENT_DATA["location"],
-    MOCK_EVENT_DATA["date"],
-    MOCK_EVENT_DATA["logo"],
-    False
-)
-
-MOCK_ONE_DAY_EVENT_DATA = {
-    "logo": "test.png",
-    "type": "friendly",
-    "name": "test event",
-    "location": "hell",
-    "date": "Wednesday, September 24, 2025 03:00 PM"
-}
-
-MOCK_ONE_DAY_EVENT = PokemonEvent(
-    MOCK_ONE_DAY_EVENT_DATA["name"],
-    MOCK_ONE_DAY_EVENT_DATA["type"],
-    MOCK_ONE_DAY_EVENT_DATA["location"],
-    MOCK_ONE_DAY_EVENT_DATA["date"],
-    MOCK_ONE_DAY_EVENT_DATA["logo"],
-    False
-)
-
-MOCK_BETWEEN_MONTHS_EVENT_DATA = {
-    "logo": "test.png",
-    "type": "friendly",
-    "name": "test event",
-    "location": "hell",
-    "date": "Friday, Oct 10 - Sunday, Nov 12, 2025"
-}
-
-MOCK_BETWEEN_MONTHS_EVENT = PokemonEvent(
-    MOCK_BETWEEN_MONTHS_EVENT_DATA["name"],
-    MOCK_BETWEEN_MONTHS_EVENT_DATA["type"],
-    MOCK_BETWEEN_MONTHS_EVENT_DATA["location"],
-    MOCK_BETWEEN_MONTHS_EVENT_DATA["date"],
-    MOCK_BETWEEN_MONTHS_EVENT_DATA["logo"],
-    False
-)
-
-
-def test_extract_event_info():
-    mock_e_div = MockEventDiv(MOCK_EVENT_DATA, store=True)
-    event = extract_event_info(mock_e_div, store=True)
-    event.logo == MOCK_EVENT_DATA["logo"]
-    event.name == MOCK_EVENT_DATA["name"]
-    event.type == MOCK_EVENT_DATA["type"]
-    event.location == MOCK_EVENT_DATA["location"]
-    event.start_date.day == 10
-    event.start_date.month == 10
-    event.start_date.year == 2025
-    event.end_date.day == 13
-    event.end_date.month == 10
-    event.end_date.year == 2025
-
-
-def test_extract_one_day_event_info():
-    mock_e_div = MockEventDiv(MOCK_ONE_DAY_EVENT_DATA, store=True)
-    event = extract_event_info(mock_e_div, store=True)
-    event.logo == MOCK_ONE_DAY_EVENT_DATA["logo"]
-    event.name == MOCK_ONE_DAY_EVENT_DATA["name"]
-    event.type == MOCK_ONE_DAY_EVENT_DATA["type"]
-    event.location == MOCK_ONE_DAY_EVENT_DATA["location"]
-    event.start_date.day == 24
-    event.start_date.month == 10
-    event.start_date.year == 2025
-    event.end_date.day == 25
-    event.end_date.month == 10
-    event.end_date.year == 2025
-
-
-def test_extract_between_months_event_info():
-    mock_e_div = MockEventDiv(MOCK_BETWEEN_MONTHS_EVENT_DATA, store=True)
-    event = extract_event_info(mock_e_div, store=True)
-    event.logo == MOCK_BETWEEN_MONTHS_EVENT_DATA["logo"]
-    event.name == MOCK_BETWEEN_MONTHS_EVENT_DATA["name"]
-    event.type == MOCK_BETWEEN_MONTHS_EVENT_DATA["type"]
-    event.location == MOCK_BETWEEN_MONTHS_EVENT_DATA["location"]
-    event.start_date.day == 10
-    event.start_date.month == 10
-    event.start_date.year == 2025
-    event.end_date.day == 13
-    event.end_date.month == 11
-    event.end_date.year == 2025
-
-
-@patch("src.pokemon.extract_event_info")
-@patch("src.pokemon.Driver")
-def test_get_store_events(
-    mock_driver,
-    mock_extract
-):
-    mock_extract.return_value = MOCK_EVENT_DATA
-
-    result = get_store_events()
-    assert len(result) == 0
-
-    mock_driver_instance = mock_driver.return_value
-    mock = [MagicMock(
-        children=[
-            MagicMock(
-                children=[MagicMock()]
-            )
-        ]
-    )]
-    mock_driver_instance.cdp.find_visible_elements.return_value = mock
-    result = get_store_events(["fake_guid"])
-    mock_driver_instance.uc_activate_cdp_mode.assert_called_once()
-    mock_driver_instance.sleep.assert_called_once()
-    mock_driver_instance.quit.assert_called_once()
-
-
-@patch("src.pokemon.extract_event_info")
-@patch("src.pokemon.Driver")
-def test_get_premier_events(
-    mock_driver,
-    mock_extract
-):
-    mock_extract.return_value = MOCK_EVENT
-    mock_driver_instance = mock_driver.return_value
-    mock_driver_instance.cdp.find_visible_elements.return_value = [
-        MagicMock()
+def mock_event_locator(driver, *responses):
+    driver.execute_async_script.side_effect = [
+        {"status": 200, "body": json.dumps(response)}
+        for response in responses
     ]
 
-    try:
-        _ = get_premier_events()
-    except Exception as e:
-        assert str(e) == "Failed to load events page"
 
-    mock_driver_instance.uc_activate_cdp_mode.assert_called_once()
-    mock_driver_instance.sleep.assert_called_once()
+def test_parse_event_date():
+    assert parse_event_date("2026-11-09T18:30:00Z") == datetime(2026, 11, 9)
+    assert parse_event_date("2026-11-14") == datetime(2026, 11, 14)
 
-    mock_driver_instance.cdp.find_visible_elements.return_value = [
-        MagicMock(), MagicMock(), MagicMock()
-    ]
 
-    results = get_premier_events()
+def test_event_end_date_is_the_day_after():
+    event = PokemonEvent(
+        "a", "b", "c", datetime(2026, 10, 10), datetime(2026, 10, 12), "d", True
+    )
+    assert event.start_date == datetime(2026, 10, 10)
+    assert event.end_date == datetime(2026, 10, 13)
 
-    mock_driver_instance.quit.assert_called_once()
-    assert len(results) == 3
-    assert results[0].name == MOCK_EVENT.name
+
+@patch("src.pokemon.Driver")
+def test_open_event_locator(mock_driver):
+    driver = open_event_locator()
+
+    assert driver == mock_driver.return_value
+    assert mock_driver.call_args.kwargs["headless"] is True
+    driver.uc_open_with_reconnect.assert_called_once()
+
+
+def test_call_event_locator():
+    driver = MagicMock()
+    mock_event_locator(driver, {"data": {"a": 1}})
+
+    assert call_event_locator(driver, "view", "action", {"b": 2}) == {"a": 1}
+
+    args = driver.execute_async_script.call_args.args
+    assert args[1:4] == ("view", "action", {"b": 2})
+    assert args[4]["MaxDateLimit"] == 365
+
+
+def test_call_event_locator_errors():
+    driver = MagicMock()
+    driver.execute_async_script.return_value = {"status": 403, "body": "no"}
+    with pytest.raises(Exception, match="Failed to load events: no"):
+        call_event_locator(driver, "view", "action", {})
+
+    mock_event_locator(
+        driver, {"exception": {"message": "Invalid Login"}, "data": {}}
+    )
+    with pytest.raises(Exception, match="Invalid Login"):
+        call_event_locator(driver, "view", "action", {})
+
+
+@patch("src.pokemon.open_event_locator")
+def test_get_premier_events(mock_open_locator):
+    driver = mock_open_locator.return_value
+    mock_event_locator(driver, {"data": {"List": {"List": [
+        {
+            "Name": "Big Event",
+            "EventType": "Regional Championships",
+            "City": "Stuttgart",
+            "Country": "Germany",
+            "StartDate": "2026-11-28",
+            "EndDate": "2026-11-29",
+            "Badge": "RegionalsBadge",
+        },
+        {
+            "Name": "Online Event",
+            "EventType": "Special",
+            "City": "",
+            "Country": "Germany",
+            "StartDate": "2026-12-01",
+            "EndDate": "2026-12-01",
+            "Badge": "WorldsBadge",
+        },
+    ]}}})
+
+    events = get_premier_events()
+
+    assert len(events) == 2
+    assert events[0].name == "Big Event"
+    assert events[0].type == "Regional Championships"
+    assert events[0].location == "Stuttgart, Germany"
+    assert events[0].start_date == datetime(2026, 11, 28)
+    assert events[0].end_date == datetime(2026, 11, 30)
+    assert events[0].logo == "/EventLocator/img/EventLocator.RegionalsBadge.png"
+    assert events[0].premier is True
+    assert events[1].location == "Germany"
+    driver.quit.assert_called_once()
+
+
+@patch("src.pokemon.open_event_locator")
+def test_get_premier_events_quits_on_error(mock_open_locator):
+    driver = mock_open_locator.return_value
+    driver.execute_async_script.return_value = {"status": 0, "body": "boom"}
+
+    with pytest.raises(Exception, match="boom"):
+        get_premier_events()
+
+    driver.quit.assert_called_once()
+
+
+@patch("src.pokemon.open_event_locator")
+def test_get_store_events(mock_open_locator):
+    assert get_store_events() == {}
+    mock_open_locator.assert_not_called()
+
+    driver = mock_open_locator.return_value
+    mock_event_locator(
+        driver,
+        {"data": {"Result": {"List": [{
+            "Events": {
+                "Name": "Game Night",
+                "Start_date": "2026-11-09T18:30:00Z",
+                "Address": {"Full_address": "1 Some Road, London"},
+            },
+            "EventTypeName": "Friendly Tournament",
+            "EventBadge": "/OPPlayerApp/img/badge.png",
+        }]}}},
+        {"data": {"Result": {"List": []}}},
+    )
+
+    events = get_store_events(["guid-1", "guid-2"])
+
+    assert list(events) == ["guid-1", "guid-2"]
+    assert events["guid-2"] == []
+    event = events["guid-1"][0]
+    assert event.name == "Game Night"
+    assert event.type == "Friendly Tournament"
+    assert event.location == "1 Some Road, London"
+    assert event.start_date == datetime(2026, 11, 9)
+    assert event.end_date == datetime(2026, 11, 10)
+    assert event.logo == "/OPPlayerApp/img/badge.png"
+    assert event.premier is False
+    driver.quit.assert_called_once()
 
 
 @patch("builtins.open")

@@ -7,17 +7,11 @@ from src.pokemon import PokemonEvent
 
 
 def get_mock_one_day_event_date(day, year):
-    prefix = "0" if day < 10 else ""
-    return f"Friday, January {prefix}{day}, {year}"
+    return datetime(year, 1, day), datetime(year, 1, day)
 
 
 def get_mock_event_date(s_day, e_day, year):
-    s_prefix = "0" if s_day < 10 else ""
-    e_prefix = "0" if e_day < 10 else ""
-    return (
-        f"Friday, January {s_prefix}{s_day}"
-        f" - Sunday, {e_prefix}{e_day}, {year}"
-    )
+    return datetime(year, 1, s_day), datetime(year, 1, e_day)
 
 
 MOCK_EVENT_DATE = get_mock_one_day_event_date(1, 2025)
@@ -46,7 +40,7 @@ class MockEvent():
             mock_year = datetime.now().year + 1
             mock_date = get_mock_event_date(14, 16, mock_year)
 
-        p_event = PokemonEvent("a", "b", "c", mock_date, "d", True)
+        p_event = PokemonEvent("a", "b", "c", *mock_date, "d", True)
         self.start_time = p_event.start_date
         self.end_time = p_event.end_date
 
@@ -93,7 +87,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
                 e_name,
                 "e_type",
                 "e_location",
-                MOCK_EVENT_DATE,
+                *MOCK_EVENT_DATE,
                 "e_logo",
                 True
             )
@@ -105,7 +99,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
                     "event1",
                     "e_type",
                     "e_location",
-                    MOCK_EVENT_DATE,
+                    *MOCK_EVENT_DATE,
                     "e_logo",
                     False
                 )
@@ -115,7 +109,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
                     "event2",
                     "e_type",
                     "e_location",
-                    MOCK_EVENT_DATE,
+                    *MOCK_EVENT_DATE,
                     "e_logo",
                     False
                 )
@@ -216,7 +210,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
                 e["name"],
                 e["type"],
                 "hell",
-                e["date"],
+                *e["date"],
                 "logo.png",
                 False
             )

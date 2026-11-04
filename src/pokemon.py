@@ -3,6 +3,7 @@ import os
 from seleniumbase import Driver
 from datetime import datetime, timedelta
 import html
+import json
 import re
 from urllib.parse import urljoin
 from urllib.request import urlretrieve
@@ -14,7 +15,6 @@ POKEMON_RULES_URL = (
     "https://www.pokemon.com/us/play-pokemon/"
     "about/tournaments-rules-and-resources"
 )
-POKEMON_EVENTS_URL = f"{POKEMON_EVENTS_BASE_URL}/EventLocator/LocationDetail"
 POKEMON_PREMIER_EVENTS_URL = f"{POKEMON_EVENTS_BASE_URL}/EventLocator/Home"
 BROWSER_HEADERS = {
     "User-Agent": (
@@ -28,7 +28,47 @@ BROWSER_HEADERS = {
 REQUEST_TIMEOUT = 60
 DECKLIST_LINK_TEXT = "Play! Pokémon Deck List (A4)"
 DECKLIST_LINK = re.compile(r'<a [^>]*href="([^"]+)"[^>]*>(.*?)</a>', re.DOTALL)
-EVENT_DATE_FORMAT = "%b %d %Y"
+EVENT_DATE_FORMAT = "%Y-%m-%d"
+EVENT_LOCATOR_PAGE_LOAD_TIME = 10
+EVENT_LOCATOR_DAYS_AHEAD = 365
+# Runs inside the browser so the request carries the cookies that passed the
+# site's bot check. The api version changes on every deploy, so it is read
+# from the screen's own script instead of being hardcoded.
+EVENT_LOCATOR_SCRIPT = """
+const [view, action, variables, clientVariables, done] = arguments;
+(async () => {
+  const base = "/EventLocator";
+  const get = async (path) => (await fetch(base + path)).text();
+  const token = JSON.parse(await get("/moduleservices/moduleversioninfo"))
+    .versionToken;
+  const code = await get("/scripts/EventLocator." + view + ".mvc.js");
+  const api = new RegExp(
+    '"' + action + '"\\\\s*,\\\\s*"[^"]+"\\\\s*,\\\\s*"([^"]+)"'
+  ).exec(code);
+  const cookie = decodeURIComponent(
+    (document.cookie.match(/nr2Users=([^;]+)/) || [, ""])[1]
+  );
+  const response = await fetch(
+    base + "/screenservices/EventLocator/" + view.replace(".", "/") +
+      "/" + action,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+        "Accept": "application/json",
+        "X-CSRFToken": (cookie.match(/crf=([^;]*)/) || [, ""])[1],
+      },
+      body: JSON.stringify({
+        versionInfo: {moduleVersion: token, apiVersion: api && api[1]},
+        viewName: view,
+        screenData: {variables},
+        clientVariables,
+      }),
+    }
+  );
+  done({status: response.status, body: await response.text()});
+})().catch((error) => done({status: 0, body: String(error)}));
+"""
 TMP_FILE = f"{DATA_FOLDER}/tmp.pdf"
 
 
@@ -38,7 +78,8 @@ class PokemonEvent():
         name: str,
         type: str,
         location: str,
-        date: str,
+        start_date: datetime,
+        end_date: datetime,
         logo: str,
         premier: bool
     ):
@@ -48,43 +89,9 @@ class PokemonEvent():
         self.logo = logo
         self.premier = premier
 
-        self._parse_date(date)
-
-    def _parse_date(self, date: str):
-        e_date = date.replace(", ", ",").replace(",", " ")
-
-        if "-" in e_date:
-            # Friday Oct 10 - Sunday 12 2025
-            d_split = e_date.split(" ")
-            start_month, start_day = d_split[1:3]
-            year = d_split[-1]
-            if len(d_split) == 7:
-                end_month = start_month
-                end_day = d_split[5]
-            else:
-                end_month, end_day = d_split[5:7]
-
-            start_str = f"{start_month[:3]} {start_day} {year}"
-            end_str = f"{end_month[:3]} {end_day} {year}"
-
-            self.start_date = datetime.strptime(
-                start_str, EVENT_DATE_FORMAT
-            )
-            self.end_date = datetime.strptime(
-                end_str, EVENT_DATE_FORMAT
-            ) + timedelta(days=1)
-            return
-
-        # Wednesday September 24 2025 03:00 PM
-        month, day, year = e_date.split(" ")[1:4]
-        e_date = f"{month[:3]} {day} {year}"
-
-        event_date = datetime.strptime(
-            e_date,
-            EVENT_DATE_FORMAT
-        )
-        self.start_date = event_date
-        self.end_date = event_date + timedelta(days=1)
+        self.start_date = start_date
+        # end_date is the last day of the event, discord wants the day after
+        self.end_date = end_date + timedelta(days=1)
 
 
 def convert_pdf_to_png(in_file: str, out_file: str):
@@ -129,93 +136,108 @@ def get_decklist_png(output_filename: str = "sign_up_sheet.png"):
     os.remove(TMP_FILE)
 
 
+def parse_event_date(date: str) -> datetime:
+    return datetime.strptime(date[:10], EVENT_DATE_FORMAT)
+
+
+def open_event_locator() -> Driver:
+    # the site only serves its data to a browser that passed its bot check
+    driver = Driver(uc=True, headless=True, locale_code="en", ad_block=True)
+    driver.set_script_timeout(REQUEST_TIMEOUT)
+    driver.uc_open_with_reconnect(
+        POKEMON_PREMIER_EVENTS_URL, EVENT_LOCATOR_PAGE_LOAD_TIME
+    )
+    return driver
+
+
+def call_event_locator(
+    driver: Driver, view: str, action: str, variables: dict
+) -> dict:
+    today = datetime.now()
+    end = today + timedelta(days=EVENT_LOCATOR_DAYS_AHEAD)
+    client_variables = {
+        "StartDate": today.strftime(EVENT_DATE_FORMAT),
+        "EndDate": end.strftime(EVENT_DATE_FORMAT),
+        "MaxDateLimit": EVENT_LOCATOR_DAYS_AHEAD,
+        "LocaleHeader": "en",
+        "UserLocale": "en",
+        "OldUserLocale": "en",
+        "LocaleFooter": "en",
+        "IsShowEvents": True,
+        "IsOnReadyFinished": True,
+        "CurrTab": 1,
+    }
+    result = driver.execute_async_script(
+        EVENT_LOCATOR_SCRIPT, view, action, variables, client_variables
+    )
+
+    if result["status"] != 200:
+        raise Exception(f"Failed to load events: {result['body'][:200]}")
+
+    response = json.loads(result["body"])
+    if "exception" in response:
+        raise Exception(
+            f"Failed to load events: {response['exception']['message']}"
+        )
+    return response["data"]
+
+
 def get_premier_events() -> list[PokemonEvent]:
-    sb = Driver(uc=True, locale_code="en", ad_block=True)
-    sb.uc_activate_cdp_mode(POKEMON_PREMIER_EVENTS_URL)
-    sb.sleep(10)
+    driver = open_event_locator()
+    try:
+        data = call_event_locator(
+            driver,
+            "MainFlow.Home",
+            "DataActionGetPremierEventsByStartDate",
+            {"locale": "en"}
+        )
+    finally:
+        driver.quit()
 
-    tabs = sb.cdp.find_visible_elements("button.osui-tabs__header-item")
-
-    if len(tabs) < 2:
-        raise Exception("Failed to load events page")
-
-    tabs[1].click()
-    sb.sleep(2)
-
-    # scroll to end of page to let more events load
-    prev_event = None
-    while True:
-        events = sb.cdp.find_visible_elements("div.map-location-card")
-        last_event = events[-1]
-        event_info = extract_event_info(last_event)
-        if prev_event is not None and event_info.name == prev_event.name:
-            break
-        prev_event = event_info
-        last_event.scroll_into_view()
-        sb.sleep(1)
-        sb.cdp.scroll_up(amount=25)
-        sb.sleep(1)
-        sb.cdp.scroll_down(amount=25)
-        sb.sleep(5)
-
-    events = []
-
-    event_divs = sb.cdp.find_visible_elements("div.map-location-card")
-    for div in event_divs:
-        event_info = extract_event_info(div)
-        events.append(event_info)
-
-    sb.quit()
-    return events
+    return [
+        PokemonEvent(
+            event["Name"],
+            event["EventType"],
+            ", ".join(filter(None, [event["City"], event["Country"]])),
+            parse_event_date(event["StartDate"]),
+            parse_event_date(event["EndDate"]),
+            f"/EventLocator/img/EventLocator.{event['Badge']}.png",
+            True
+        )
+        for event in data["List"]["List"]
+    ]
 
 
-def get_store_events(guids: list[str] = []) -> list[PokemonEvent]:
+def get_store_events(guids: list[str] = []) -> dict[str, list[PokemonEvent]]:
     if len(guids) == 0:
-        return []
+        return {}
 
     events = {}
-    sb = Driver(uc=True, locale_code="en", ad_block=True)
+    driver = open_event_locator()
+    try:
+        for guid in guids:
+            data = call_event_locator(
+                driver,
+                "MainFlow.LocationDetail",
+                "DataActionGetEventsByGUID",
+                {"locale": "en", "LocationGuid": guid, "EventDetailGUID": guid}
+            )
+            events[guid] = [
+                PokemonEvent(
+                    item["Events"]["Name"],
+                    item["EventTypeName"],
+                    item["Events"]["Address"]["Full_address"],
+                    parse_event_date(item["Events"]["Start_date"]),
+                    parse_event_date(item["Events"]["Start_date"]),
+                    item["EventBadge"],
+                    False
+                )
+                for item in data["Result"]["List"]
+            ]
+    finally:
+        driver.quit()
 
-    for guid in guids:
-        sb.uc_activate_cdp_mode(f"{POKEMON_EVENTS_URL}?guid={guid}")
-        sb.sleep(10)
-
-        events[guid] = []
-
-        events_div = sb.cdp.find_visible_elements(
-            "#b10-Content"
-        )[0].children[0].children
-        for event in events_div:
-            div = event
-            for _ in range(5):
-                div = div.children[0]
-            event_info = extract_event_info(div, store=True)
-            events[guid].append(event_info)
-
-    sb.quit()
     return events
-
-
-def extract_event_info(div, store: bool = False) -> PokemonEvent:
-    img = div.children[1].children[0].children[0].children[0]
-    if store:
-        img = img.children[0]
-
-    logo = img["src"]
-    base = div.children[0].children[0].children[0].children[0].children[0]
-    event_type = base.children[0].children[0].text
-    event_name = base.children[1].children[0].text
-    event_loca = base.children[2].children[1].children[0].text
-    event_date = base.children[3].children[1].children[0].text
-    premier = not store
-    return PokemonEvent(
-        event_name,
-        event_type,
-        event_loca,
-        event_date,
-        logo,
-        premier
-    )
 
 
 def get_logo(url: str) -> bytes:

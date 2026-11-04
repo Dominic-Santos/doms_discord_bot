@@ -308,6 +308,7 @@ Each refresh re-downloads every set (one request per set, about 5 minutes in tot
 - Tournament expiration is checked in real-time when users attempt to sign up.
 - When multiple tournaments are open, users see a dropdown selector (pycord View component).
 - Event and newsfeed features rely on configured output channels.
+- Pokémon events are read from the event locator's JSON data (not page layout). A headless Chrome (seleniumbase) is only used to pass the site's bot check, so Chrome must be installed on the host.
 - Schedule times are based on server runtime local time.
 - Signups in memory are cleared only when manually removed; they persist across bot restarts with tournament data.
 
