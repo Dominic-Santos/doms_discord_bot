@@ -469,6 +469,28 @@ class TournamentBot:
 
         return None, OUTPUT_CHANNEL_NOT_FOUND_ERROR
 
+    def log_signup(
+        self,
+        action: str,
+        ctx,
+        full_name: str,
+        pokemon_id: int,
+        tournament_id: str,
+    ):
+        tournament_name = self.tournaments.get(
+            tournament_id, {}
+        ).get("name", tournament_id)
+        self.logger.info(
+            "Tournament signup %s: player_id=%s discord_id=%s "
+            "player_name=%s tournament_id=%s tournament_name=%s",
+            action,
+            pokemon_id,
+            ctx.author.id,
+            full_name,
+            tournament_id,
+            tournament_name,
+        )
+
     def log_failed_deck_submission(
         self,
         ctx,
@@ -540,6 +562,7 @@ class TournamentBot:
         # Get format from tournament data
         tournament_data = self.tournaments.get(tournament_id, {})
         format = tournament_data.get("format", "standard")
+        self.log_signup("attempt", ctx, full_name, pokemon_id, tournament_id)
 
         deck_data = self.user_decklists.get(user_id, {}).get(deck_name, None)
         if deck_data is None:
@@ -672,6 +695,8 @@ class TournamentBot:
                 ),
             )
 
+        self.log_signup("completed", ctx, full_name, pokemon_id, tournament_id)
+
         os.remove(output_filename)  # Clean up the temporary file
 
     async def tournament_signup_url(
@@ -720,6 +745,7 @@ class TournamentBot:
         # Get format from tournament data
         tournament_data = self.tournaments.get(tournament_id, {})
         format = tournament_data.get("format", "standard")
+        self.log_signup("attempt", ctx, full_name, pokemon_id, tournament_id)
 
         if not self.legal_cards:
             await ctx.respond(

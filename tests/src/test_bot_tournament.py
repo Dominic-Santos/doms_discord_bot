@@ -344,6 +344,13 @@ class TestBotTournament(unittest.IsolatedAsyncioTestCase):
             "https://my.limitlesstcg.com/builder?i=abc123abc",
             "test_tournament"
         )
+        log_args = [c[0][:2] for c in mock_logger_instance.info.call_args_list]
+        assert ("Tournament signup %s: player_id=%s discord_id=%s "
+                "player_name=%s tournament_id=%s tournament_name=%s",
+                "attempt") in log_args
+        assert ("Tournament signup %s: player_id=%s discord_id=%s "
+                "player_name=%s tournament_id=%s tournament_name=%s",
+                "completed") in log_args
         mock_fill.assert_called_once()
         assert mock_ctx.last_send == (
             "New tournament signup:\n"
