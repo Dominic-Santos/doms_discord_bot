@@ -2,7 +2,8 @@ from datetime import datetime
 from unittest.mock import patch, MagicMock, ANY
 from src.pkmncards import (
     get_legal_card_list, save_cards_to_file,
-    get_legal_cards, get_card_text, get_pokemon_sets, check_should_skip_set
+    get_legal_cards, get_card_text, get_pokemon_sets, check_should_skip_set,
+    get_set_links, get_set_card_total, get_set_cards, get_all_cards
 )
 
 
@@ -231,3 +232,121 @@ def test_check_should_skip_set():
     assert check_should_skip_set("Miscellaneous") == (True, False)
     assert check_should_skip_set("Fake Set") == (False, False)
     assert check_should_skip_set("Destined Rivals (DRI)") == (False, True)
+
+
+class LinkElement:
+    def __init__(self, text, href):
+        self.text = text
+        self.href = href
+
+    def __getitem__(self, key):
+        return self.href
+
+
+@patch("src.pkmncards.Driver")
+def test_get_set_links(mock_driver):
+    mock_driver_instance = mock_driver.return_value
+    mock_driver_instance.cdp.find_visible_elements.return_value = [
+        LinkElement("Destined Rivals (DRI)", "https://example.com/dri/"),
+        LinkElement("Fake Set", "https://example.com/fake/"),
+        LinkElement("Miscellaneous", "https://example.com/misc/"),
+    ]
+
+    assert get_set_links() == {
+        "DRI": "https://example.com/dri/",
+        "Fake Set": "https://example.com/fake/",
+    }
+    mock_driver_instance.quit.assert_called_once()
+
+
+def test_get_set_card_total():
+    sb = MagicMock()
+    no_results = MagicMock(children=[MagicMock(text="No Results")])
+    sb.cdp.find_visible_elements.return_value = [no_results]
+    assert get_set_card_total(sb, "https://example.com/set/?display=list") == 0
+    sb.cdp.open.assert_called_once_with("https://example.com/set/?display=list")
+
+    results = MagicMock(children=[MagicMock(text="Results")])
+    total = MagicMock(children=[MagicMock(text="/ 1,234")])
+    sb.cdp.find_visible_elements.side_effect = [[results], [total]]
+    assert get_set_card_total(sb, "https://example.com/set/?display=list") == 1234
+
+
+def test_get_set_cards_multiple_pages():
+    sb = MagicMock()
+    second_card = pokemon_card_mock()
+    second_card[0].children[0].children[0].children[1].text = "002"
+    elements = {
+        "span.range-current": [
+            [MagicMock(text="1 thru 1")], [MagicMock(text="2")]
+        ],
+        "article.type-pkmn_card": [pokemon_card_mock(), second_card],
+        "li.next-link a": [[MagicMock()]],
+    }
+    sb.cdp.find_visible_elements.side_effect = (
+        lambda query: elements[query].pop(0)
+    )
+
+    cards = get_set_cards(sb, 2)
+
+    assert list(cards.keys()) == ["001", "002"]
+    assert cards["001"] == {
+        "name": "Card 1",
+        "type": "Type 1",
+        "color": "Color 1",
+        "rarity": "Rare",
+        "link": "https://example.com/card1",
+    }
+
+
+@patch("src.pkmncards.get_set_cards")
+@patch("src.pkmncards.get_set_card_total")
+@patch("src.pkmncards.get_set_links")
+@patch("src.pkmncards.Driver")
+@patch("src.pkmncards.json")
+@patch("builtins.open")
+def test_get_all_cards(
+    mock_open, mock_json, mock_driver, mock_links, mock_total, mock_cards
+):
+    mock_json.load.return_value = {"cards": {
+        "SAME": {"1": {}},
+        "CHANGED": {"1": {}},
+    }}
+    mock_links.return_value = {
+        "SAME": "https://example.com/same/",
+        "CHANGED": "https://example.com/changed/",
+        "NEW": "https://example.com/new/",
+        "EMPTY": "https://example.com/empty/",
+    }
+    mock_total.side_effect = [1, 2, 1, 0]
+    mock_cards.side_effect = [{"1": {}, "2": {}}, {"1": {}}]
+
+    get_all_cards("cards.json")
+
+    assert mock_cards.call_count == 2
+    saved = mock_json.dump.call_args[0][0]["cards"]
+    assert set(saved.keys()) == {"SAME", "CHANGED", "NEW"}
+    assert len(saved["CHANGED"]) == 2
+    assert mock_json.dump.call_count == 2
+    mock_driver.return_value.quit.assert_called_once()
+
+
+@patch("src.pkmncards.get_set_cards")
+@patch("src.pkmncards.get_set_card_total")
+@patch("src.pkmncards.get_set_links")
+@patch("src.pkmncards.Driver")
+@patch("src.pkmncards.json")
+@patch("builtins.open")
+def test_get_all_cards_without_existing_file(
+    mock_open, mock_json, mock_driver, mock_links, mock_total, mock_cards
+):
+    mock_json.load.side_effect = Exception("missing")
+    mock_links.return_value = {"NEW": "https://example.com/new/"}
+    mock_total.return_value = 1
+    mock_cards.return_value = {"1": {}}
+
+    get_all_cards("cards.json")
+
+    mock_json.dump.assert_called_once_with(
+        {"cards": {"NEW": {"1": {}}}}, ANY, indent=4
+    )

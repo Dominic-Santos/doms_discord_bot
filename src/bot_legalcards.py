@@ -1,7 +1,7 @@
 import json
 
 from .core import load_card_database, convert_banned_cards, DATA_FOLDER
-from .pkmncards import get_legal_cards, get_pokemon_sets
+from .pkmncards import get_legal_cards, get_pokemon_sets, get_all_cards
 from .pokemon import get_banned_cards
 
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
@@ -10,6 +10,7 @@ LEGAL_CARDS_FILE = f"{DATA_FOLDER}/legal_cards.json"
 LEGAL_CARDS_EXPANDED_FILE = f"{DATA_FOLDER}/legal_expanded_cards.json"
 BANNED_CARDS_FILE = f"{DATA_FOLDER}/banned_cards.json"
 SETS_FILE = f"{DATA_FOLDER}/card_sets.json"
+CARD_DATABASE_FILE = f"{DATA_FOLDER}/card_database.json"
 
 
 class LegalCardsBot:
@@ -85,6 +86,14 @@ class LegalCardsBot:
             self.logger.warning(f"Error loading {SETS_FILE}: {e}")
             self.card_sets = {}
 
+    def load_card_database(self):
+        try:
+            with open(CARD_DATABASE_FILE, "r") as f:
+                self.card_database = json.load(f)
+        except Exception as e:
+            self.logger.warning(f"Error loading {CARD_DATABASE_FILE}: {e}")
+            self.card_database = {}
+
     def add_legal_cards_commands(self):
         @self.admin_pokemon.command(
             description="Sync the legal cards list for deck validation"
@@ -114,6 +123,11 @@ class LegalCardsBot:
         error = self.do_get_pokemon_sets()
         if error is not None:
             self.logger.error(f"Pokemon sets update failed. {error}")
+            return
+
+        error = self.do_get_all_cards()
+        if error is not None:
+            self.logger.error(f"Card database update failed. {error}")
             return
         self.logger.info("Legal cards updated successfully.")
 
@@ -150,6 +164,14 @@ class LegalCardsBot:
         if error is not None:
             await ctx.respond(
                 f"Pokemon sets update failed! {error}",
+                ephemeral=True
+            )
+            return
+
+        error = self.do_get_all_cards()
+        if error is not None:
+            await ctx.respond(
+                f"Card database update failed! {error}",
                 ephemeral=True
             )
             return
@@ -191,6 +213,15 @@ class LegalCardsBot:
         t.start()
         _, error = t.join()
         self.load_legal_cards()
+        return error
+
+    def do_get_all_cards(self) -> Exception:
+        t = CustomThread(get_all_cards, kwargs={
+            "filename": CARD_DATABASE_FILE
+        })
+        t.start()
+        _, error = t.join()
+        self.load_card_database()
         return error
 
     def do_get_pokemon_sets(self) -> Exception:

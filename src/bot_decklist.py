@@ -351,10 +351,7 @@ class DecklistBot:
         valid = self.check_limitless_url(limitless_url)
         if not valid:
             return {}, {}, "Invalid Limitless URL."
-        card_lookup = build_card_lookup(
-            getattr(self, "raw_expanded_cards", {}),
-            getattr(self, "raw_standard_cards", {}),
-        )
+        card_lookup = build_card_lookup(self.card_database)
         t = CustomThread(
             get_decklist_from_url, args=(limitless_url, card_lookup)
         )

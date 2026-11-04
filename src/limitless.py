@@ -15,7 +15,6 @@ QUANTITY_CHARS = (
 
 
 def parse_decklist_url(link: str) -> list[tuple[int, str, str]]:
-    """Decode a limitless builder url into (quantity, set code, number)."""
     clean = URL_PREFIX.sub("", link.strip())
     if BUILDER_MARKER not in clean:
         raise ValueError("Invalid Limitless URL.")
@@ -44,14 +43,23 @@ def parse_decklist_url(link: str) -> list[tuple[int, str, str]]:
     return cards
 
 
-def build_card_lookup(*raw_card_dbs: dict) -> dict:
-    """Map (set code, card number) to card info from the raw card files."""
+def normalise_card_name(info: dict) -> str:
+    name = remove_types_from_card_name(info["name"])
+    card_type = info["type"]
+    # newer sets say "Basic Grass Energy", older ones "Grass Energy"
+    if card_type.startswith("Energy") and card_type.endswith("Basic"):
+        name = re.sub(r"^Basic\s+", "", name)
+    return name
+
+
+def build_card_lookup(card_database: dict) -> dict:
     lookup = {}
-    for db in raw_card_dbs:
-        for set_code, cards in (db or {}).get("cards", {}).items():
-            for number, info in cards.items():
-                key = (set_code.upper(), number.strip().lstrip("0") or "0")
-                lookup.setdefault(key, {**info, "set": set_code})
+    for set_code, cards in (card_database or {}).get("cards", {}).items():
+        for number, info in cards.items():
+            key = (set_code.upper(), number.strip().lstrip("0") or "0")
+            lookup.setdefault(key, {
+                **info, "name": normalise_card_name(info), "set": set_code
+            })
     return lookup
 
 
@@ -63,9 +71,9 @@ def get_decklist_from_url(link: str, card_lookup: dict) -> dict:
     for quantity, set_code, number in parse_decklist_url(link):
         info = card_lookup.get((set_code, number))
         if info is None:
-            raise ValueError(f"Unknown card {set_code} {number}.")
+            raise ValueError(f"Unknown card {set_code} {number}")
 
-        name = remove_types_from_card_name(info["name"])
+        name = info["name"]
         card_type = info["type"]
         if card_type.startswith("Pkmn"):
             pokemon.append({

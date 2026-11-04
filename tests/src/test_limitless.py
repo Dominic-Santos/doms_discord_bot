@@ -47,7 +47,8 @@ def test_parse_invalid(url):
 def test_get_decklist_from_url():
     lookup = build_card_lookup({"cards": {
         "TWM": {"128": {"name": "Pikachu", "type": "Pkmn Basic"}},
-        "MEE": {"007": {"name": "Fire Energy", "type": "Energy Basic"}},
+        "MEE": {"007": {"name": "Basic Fire Energy", "type": "Energy > Basic"}},
+        "OLD": {"1": {"name": "Fire Energy", "type": "Energy > Basic"}},
         "ASC": {"16": {"name": "Potion", "type": "Trainer Item"}},
     }})
     deck = get_decklist_from_url(
@@ -59,5 +60,18 @@ def test_get_decklist_from_url():
     assert deck["trainers"] == {"Potion": {"quantity": 2}}
     assert deck["energies"] == {"Fire Energy": {"quantity": 3}}
 
+    deck = get_decklist_from_url("x/builder?i=10132MEE70231OLD1", lookup)
+    assert deck["energies"] == {"Fire Energy": {"quantity": 3}}
+
     with pytest.raises(ValueError):
         get_decklist_from_url("x/builder?i=10433TWM1", lookup)
+
+
+def test_get_decklist_unknown_card_type():
+    lookup = build_card_lookup({"cards": {
+        "TWM": {"1": {"name": "Odd", "type": "Stadium"}},
+    }})
+    with pytest.raises(ValueError, match="unknown type"):
+        get_decklist_from_url("x/builder?i=10133TWM1", lookup)
+    with pytest.raises(ValueError, match="Unknown card ABC 123"):
+        get_decklist_from_url("x/builder?i=10133ABC123", lookup)

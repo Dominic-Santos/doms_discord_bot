@@ -40,6 +40,7 @@ class Bot(
         self.load_events_data()
         self.load_banned_cards()
         self.load_card_sets()
+        self.load_card_database()
         self.add_commands()
 
     def add_commands(self):

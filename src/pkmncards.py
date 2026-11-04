@@ -194,3 +194,101 @@ def get_pokemon_sets(
 
     sb.quit()
     json.dump(pokemon_sets, open(filename, "w"), indent=4)
+
+
+def get_set_links() -> dict[str, str]:
+    sb = Driver(uc=True, locale_code="en", ad_block=True)
+    sb.uc_activate_cdp_mode(SETS_URL)
+    sb.sleep(1)
+    set_elements = sb.cdp.find_visible_elements("div.entry-content li a")
+
+    set_links = {}
+    for element in set_elements:
+        element_text = element.text.strip()
+        should_skip, parse_deeper = check_should_skip_set(element_text)
+        if should_skip:
+            continue
+        if parse_deeper:
+            set_code = element_text.split("(")[1].replace(")", "").strip()
+        else:
+            set_code = element_text
+        set_links[set_code] = element["href"]
+
+    sb.quit()
+    return set_links
+
+
+def get_set_card_total(sb, url: str) -> int:
+    sb.cdp.open(url)
+    sb.sleep(2)
+    results = sb.cdp.find_visible_elements("li.results")[0].children[0]
+    if results.text.lower().strip() == "no results":
+        return 0
+    total = sb.cdp.find_visible_elements("span.out-of")[0]
+    return int(total.children[0].text.replace(",", "").replace("/", "").strip())
+
+
+def get_set_cards(sb, total: int) -> dict:
+    headers = ["set", "number", "name", "type", "color", "rarity"]
+    cards = {}
+
+    while True:
+        current_range = sb.cdp.find_visible_elements("span.range-current")[0]
+        range_max = current_range.text.replace(",", "").strip()
+        if "thru" in range_max:
+            range_max = range_max.split("thru")[1].strip()
+
+        card_elements = sb.cdp.find_visible_elements("article.type-pkmn_card")
+        for card in card_elements:
+            card_details = {}
+            card_base = card.children[0].children[0].children
+            for i, header in enumerate(headers):
+                card_details[header] = card_base[i].text.strip()
+            card_details["link"] = card_base[2].children[0]["href"]
+            for k in card_details.keys():
+                if k == "link":
+                    continue
+                for old, new in REPLACE_CHARACTERS.items():
+                    card_details[k] = card_details[k].replace(old, new)
+            cards[card_details["number"]] = {
+                "name": card_details["name"],
+                "type": card_details["type"],
+                "color": card_details["color"],
+                "rarity": card_details["rarity"],
+                "link": card_details["link"],
+            }
+
+        if range_max == str(total):
+            break
+
+        sb.cdp.find_visible_elements("li.next-link a")[0].click()
+        sb.sleep(3)
+
+    return cards
+
+
+def get_all_cards(filename: str = "card_database.json"):
+    try:
+        with open(filename, "r") as f:
+            database = json.load(f)
+    except Exception:
+        database = {}
+    all_cards = database.get("cards", {})
+
+    set_links = get_set_links()
+
+    sb = Driver(uc=True, locale_code="en", ad_block=True)
+    sb.uc_activate_cdp_mode(SETS_URL)
+    try:
+        for set_code, link in set_links.items():
+            total = get_set_card_total(sb, f"{link}?display=list")
+            # only scrape sets that are new or whose card count changed
+            if total == 0 or len(all_cards.get(set_code, {})) == total:
+                continue
+
+            all_cards[set_code] = get_set_cards(sb, total)
+            # saved per set so an interrupted run keeps its progress
+            with open(filename, "w") as f:
+                json.dump({"cards": all_cards}, f, indent=4)
+    finally:
+        sb.quit()

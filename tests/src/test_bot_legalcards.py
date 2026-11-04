@@ -22,6 +22,7 @@ class MockCtx():
 class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
 
     @patch("src.bot_legalcards.json.dump")
+    @patch("src.bot_legalcards.get_all_cards")
     @patch("src.bot_legalcards.get_pokemon_sets")
     @patch("src.bot_legalcards.get_banned_cards")
     @patch("src.bot_legalcards.load_card_database")
@@ -38,6 +39,7 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
         mock_load,
         mock_banned_cards,
         mock_sets,
+        mock_all_cards,
         mock_json_dump
     ):
         mock_load.return_value = ({}, {}, {})
@@ -65,6 +67,21 @@ class TestBotLegalCards(unittest.IsolatedAsyncioTestCase):
         assert mock_ctx.last_response == (
             "Pokemon sets update failed! sets fail"
         )
+
+        mock_sets.side_effect = None
+        mock_all_cards.side_effect = Exception("cards fail")
+        await b.get_legal_cards(mock_ctx)
+        assert mock_ctx.last_response == (
+            "Card database update failed! cards fail"
+        )
+
+        mock_logger_instance.reset_mock()
+        b.get_legal_cards_task()
+        mock_logger_instance.error.assert_called_once_with(
+            "Card database update failed. cards fail"
+        )
+        mock_all_cards.side_effect = None
+        mock_sets.side_effect = Exception("sets fail")
 
         mock_logger_instance.reset_mock()
         b.legal_cards = {}
