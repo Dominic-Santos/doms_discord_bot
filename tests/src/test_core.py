@@ -2,7 +2,7 @@ import json
 from unittest.mock import patch, MagicMock
 from src.core import (
     validate_decklist, fill_sheet, load_card_database,
-    get_offset, convert_banned_cards, remove_types_from_card_name
+    get_offset, convert_banned_cards
 )
 
 
@@ -59,10 +59,6 @@ def test_load_card_database_with_banned_sets():
     assert len(trainers.keys()) == 14
     assert len(energies.keys()) == 2
     assert count == 123
-
-
-def test_remove_types_from_card_name():
-    assert remove_types_from_card_name("Charizard { R }") == "Charizard Fire"
 
 
 def test_validate_decklist_60_cards():

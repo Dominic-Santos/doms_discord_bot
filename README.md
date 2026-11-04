@@ -283,9 +283,9 @@ Config example:
 
 Decklists are decoded directly from the Limitless builder URL, the bot never opens the Limitless site.
 
-- The URL has the form `my.limitlesstcg.com/builder?i=1` followed by one entry per card, each starting with a `0` separator: `0` + quantity + 2 discarded digits + set code (2-3 letters) + card number (1-3 digits, no leading zeroes).
+- The URL has the form `my.limitlesstcg.com/builder?i=1` followed by one entry per card, each starting with a `0` separator: `0` + quantity + 2 discarded digits + set code (2-5 letters or digits, e.g. `TWM`, `30C`, `M23`, `FUT20`) + card number (1-3 digits, no leading zeroes).
 - The quantity is a single character: `1-9`, `a-z` (10-35) and `A-Z` (36-61).
-- Card numbers can end in `0`, so the entries are read from the end of the URL backwards.
+- Card numbers can end in `0` and set codes can end in digits, so the entries are read from the end of the URL backwards and the split between set code and number is resolved using the set codes in the card database.
 - Each set code and card number is looked up in `data/card_database.json`. Unknown cards are rejected with `Unknown card <set code> <number>`.
 - Basic energies are named `Basic Grass Energy` in newer sets and `Grass Energy` in older ones. They are normalised to the latter so both count as the same card.
 
@@ -293,10 +293,10 @@ Decklists are decoded directly from the Limitless builder URL, the bot never ope
 
 | File | Source | Purpose |
 | --- | --- | --- |
-| `data/legal_cards.json` | pkmncards.com format search | Cards legal in standard. |
-| `data/legal_expanded_cards.json` | pkmncards.com format search | Cards legal in expanded. |
-| `data/card_sets.json` | pkmncards.com/sets | Set names mapped to set codes. |
-| `data/card_database.json` | pkmncards.com/sets (each set with `?display=list`) | Every card ever printed, used to resolve cards from the URL. |
+| `data/legal_cards.json` | limitlesstcg.com/cards search `f:standard` | Cards legal in standard, ACE SPECs flagged with `ace_spec`. |
+| `data/legal_expanded_cards.json` | limitlesstcg.com/cards search `f:expanded` | Cards legal in expanded. |
+| `data/card_sets.json` | limitlesstcg.com/cards | Set names mapped to set codes. |
+| `data/card_database.json` | limitlesstcg.com/cards/<set code>?display=list | Every card in every set, refetched in full on each update, used to resolve cards from the URL. |
 
 The card database is updated incrementally: a set is only scraped again when it is missing or the number of cards on the site differs from the stored count. The first sync scrapes every set and takes a while.
 

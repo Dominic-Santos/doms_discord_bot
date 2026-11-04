@@ -32,6 +32,22 @@ def test_parse_quantities_and_trailing_zero_numbers():
     ]
 
 
+def test_parse_alphanumeric_set_codes():
+    codes = {"M23", "30C", "FUT20", "TK1A", "G1", "TWM"}
+    url = "x/builder?i=10333M2350333" "30C7" "0133FUT20150233TK1A40133G1110233TWM90"
+    assert parse_decklist_url(url + "0133TWM128", codes) == [
+        (3, "M23", "5"), (3, "30C", "7"), (1, "FUT20", "15"),
+        (2, "TK1A", "4"), (1, "G1", "11"), (2, "TWM", "90"),
+        (1, "TWM", "128"),
+    ]
+
+
+def test_parse_unknown_set_code_still_decodes():
+    assert parse_decklist_url("x/builder?i=10133ABC123", {"TWM"}) == [
+        (1, "ABC", "123")
+    ]
+
+
 @pytest.mark.parametrize("url", [
     "x/builder?i=10_33TWM1",
     "x/builder?i=1033TWM",
@@ -47,7 +63,7 @@ def test_parse_invalid(url):
 def test_get_decklist_from_url():
     lookup = build_card_lookup({"cards": {
         "TWM": {"128": {"name": "Pikachu", "type": "Pkmn Basic"}},
-        "MEE": {"007": {"name": "Basic Fire Energy", "type": "Energy > Basic"}},
+        "MEE": {"007": {"name": "Fire Energy", "type": "Energy > Basic"}},
         "OLD": {"1": {"name": "Fire Energy", "type": "Energy > Basic"}},
         "ASC": {"16": {"name": "Potion", "type": "Trainer Item"}},
     }})

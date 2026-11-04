@@ -1,7 +1,9 @@
 import json
 
 from .core import load_card_database, convert_banned_cards, DATA_FOLDER
-from .pkmncards import get_legal_cards, get_pokemon_sets, get_all_cards
+from .limitless_cards import (
+    get_legal_cards, get_pokemon_sets, get_all_cards
+)
 from .pokemon import get_banned_cards
 
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE

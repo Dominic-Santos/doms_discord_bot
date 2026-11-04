@@ -19,7 +19,7 @@
             "name": "Hilda",
             "type": "Trainer > Supporter",
             "color": "",
-            "rarity": "ACE SPEC Rare",
+            "ace_spec": true,
             "link": "https://pkmncards.com/card/hilda-white-flare-wht-171/"
         },
         "170": {
@@ -614,7 +614,7 @@
             "name": "Ignition Energy",
             "type": "Energy > Special",
             "color": "",
-            "rarity": "ACE SPEC Rare",
+            "ace_spec": true,
             "link": "https://pkmncards.com/card/ignition-energy-white-flare-wht-086/"
         },
         "085": {
