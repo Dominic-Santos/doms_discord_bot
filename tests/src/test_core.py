@@ -341,7 +341,7 @@ def test_fill_sheet_no_data(mock_draw, mock_font, mock_image):
 
     fill_sheet()
 
-    assert draw_instance.text.call_count == 2
+    assert draw_instance.text.call_count == 3
     mock_image.open.assert_called_once()
     image_instance.save.assert_called_once()
 
@@ -356,7 +356,7 @@ def test_fill_sheet(mock_draw, mock_font, mock_image):
     mock_image.open.return_value = image_instance
 
     fill_sheet(
-        player={"name": "test boy"},
+        player={"name": "test boy", "year_of_birth": "1990"},
         cards={
             "pokemon": [{}],
             "trainers": {
@@ -368,6 +368,7 @@ def test_fill_sheet(mock_draw, mock_font, mock_image):
         }
     )
 
-    assert draw_instance.text.call_count == 11
+    assert draw_instance.text.call_count == 12
+    assert "1990" in [c.args[1] for c in draw_instance.text.call_args_list]
     mock_image.open.assert_called_once()
     image_instance.save.assert_called_once()

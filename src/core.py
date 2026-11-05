@@ -64,6 +64,13 @@ def fill_sheet(
         font=player_name_font
     )
 
+    draw.text(
+        (1086, 140),
+        str(player.get("year_of_birth", "1990")),
+        (0, 0, 0),
+        font=player_name_font
+    )
+
     quantity_x = 525
     card_name_x = 580
     set_x = 922
