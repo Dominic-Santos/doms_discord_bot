@@ -157,8 +157,9 @@ User command groups:
 | `/events pokemon unfollow_all` | Admin | - | Stop following all events. |
 | `/events pokemon sync` | Admin | - | Sync followed events into Discord scheduled events. |
 | `/events pokemon delete_all` | Admin | - | Cancel bot-created Discord events in the server. |
-| `/events pokemon set_channel` | Admin | - | Set channel for event update notifications. |
-| `/events pokemon remove_channel` | Admin | - | Remove event update notification channel. |
+| `/events pokemon set_premier_channel` | Admin | - | Set the channel where premier event updates are announced. |
+| `/events pokemon set_store_channel` | Admin | - | Set the channel where followed store event updates are announced. |
+| `/events pokemon remove_channel` | Admin | - | Remove both event update notification channels. |
 
 To find a store's GUID, open the store on [events.pokemon.com/EventLocator](https://events.pokemon.com/EventLocator) and copy the `LocationGuid` value from the page URL. League events are skipped when syncing, and a store's League events are not created in Discord.
 ### Newsfeed - Pokemon

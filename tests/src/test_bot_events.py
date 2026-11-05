@@ -32,6 +32,7 @@ class MockCtx():
 class MockEvent():
     def __init__(self, name="test event", old=True):
         self.name = name
+        self.id = name
         self.location = "hell"
 
         if old:
@@ -179,20 +180,31 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         )
 
         assert b.event_channels == {}
-        await b.set_events_channel(mock_ctx)
-        assert b.event_channels.get("123", None) == 234
-        assert mock_ctx.last_response == "Events channel set successfully!"
+        await b.set_events_channel(mock_ctx, True)
+        assert b.event_channels["123"] == {"premier": 234}
+        assert mock_ctx.last_response == (
+            "Premier events channel set successfully!"
+        )
+        mock_ctx.channel.id = 345
+        await b.set_events_channel(mock_ctx, False)
+        assert b.event_channels["123"] == {"premier": 234, "store": 345}
+        assert mock_ctx.last_response == (
+            "Store events channel set successfully!"
+        )
 
         await b.remove_events_channel(mock_ctx)
         assert b.event_channels.get("123", None) is None
-        assert mock_ctx.last_response == "Events channel removed successfully!"
+        assert mock_ctx.last_response == (
+            "Events channels removed successfully!"
+        )
+        b.premier_event_ids = {}
 
         guildevents = [
             MockEvent("event1"),
             MockEvent("event2", old=False),
             MockEvent("event3", old=False)
         ]
-        b.event_channels["123"] = 1234
+        b.event_channels["123"] = {"premier": 1234, "store": 1234}
         mock_guild = MagicMock()
         mock_guild.create_scheduled_event = AsyncMock()
         send_mock = AsyncMock()
@@ -292,7 +304,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
 
         for event in guildevents:
             event.canceled = False
-        b.event_channels["123"] = 1234
+        b.event_channels["123"] = {"premier": 1234, "store": 1234}
         await b.delete_all_events(mock_ctx)
         assert mock_ctx.last_response == "Events deleted successfully!"
         for event in guildevents:
@@ -333,3 +345,74 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
         await b.sync_events_task()
         assert len(mock_updater.calls) == 0
         mock_logger_instance.error.assert_called_once()
+
+
+class TestEventChannels(unittest.IsolatedAsyncioTestCase):
+
+    def setUp(self):
+        patches = [
+            patch("builtins.open"),
+            patch("src.bot.create_logger"),
+            patch("src.bot.discord"),
+            patch("src.bot_events.get_logo", return_value=None),
+        ]
+        for p in patches:
+            p.start()
+            self.addCleanup(p.stop)
+
+    def test_load_migrates_single_channel(self):
+        b = Bot("faketoken", False, "123")
+        data = {"channels": {"1": 10, "2": {"premier": 20}}}
+        with patch("src.bot_events.json.load", return_value=data):
+            b.load_events_data()
+
+        assert b.event_channels == {
+            "1": {"premier": 10, "store": 10},
+            "2": {"premier": 20}
+        }
+        assert b.premier_event_ids == {}
+
+    async def test_announcements_use_the_matching_channel(self):
+        b = Bot("faketoken", False, "123")
+        b.save_events_data = MagicMock()
+        channels = {10: AsyncMock(), 20: AsyncMock()}
+        b.bot.get_channel = MagicMock(side_effect=channels.get)
+        b.bot.user = MagicMock(id=1)
+        b.event_channels = {"5": {"premier": 10, "store": 20}}
+        b.premier_event_ids = {}
+
+        year = datetime.now().year + 1
+        start, end = get_mock_event_date(14, 16, year)
+        events = [
+            PokemonEvent("big", "Regional", "x", start, end, "l", True),
+            PokemonEvent("small", "Cup", "x", start, end, "l", False),
+        ]
+        old_premier = MockEvent("old_premier", old=False)
+        old_store = MockEvent("old_store", old=False)
+        for old in (old_premier, old_store):
+            old.creator_id = 1
+        b.premier_event_ids = {"5": ["old_premier"]}
+
+        guild = MagicMock()
+        guild.fetch_scheduled_events = AsyncMock(
+            return_value=[old_premier, old_store]
+        )
+        guild.create_scheduled_event = AsyncMock(
+            side_effect=[
+                MockEvent("big_discord", old=False),
+                MockEvent("small_discord", old=False),
+            ]
+        )
+        b.bot.fetch_guild = AsyncMock(return_value=guild)
+
+        await b.update_guild_events(5, events)
+
+        premier_texts = [c.args[0] for c in channels[10].send.call_args_list]
+        store_texts = [c.args[0] for c in channels[20].send.call_args_list]
+        assert len(premier_texts) == 2
+        assert premier_texts[0].startswith("An event was created!\nbig_discord")
+        assert premier_texts[1].startswith("An event was canceled!\nold_premier")
+        assert len(store_texts) == 2
+        assert store_texts[0].startswith("An event was created!\nsmall_discord")
+        assert store_texts[1].startswith("An event was canceled!\nold_store")
+        assert b.premier_event_ids == {"5": ["big_discord"]}

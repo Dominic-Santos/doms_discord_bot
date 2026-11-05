@@ -20,19 +20,29 @@ class EventsBot:
                 data = json.load(f)
                 self.events_following = data.get("events", {})
                 self.premier_following = data.get("premier", {})
-                self.event_channels = data.get("channels", {})
+                # older versions used one channel for every event
+                self.event_channels = {
+                    guild_id: (
+                        channels if isinstance(channels, dict)
+                        else {"premier": channels, "store": channels}
+                    )
+                    for guild_id, channels in data.get("channels", {}).items()
+                }
+                self.premier_event_ids = data.get("premier_event_ids", {})
         except Exception as e:
             self.logger.warning(f"Error loading {EVENTS_FILE}: {e}")
             self.events_following = {}
             self.premier_following = {}
             self.event_channels = {}
+            self.premier_event_ids = {}
 
     def save_events_data(self):
         try:
             data = {
                 "events": self.events_following,
                 "premier": self.premier_following,
-                "channels": self.event_channels
+                "channels": self.event_channels,
+                "premier_event_ids": self.premier_event_ids
             }
             with open(EVENTS_FILE, "w") as f:
                 json.dump(data, f, indent=4)
@@ -100,11 +110,21 @@ class EventsBot:
         async def delete_all(ctx):
             await self.delete_all_events(ctx)  # pragma: no cover
 
-        @pokemon.command(description="Set event updates channel")
-        async def set_channel(ctx):
-            await self.set_events_channel(ctx)  # pragma: no cover
+        @pokemon.command(
+            name="set_premier_channel",
+            description="Set premier event updates channel"
+        )
+        async def set_premier_channel(ctx):
+            await self.set_events_channel(ctx, True)  # pragma: no cover
 
-        @pokemon.command(description="Remove event updates channel")
+        @pokemon.command(
+            name="set_store_channel",
+            description="Set store event updates channel"
+        )
+        async def set_store_channel(ctx):
+            await self.set_events_channel(ctx, False)  # pragma: no cover
+
+        @pokemon.command(description="Remove event updates channels")
         async def remove_channel(ctx):
             await self.remove_events_channel(ctx)  # pragma: no cover
 
@@ -222,22 +242,12 @@ class EventsBot:
     async def delete_all_events(self, ctx):
         await ctx.defer(ephemeral=True)
         guild = await self.bot.fetch_guild(ctx.guild.id)
-        channel = self.event_channels.get(str(ctx.guild.id), None)
-        if channel is not None:
-            channel = self.bot.get_channel(int(channel))
 
         guild_events = await guild.fetch_scheduled_events()
         for event in guild_events:
             if event.creator_id == self.bot.user.id:
                 await event.cancel()
-
-                if channel is None:
-                    continue
-
-                event_text = self.print_event(event, with_url=False)
-                await channel.send(
-                    "An event was canceled!\n" + event_text
-                )
+                await self.announce_canceled_event(ctx.guild.id, event)
 
         await ctx.respond(
             "Events deleted successfully!",
@@ -260,9 +270,6 @@ class EventsBot:
         events: list[PokemonEvent]
     ):
         guild = await self.bot.fetch_guild(guild_id)
-        channel = self.event_channels.get(str(guild_id), None)
-        if channel is not None:
-            channel = self.bot.get_channel(int(channel))
 
         guild_events = await guild.fetch_scheduled_events()
         bot_events = [
@@ -308,6 +315,13 @@ class EventsBot:
 
             new_event = await guild.create_scheduled_event(**kwargs)
 
+            if event.premier:
+                self.premier_event_ids.setdefault(
+                    str(guild_id), []
+                ).append(new_event.id)
+                self.save_events_data()
+
+            channel = self.get_event_channel(guild_id, event.premier)
             if channel is None:
                 continue
 
@@ -328,14 +342,30 @@ class EventsBot:
 
             # Delete the event
             await event.cancel()
+            await self.announce_canceled_event(guild_id, event)
 
-            if channel is None:
-                continue
+    def get_event_channel(self, guild_id: int, premier: bool):
+        key = "premier" if premier else "store"
+        channel = self.event_channels.get(str(guild_id), {}).get(key)
+        if channel is None:
+            return None
+        return self.bot.get_channel(int(channel))
 
-            event_text = self.print_event(event, with_url=False)
-            await channel.send(
-                "An event was canceled!\n" + event_text
-            )
+    async def announce_canceled_event(self, guild_id: int, event):
+        premier_ids = self.premier_event_ids.get(str(guild_id), [])
+        premier = event.id in premier_ids
+        if premier:
+            premier_ids.remove(event.id)
+            self.save_events_data()
+
+        channel = self.get_event_channel(guild_id, premier)
+        if channel is None:
+            return
+
+        event_text = self.print_event(event, with_url=False)
+        await channel.send(
+            "An event was canceled!\n" + event_text
+        )
 
     @staticmethod
     def print_event(event, with_url: bool = True) -> str:
@@ -352,13 +382,14 @@ class EventsBot:
             text += f"\n\n{event.url}"
         return text
 
-    async def set_events_channel(self, ctx):
-        channel_id = ctx.channel.id
-        self.event_channels[str(ctx.guild.id)] = channel_id
+    async def set_events_channel(self, ctx, premier: bool):
+        key = "premier" if premier else "store"
+        guild_channels = self.event_channels.setdefault(str(ctx.guild.id), {})
+        guild_channels[key] = ctx.channel.id
 
         self.save_events_data()
         await ctx.respond(
-            "Events channel set successfully!",
+            f"{key.capitalize()} events channel set successfully!",
             ephemeral=True
         )
 
@@ -369,7 +400,7 @@ class EventsBot:
 
         self.save_events_data()
         await ctx.respond(
-            "Events channel removed successfully!",
+            "Events channels removed successfully!",
             ephemeral=True
         )
 
