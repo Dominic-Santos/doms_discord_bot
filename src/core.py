@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from PIL import Image
 from PIL import ImageFont
@@ -17,6 +18,9 @@ REPLACE_CHARACTERS = {
 }
 
 
+AGE_DIVISION_Y = {"junior": 231, "senior": 258, "masters": 285}
+
+
 def get_offset(card_type: str, amount: int) -> int:
     if card_type == "pokemon":
         if amount > 13:
@@ -27,6 +31,16 @@ def get_offset(card_type: str, amount: int) -> int:
         if amount > 19:
             return 23
     return 27
+
+
+def get_age_division(year_of_birth: int) -> str:
+    # divisions follow the season year: junior up to 12, senior up to 16
+    age = datetime.now().year - year_of_birth
+    if age <= 12:
+        return "junior"
+    if age <= 16:
+        return "senior"
+    return "masters"
 
 
 def fill_sheet(
@@ -70,6 +84,16 @@ def fill_sheet(
         (0, 0, 0),
         font=player_name_font
     )
+
+    year_of_birth = player.get("year_of_birth")
+    if year_of_birth is not None:
+        draw.text(
+            (742, AGE_DIVISION_Y[get_age_division(int(year_of_birth))]),
+            "X",
+            (0, 0, 0),
+            font=player_name_font,
+            anchor="mm"
+        )
 
     quantity_x = 525
     card_name_x = 580
