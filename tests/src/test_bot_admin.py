@@ -199,6 +199,8 @@ class TestBotAdmin(unittest.IsolatedAsyncioTestCase):
             "2099-06-21 18:30:00"
         )
 
+        # a just-closed tournament is borderline for the deletion grace period
+        b.tournaments["open_one"]["expires_at"] = "2099-05-21 18:30:00"
         b.tournaments["closed"] = {
             "name": "Closed",
             "expires_at": "2000-01-01 00:00:00",
