@@ -645,7 +645,8 @@ class TournamentBot:
                 "year_of_birth": str(year_of_birth)
             },
             cards=deck_data,
-            output_filename=output_filename
+            output_filename=output_filename,
+            format=format
         )
 
         author = ctx.author.mention

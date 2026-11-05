@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import date
 
 from PIL import Image
 from PIL import ImageFont
@@ -18,6 +18,9 @@ REPLACE_CHARACTERS = {
 }
 
 
+SEASON_START_MONTH = 9
+FORMAT_X = {"standard": 299, "expanded": 398}
+FORMAT_Y = 105
 AGE_DIVISION_Y = {"junior": 231, "senior": 258, "masters": 285}
 
 
@@ -33,12 +36,19 @@ def get_offset(card_type: str, amount: int) -> int:
     return 27
 
 
-def get_age_division(year_of_birth: int) -> str:
-    # divisions follow the season year: junior up to 12, senior up to 16
-    age = datetime.now().year - year_of_birth
-    if age <= 12:
+def get_season_year(today: date = None) -> int:
+    # a season is named after the year it ends in, and starts after the summer
+    today = today or date.today()
+    return today.year + 1 if today.month >= SEASON_START_MONTH else today.year
+
+
+def get_age_division(year_of_birth: int, today: date = None) -> str:
+    # the 2026 season has juniors born in 2014 or later and seniors born
+    # 2010-2013, every following season moves these ranges up by one year
+    shift = get_season_year(today) - 2026
+    if year_of_birth >= 2014 + shift:
         return "junior"
-    if age <= 16:
+    if year_of_birth >= 2010 + shift:
         return "senior"
     return "masters"
 
@@ -47,7 +57,8 @@ def fill_sheet(
     sheet_location: str = "sign_up_sheet.png",
     player: dict = {},
     cards: dict = {},
-    output_filename: str = None
+    output_filename: str = None,
+    format: str = None
 ):
 
     if not sheet_location.endswith(".png"):
@@ -84,6 +95,15 @@ def fill_sheet(
         (0, 0, 0),
         font=player_name_font
     )
+
+    if format in FORMAT_X:
+        draw.text(
+            (FORMAT_X[format], FORMAT_Y),
+            "X",
+            (0, 0, 0),
+            font=player_name_font,
+            anchor="mm"
+        )
 
     year_of_birth = player.get("year_of_birth")
     if year_of_birth is not None:

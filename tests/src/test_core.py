@@ -1,8 +1,9 @@
 from unittest.mock import patch, MagicMock
 from src.core import (
     validate_decklist, fill_sheet, load_card_database,
-    get_offset, get_age_division
+    get_offset, get_age_division, get_season_year
 )
+from datetime import date
 
 
 def test_load_card_database_not_json():
@@ -323,15 +324,32 @@ def test_get_offset():
     assert get_offset("energy", 100) == 27
 
 
-@patch("src.core.datetime")
-def test_get_age_division(mock_datetime):
-    mock_datetime.now.return_value.year = 2026
-    assert get_age_division(2026) == "junior"
-    assert get_age_division(2014) == "junior"
-    assert get_age_division(2013) == "senior"
-    assert get_age_division(2010) == "senior"
-    assert get_age_division(2009) == "masters"
-    assert get_age_division(1980) == "masters"
+def test_get_season_year():
+    assert get_season_year(date(2026, 1, 15)) == 2026
+    assert get_season_year(date(2026, 8, 31)) == 2026
+    assert get_season_year(date(2026, 9, 1)) == 2027
+    assert get_season_year(date(2026, 12, 31)) == 2027
+
+
+def test_get_age_division():
+    season_2026 = date(2026, 3, 1)
+    assert get_age_division(2020, season_2026) == "junior"
+    assert get_age_division(2014, season_2026) == "junior"
+    assert get_age_division(2013, season_2026) == "senior"
+    assert get_age_division(2010, season_2026) == "senior"
+    assert get_age_division(2009, season_2026) == "masters"
+    assert get_age_division(1980, season_2026) == "masters"
+
+    # ranges move up one year once the next season starts
+    season_2027 = date(2026, 9, 1)
+    assert get_age_division(2015, season_2027) == "junior"
+    assert get_age_division(2014, season_2027) == "senior"
+    assert get_age_division(2011, season_2027) == "senior"
+    assert get_age_division(2010, season_2027) == "masters"
+
+    with patch("src.core.date") as mock_date:
+        mock_date.today.return_value = season_2026
+        assert get_age_division(2014) == "junior"
 
 
 def test_fill_sheet_not_png():
@@ -368,6 +386,7 @@ def test_fill_sheet(mock_draw, mock_font, mock_image):
 
     fill_sheet(
         player={"name": "test boy", "year_of_birth": "1990"},
+        format="standard",
         cards={
             "pokemon": [{}],
             "trainers": {
@@ -379,7 +398,7 @@ def test_fill_sheet(mock_draw, mock_font, mock_image):
         }
     )
 
-    assert draw_instance.text.call_count == 13
+    assert draw_instance.text.call_count == 14
     assert "1990" in [c.args[1] for c in draw_instance.text.call_args_list]
     mock_image.open.assert_called_once()
     image_instance.save.assert_called_once()
