@@ -88,9 +88,9 @@ class Bot(
             self.add_tasks()  # pragma: no cover
 
     def add_tasks(self):
-        time_refresh_card_data = datetime.time(hour=7)
-        time_update_signup_sheet = datetime.time(hour=9)
-        # time_update_events = datetime.time(hour=11)
+        time_refresh_card_data = datetime.time(hour=7, minute=30)
+        time_update_signup_sheet = datetime.time(hour=8, minute=30)
+        time_update_events = datetime.time(hour=9)
         time_update_banned_cards = datetime.time(hour=8)
         interval_update_newsfeed = {"hours": 6}
 
@@ -110,14 +110,14 @@ class Bot(
         async def update_newsfeed():
             await self.get_newsfeed_task()  # pragma: no cover
 
-        # @tasks.loop(time=time_update_events)
-        # async def update_events():
-        #     await self.sync_events_task()   # pragma: no cover
+        @tasks.loop(time=time_update_events)
+        async def update_events():
+            await self.sync_events_task()  # pragma: no cover
 
         refresh_card_data.start()
         update_signup_sheet.start()
         update_newsfeed.start()
-        # update_events.start()
+        update_events.start()
         update_banned_cards.start()
         self.logger.info("Scheduled tasks started.")
 
