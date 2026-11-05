@@ -260,7 +260,7 @@ The bot includes scheduled tasks that run automatically.
 
 | Task | Schedule | Purpose |
 | --- | --- | --- |
-| Refresh card data | Daily at 7:30 | Refresh legal card data, set codes and the full card database for validation. |
+| Refresh card data | Daily at 7:30 | Refresh legal card data and set codes, then sync the card database newest set first, stopping at the first set whose stored card count matches the listing. The manual command syncs every set. |
 | Update banned cards | Daily at 8:00 | Refresh banned card data from Limitless for validation. |
 | Update sign-up sheet | Daily at 8:30 | Refresh tournament sign-up sheet image from the Play! Pokémon deck list PDF. |
 | Update events | Daily at 9:00 | Sync latest followed event data. |

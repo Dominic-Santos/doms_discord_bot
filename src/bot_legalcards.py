@@ -126,7 +126,7 @@ class LegalCardsBot:
             self.logger.error(f"Pokemon sets update failed. {error}")
             return
 
-        error = self.do_get_all_cards()
+        error = self.do_get_all_cards(stop_when_current=True)
         if error is not None:
             self.logger.error(f"Card database update failed. {error}")
             return
@@ -216,9 +216,10 @@ class LegalCardsBot:
         self.load_legal_cards()
         return error
 
-    def do_get_all_cards(self) -> Exception:
+    def do_get_all_cards(self, stop_when_current: bool = False) -> Exception:
         t = CustomThread(get_all_cards, kwargs={
-            "filename": CARD_DATABASE_FILE
+            "filename": CARD_DATABASE_FILE,
+            "stop_when_current": stop_when_current
         })
         t.start()
         _, error = t.join()

@@ -19,7 +19,9 @@ REQUEST_DELAY = 0.5
 
 SET_ROW = re.compile(
     r'<td><a href="/cards/([^"/]+)">(?:<img class="set"[^>]*>)? '
-    r'(.*?) <span class="code annotation">'
+    r'(.*?) <span class="code annotation">.*?'
+    r'<td class="md-only"><a[^>]*>([\d,]+)',
+    re.DOTALL
 )
 CARD_ROW = re.compile(r"<tr[^>]*data-hover.*?</tr>", re.DOTALL)
 CELL = re.compile(r"<td[^>]*>(.*?)</td>", re.DOTALL)
@@ -104,11 +106,16 @@ def group_cards(cards: list[dict]) -> dict:
     return grouped
 
 
+def get_set_rows() -> list[tuple[str, str, int]]:
+    # newest sets first, as listed on the site
+    return [
+        (code, clean_text(name), int(count.replace(",", "")))
+        for code, name, count in SET_ROW.findall(fetch_html(SETS_URL))
+    ]
+
+
 def get_set_list() -> dict[str, str]:
-    sets_page = fetch_html(SETS_URL)
-    return {
-        code: clean_text(name) for code, name in SET_ROW.findall(sets_page)
-    }
+    return {code: name for code, name, _ in get_set_rows()}
 
 
 def get_legal_card_list(
@@ -187,14 +194,19 @@ def get_pokemon_sets(filename: str = "card_sets.json"):
         json.dump(pokemon_sets, f, indent=4)
 
 
-def get_all_cards(filename: str = "card_database.json"):
+def get_all_cards(
+    filename: str = "card_database.json", stop_when_current: bool = False
+):
     try:
         with open(filename, "r") as f:
             all_cards = json.load(f).get("cards", {})
     except Exception:
         all_cards = {}
 
-    for code in get_set_list():
+    for code, _, size in get_set_rows():
+        if stop_when_current and len(all_cards.get(code, {})) == size:
+            break
+
         time.sleep(REQUEST_DELAY)
         cards, _ = get_all_pages(SET_URL.replace("{set_code}", code))
         all_cards[code] = group_cards(cards).get(code, {})

@@ -30,10 +30,13 @@ FIRE = row("TWM", "200", "Fire Energy", "Basic Energy")
 SETS_PAGE = (
     '<td><a href="/cards/TWM"><img class="set" src="x"> Twilight Masquerade '
     '<span class="code annotation">TWM</span></a></td>'
+    '<td class="md-only"><a href="/cards/TWM">226 <span>1%</span></a></td>'
     '<td><a href="/cards/BS"> Base Set '
     '<span class="code annotation">BS</span></a></td>'
+    '<td class="md-only"><a href="/cards/BS">1,102 <span>1%</span></a></td>'
     '<td><a href="/cards/PRE"><img class="set" src="x"> Prismatic Evolutions '
     '<span class="code annotation">PRE</span></a></td>'
+    '<td class="md-only"><a href="/cards/PRE">131 <span>1%</span></a></td>'
 )
 
 
@@ -102,6 +105,15 @@ def test_group_cards():
     assert "number" not in grouped["TWM"]["150"]
 
 
+def test_get_set_rows():
+    with patch.object(lc, "fetch_html", return_value=SETS_PAGE):
+        assert lc.get_set_rows() == [
+            ("TWM", "Twilight Masquerade", 226),
+            ("BS", "Base Set", 1102),
+            ("PRE", "Prismatic Evolutions", 131),
+        ]
+
+
 def test_get_set_list():
     with patch.object(lc, "fetch_html", return_value=SETS_PAGE):
         assert lc.get_set_list() == {
@@ -161,7 +173,7 @@ def test_get_pokemon_sets():
 def test_get_all_cards():
     existing = json.dumps({"cards": {"OLD": {"1": {}}}})
     m = mock_open(read_data=existing)
-    with patch.object(lc, "get_set_list", return_value={"TWM": "x"}), \
+    with patch.object(lc, "get_set_rows", return_value=[("TWM", "x", 1)]), \
             patch.object(lc, "fetch_html", return_value=page([PIKACHU])), \
             patch("time.sleep"), patch("builtins.open", m), \
             patch("json.dump") as dump:
@@ -174,12 +186,33 @@ def test_get_all_cards():
 def test_get_all_cards_without_existing_file():
     m = mock_open()
     m.side_effect = [FileNotFoundError, mock_open().return_value]
-    with patch.object(lc, "get_set_list", return_value={"TWM": "x"}), \
+    with patch.object(lc, "get_set_rows", return_value=[("TWM", "x", 1)]), \
             patch.object(lc, "fetch_html", return_value="nothing"), \
             patch("time.sleep"), patch("builtins.open", m), \
             patch("json.dump") as dump:
         lc.get_all_cards("db.json")
     assert dump.call_args[0][0] == {"cards": {"TWM": {}}}
+
+
+def test_get_all_cards_stops_at_first_current_set():
+    existing = json.dumps({"cards": {
+        "TWM": {}, "OLD": {"1": {}, "2": {}}, "OLDER": {}
+    }})
+    rows = [("TWM", "x", 1), ("OLD", "x", 2), ("OLDER", "x", 5)]
+    fetched = []
+
+    def fetch(url):
+        fetched.append(url)
+        return page([PIKACHU])
+
+    with patch.object(lc, "get_set_rows", return_value=rows), \
+            patch.object(lc, "fetch_html", side_effect=fetch), \
+            patch("time.sleep"), patch("builtins.open", mock_open(read_data=existing)), \
+            patch("json.dump") as dump:
+        lc.get_all_cards("db.json", stop_when_current=True)
+    assert len(fetched) == 1 and "/cards/TWM" in fetched[0]
+    assert dump.call_count == 1
+    assert dump.call_args[0][0]["cards"]["TWM"]["128"]["name"] == "Pikachu's"
 
 
 def test_get_banned_cards():
