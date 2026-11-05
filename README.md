@@ -159,9 +159,12 @@ User command groups:
 | `/events pokemon delete_all` | Admin | - | Cancel bot-created Discord events in the server. |
 | `/events pokemon set_premier_channel` | Admin | - | Set the channel where premier event updates are announced. |
 | `/events pokemon set_store_channel` | Admin | - | Set the channel where followed store event updates are announced. |
+| `/events pokemon set_mode` | Admin | `source`, `mode` | Choose for premier or followed store events whether to create Discord events, post in the channel, or both (default). |
 | `/events pokemon remove_channel` | Admin | - | Remove both event update notification channels. |
 
 To find a store's GUID, open the store on [events.pokemon.com/EventLocator](https://events.pokemon.com/EventLocator) and copy the `LocationGuid` value from the page URL. League events are skipped when syncing, and a store's League events are not created in Discord.
+
+With `set_mode`, an event source set to channel only is announced in its channel without creating a Discord event. It posts "An event was created!" once per event and "An event was canceled!" if an upcoming event disappears. Switching a source to channel only announces all of its current upcoming events once. Messages need the matching channel set with `set_premier_channel` or `set_store_channel`.
 ### Newsfeed - Pokemon
 
 | Command | Required Role | Form fields | Description |

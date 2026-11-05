@@ -1,6 +1,7 @@
 import json
 import discord
 from datetime import datetime, timedelta
+from types import SimpleNamespace
 
 from .pokemon import (
     get_store_events, get_premier_events,
@@ -11,6 +12,9 @@ from .core import DATA_FOLDER
 from .modals import CommandModal
 
 EVENTS_FILE = f"{DATA_FOLDER}/events_data.json"
+MODE_EVENTS = "events"
+MODE_CHANNEL = "channel"
+MODE_BOTH = "both"
 
 
 class EventsBot:
@@ -29,12 +33,16 @@ class EventsBot:
                     for guild_id, channels in data.get("channels", {}).items()
                 }
                 self.premier_event_ids = data.get("premier_event_ids", {})
+                self.event_modes = data.get("modes", {})
+                self.announced_events = data.get("announced", {})
         except Exception as e:
             self.logger.warning(f"Error loading {EVENTS_FILE}: {e}")
             self.events_following = {}
             self.premier_following = {}
             self.event_channels = {}
             self.premier_event_ids = {}
+            self.event_modes = {}
+            self.announced_events = {}
 
     def save_events_data(self):
         try:
@@ -42,7 +50,9 @@ class EventsBot:
                 "events": self.events_following,
                 "premier": self.premier_following,
                 "channels": self.event_channels,
-                "premier_event_ids": self.premier_event_ids
+                "premier_event_ids": self.premier_event_ids,
+                "modes": self.event_modes,
+                "announced": self.announced_events
             }
             with open(EVENTS_FILE, "w") as f:
                 json.dump(data, f, indent=4)
@@ -123,6 +133,34 @@ class EventsBot:
         )
         async def set_store_channel(ctx):
             await self.set_events_channel(ctx, False)  # pragma: no cover
+
+        @pokemon.command(
+            name="set_mode",
+            description="Choose if events are created, announced or both"
+        )
+        @discord.option(
+            "mode",
+            str,
+            description="What to do with them",
+            choices=[
+                discord.OptionChoice(
+                    "Create Discord events only", MODE_EVENTS
+                ),
+                discord.OptionChoice("Post in the channel only", MODE_CHANNEL),
+                discord.OptionChoice("Both", MODE_BOTH),
+            ]
+        )
+        @discord.option(
+            "source",
+            str,
+            description="Which events to configure",
+            choices=[
+                discord.OptionChoice("Premier events", "premier"),
+                discord.OptionChoice("Followed store events", "store"),
+            ]
+        )
+        async def set_mode(ctx, source: str, mode: str):
+            await self.set_events_mode(ctx, source, mode)  # pragma: no cover
 
         @pokemon.command(description="Remove event updates channels")
         async def remove_channel(ctx):
@@ -276,12 +314,18 @@ class EventsBot:
             e for e in guild_events if e.creator_id == self.bot.user.id
         ]
         keep_events = []
+        channel_only_events = []
 
         for event in events:
             if event.start_date < datetime.now():
                 continue
 
             if event.type.lower().strip().startswith("league"):
+                continue
+
+            mode = self.get_event_mode(guild_id, event.premier)
+            if mode == MODE_CHANNEL:
+                channel_only_events.append(event)
                 continue
 
             already_exists = False
@@ -322,7 +366,7 @@ class EventsBot:
                 self.save_events_data()
 
             channel = self.get_event_channel(guild_id, event.premier)
-            if channel is None:
+            if channel is None or mode != MODE_BOTH:
                 continue
 
             event_text = self.print_event(new_event)
@@ -344,6 +388,12 @@ class EventsBot:
             await event.cancel()
             await self.announce_canceled_event(guild_id, event)
 
+        await self.announce_channel_only_events(guild_id, channel_only_events)
+
+    def get_event_mode(self, guild_id: int, premier: bool) -> str:
+        key = "premier" if premier else "store"
+        return self.event_modes.get(str(guild_id), {}).get(key, MODE_BOTH)
+
     def get_event_channel(self, guild_id: int, premier: bool):
         key = "premier" if premier else "store"
         channel = self.event_channels.get(str(guild_id), {}).get(key)
@@ -359,12 +409,76 @@ class EventsBot:
             self.save_events_data()
 
         channel = self.get_event_channel(guild_id, premier)
-        if channel is None:
+        if channel is None or self.get_event_mode(
+            guild_id, premier
+        ) != MODE_BOTH:
             return
 
         event_text = self.print_event(event, with_url=False)
         await channel.send(
             "An event was canceled!\n" + event_text
+        )
+
+    async def announce_channel_only_events(
+        self,
+        guild_id: int,
+        events: list[PokemonEvent]
+    ):
+        announced = self.announced_events.setdefault(str(guild_id), {})
+        current = {}
+        for event in events:
+            key = "|".join([
+                str(event.premier),
+                event.name,
+                event.start_date.isoformat(),
+                event.end_date.isoformat()
+            ])
+            current[key] = event
+
+        for key, event in current.items():
+            channel = self.get_event_channel(guild_id, event.premier)
+            if key in announced or channel is None:
+                continue
+
+            announced[key] = {
+                "name": event.name,
+                "location": event.location,
+                "start": event.start_date.isoformat(),
+                "end": event.end_date.isoformat(),
+                "premier": event.premier
+            }
+            await channel.send(
+                "An event was created!\n" + self.print_event(
+                    self.as_discord_event(announced[key]), with_url=False
+                )
+            )
+
+        for key in list(announced):
+            if key in current:
+                continue
+
+            data = announced.pop(key)
+            channel = self.get_event_channel(guild_id, data["premier"])
+            mode = self.get_event_mode(guild_id, data["premier"])
+            upcoming = datetime.fromisoformat(data["start"]) > datetime.now()
+            if channel is None or mode != MODE_CHANNEL or not upcoming:
+                continue
+
+            await channel.send(
+                "An event was canceled!\n" + self.print_event(
+                    self.as_discord_event(data), with_url=False
+                )
+            )
+
+        self.save_events_data()
+
+    @staticmethod
+    def as_discord_event(data: dict):
+        return SimpleNamespace(
+            name=data["name"],
+            location=data["location"],
+            start_time=datetime.fromisoformat(data["start"]),
+            end_time=datetime.fromisoformat(data["end"])
         )
 
     @staticmethod
@@ -381,6 +495,27 @@ class EventsBot:
         if with_url:
             text += f"\n\n{event.url}"
         return text
+
+    async def set_events_mode(self, ctx, source: str, mode: str):
+        guild_id = str(ctx.guild.id)
+        self.event_modes.setdefault(guild_id, {})[source] = mode
+        self.save_events_data()
+
+        descriptions = {
+            MODE_EVENTS: "create Discord events only",
+            MODE_CHANNEL: "post in the channel only",
+            MODE_BOTH: "create Discord events and post in the channel",
+        }
+        response = f"{source.capitalize()} events will {descriptions[mode]}."
+
+        channel = self.event_channels.get(guild_id, {}).get(source)
+        if mode != MODE_EVENTS and channel is None:
+            response += (
+                f" No {source} events channel is set yet,"
+                f" use /events pokemon set_{source}_channel."
+            )
+
+        await ctx.respond(response, ephemeral=True)
 
     async def set_events_channel(self, ctx, premier: bool):
         key = "premier" if premier else "store"

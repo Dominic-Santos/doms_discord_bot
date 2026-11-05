@@ -416,3 +416,135 @@ class TestEventChannels(unittest.IsolatedAsyncioTestCase):
         assert store_texts[0].startswith("An event was created!\nsmall_discord")
         assert store_texts[1].startswith("An event was canceled!\nold_store")
         assert b.premier_event_ids == {"5": ["big_discord"]}
+
+    def create_bot(self, modes, discord_events=()):
+        b = Bot("faketoken", False, "123")
+        b.save_events_data = MagicMock()
+        self.premier_channel = AsyncMock()
+        self.store_channel = AsyncMock()
+        channels = {10: self.premier_channel, 20: self.store_channel}
+        b.bot.get_channel = MagicMock(side_effect=channels.get)
+        b.bot.user = MagicMock(id=1)
+        b.event_channels = {"5": {"premier": 10, "store": 20}}
+        b.event_modes = {"5": modes}
+        b.premier_event_ids = {}
+        b.announced_events = {}
+
+        for event in discord_events:
+            event.creator_id = 1
+        self.guild = MagicMock()
+        self.guild.fetch_scheduled_events = AsyncMock(
+            return_value=list(discord_events)
+        )
+        self.guild.create_scheduled_event = AsyncMock(
+            side_effect=lambda **kw: MockEvent(kw["name"], old=False)
+        )
+        b.bot.fetch_guild = AsyncMock(return_value=self.guild)
+        return b
+
+    @staticmethod
+    def create_events():
+        start, end = get_mock_event_date(
+            14, 16, datetime.now().year + 1
+        )
+        return [
+            PokemonEvent("big", "Regional", "x", start, end, "l", True),
+            PokemonEvent("small", "Cup", "x", start, end, "l", False),
+        ]
+
+    async def test_set_events_mode(self):
+        b = Bot("faketoken", False, "123")
+        b.save_events_data = MagicMock()
+        b.event_channels = {"123": {"premier": 10}}
+        b.event_modes = {}
+        ctx = MockCtx()
+
+        await b.set_events_mode(ctx, "premier", "channel")
+        assert b.event_modes == {"123": {"premier": "channel"}}
+        assert ctx.last_response == "Premier events will post in the channel only."
+
+        await b.set_events_mode(ctx, "store", "both")
+        assert b.event_modes["123"]["store"] == "both"
+        assert "No store events channel is set yet" in ctx.last_response
+        assert "set_store_channel" in ctx.last_response
+
+        await b.set_events_mode(ctx, "store", "events")
+        assert ctx.last_response == (
+            "Store events will create Discord events only."
+        )
+        b.save_events_data.assert_called()
+
+    async def test_events_only_mode_does_not_post(self):
+        old = MockEvent("old_store", old=False)
+        b = self.create_bot(
+            {"premier": "events", "store": "events"}, [old]
+        )
+
+        await b.update_guild_events(5, self.create_events())
+
+        assert self.guild.create_scheduled_event.call_count == 2
+        assert old.canceled
+        self.premier_channel.send.assert_not_called()
+        self.store_channel.send.assert_not_called()
+
+    async def test_channel_only_mode_announces_without_creating(self):
+        b = self.create_bot({"premier": "channel", "store": "both"})
+        events = self.create_events()
+
+        await b.update_guild_events(5, events)
+
+        self.guild.create_scheduled_event.assert_called_once()
+        assert self.guild.create_scheduled_event.call_args.kwargs[
+            "name"
+        ] == "small"
+        premier_texts = [
+            c.args[0] for c in self.premier_channel.send.call_args_list
+        ]
+        assert len(premier_texts) == 1
+        assert premier_texts[0].startswith("An event was created!\nbig\nx\n")
+        assert len(self.store_channel.send.call_args_list) == 1
+
+        # already announced events are not posted again
+        await b.update_guild_events(5, events)
+        assert len(self.premier_channel.send.call_args_list) == 1
+
+        # events that disappear are announced as canceled
+        await b.update_guild_events(5, [events[1]])
+        premier_texts = [
+            c.args[0] for c in self.premier_channel.send.call_args_list
+        ]
+        assert len(premier_texts) == 2
+        assert premier_texts[1].startswith("An event was canceled!\nbig\n")
+        assert b.announced_events["5"] == {}
+
+    async def test_channel_only_mode_edge_cases(self):
+        b = self.create_bot({"premier": "channel"})
+        events = self.create_events()[:1]
+
+        # nothing is remembered while there is no channel to post to
+        b.event_channels = {}
+        await b.update_guild_events(5, events)
+        assert b.announced_events["5"] == {}
+
+        b.event_channels = {"5": {"premier": 10}}
+        await b.update_guild_events(5, events)
+        assert len(b.announced_events["5"]) == 1
+
+        # leaving channel only mode forgets the announcements quietly
+        b.event_modes = {"5": {"premier": "events"}}
+        await b.update_guild_events(5, [])
+        assert b.announced_events["5"] == {}
+        assert len(self.premier_channel.send.call_args_list) == 1
+
+        # events that already started are not announced as canceled
+        b.event_modes = {"5": {"premier": "channel"}}
+        b.announced_events["5"] = {"old": {
+            "name": "past",
+            "location": "x",
+            "start": "2000-01-01T00:00:00",
+            "end": "2000-01-02T00:00:00",
+            "premier": True,
+        }}
+        await b.update_guild_events(5, [])
+        assert b.announced_events["5"] == {}
+        assert len(self.premier_channel.send.call_args_list) == 1
