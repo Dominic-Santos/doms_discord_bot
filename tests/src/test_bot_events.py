@@ -548,3 +548,24 @@ class TestEventChannels(unittest.IsolatedAsyncioTestCase):
         await b.update_guild_events(5, [])
         assert b.announced_events["5"] == {}
         assert len(self.premier_channel.send.call_args_list) == 1
+
+    async def test_mode_switch_does_not_repeat_announcements(self):
+        events = self.create_events()
+        existing = MockEvent("big", old=False)
+        existing.start_time = events[0].start_date
+        existing.end_time = events[0].end_date
+        b = self.create_bot({"premier": "channel"}, [existing])
+
+        # was both: the event already exists on Discord and was announced
+        await b.update_guild_events(5, events[:1])
+        assert existing.canceled
+        self.premier_channel.send.assert_not_called()
+        assert len(b.announced_events["5"]) == 1
+
+        # back to both: created again in Discord without a new announcement
+        b.event_modes = {"5": {"premier": "both"}}
+        self.guild.fetch_scheduled_events.return_value = []
+        await b.update_guild_events(5, events[:1])
+        self.guild.create_scheduled_event.assert_called_once()
+        self.premier_channel.send.assert_not_called()
+        assert b.announced_events["5"] == {}

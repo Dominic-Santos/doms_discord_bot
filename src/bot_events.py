@@ -325,23 +325,14 @@ class EventsBot:
 
             mode = self.get_event_mode(guild_id, event.premier)
             if mode == MODE_CHANNEL:
-                channel_only_events.append(event)
+                channel_only_events.append(
+                    (event, self.find_discord_event(bot_events, event))
+                )
                 continue
 
-            already_exists = False
-            for g_event in bot_events:
-                g_start = g_event.start_time.replace(tzinfo=None)
-                g_end = g_event.end_time.replace(tzinfo=None)
-                if (
-                    g_event.name == event.name and
-                    g_start == event.start_date and
-                    g_end == event.end_date
-                ):
-                    keep_events.append(g_event)
-                    already_exists = True
-                    break
-
-            if already_exists:
+            g_event = self.find_discord_event(bot_events, event)
+            if g_event is not None:
+                keep_events.append(g_event)
                 continue
 
             kwargs = {
@@ -364,6 +355,12 @@ class EventsBot:
                     str(guild_id), []
                 ).append(new_event.id)
                 self.save_events_data()
+
+            # switching from channel only: it was already announced
+            announced = self.announced_events.get(str(guild_id), {})
+            if announced.pop(self.event_key(event), None) is not None:
+                self.save_events_data()
+                continue
 
             channel = self.get_event_channel(guild_id, event.premier)
             if channel is None or mode != MODE_BOTH:
@@ -389,6 +386,26 @@ class EventsBot:
             await self.announce_canceled_event(guild_id, event)
 
         await self.announce_channel_only_events(guild_id, channel_only_events)
+
+    @staticmethod
+    def find_discord_event(bot_events, event: PokemonEvent):
+        for g_event in bot_events:
+            if (
+                g_event.name == event.name and
+                g_event.start_time.replace(tzinfo=None) == event.start_date and
+                g_event.end_time.replace(tzinfo=None) == event.end_date
+            ):
+                return g_event
+        return None
+
+    @staticmethod
+    def event_key(event: PokemonEvent) -> str:
+        return "|".join([
+            str(event.premier),
+            event.name,
+            event.start_date.isoformat(),
+            event.end_date.isoformat()
+        ])
 
     def get_event_mode(self, guild_id: int, premier: bool) -> str:
         key = "premier" if premier else "store"
@@ -422,20 +439,14 @@ class EventsBot:
     async def announce_channel_only_events(
         self,
         guild_id: int,
-        events: list[PokemonEvent]
+        events: list
     ):
         announced = self.announced_events.setdefault(str(guild_id), {})
         current = {}
-        for event in events:
-            key = "|".join([
-                str(event.premier),
-                event.name,
-                event.start_date.isoformat(),
-                event.end_date.isoformat()
-            ])
-            current[key] = event
+        for event, g_event in events:
+            current[self.event_key(event)] = (event, g_event)
 
-        for key, event in current.items():
+        for key, (event, g_event) in current.items():
             channel = self.get_event_channel(guild_id, event.premier)
             if key in announced or channel is None:
                 continue
@@ -447,6 +458,9 @@ class EventsBot:
                 "end": event.end_date.isoformat(),
                 "premier": event.premier
             }
+            if g_event is not None:
+                # switching from both: it was already announced
+                continue
             await channel.send(
                 "An event was created!\n" + self.print_event(
                     self.as_discord_event(announced[key]), with_url=False
