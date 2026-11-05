@@ -30,6 +30,8 @@ FIRE = row("TWM", "200", "Fire Energy", "Basic Energy")
 SETS_PAGE = (
     '<td><a href="/cards/TWM"><img class="set" src="x"> Twilight Masquerade '
     '<span class="code annotation">TWM</span></a></td>'
+    '<td><a href="/cards/BS"> Base Set '
+    '<span class="code annotation">BS</span></a></td>'
     '<td><a href="/cards/PRE"><img class="set" src="x"> Prismatic Evolutions '
     '<span class="code annotation">PRE</span></a></td>'
 )
@@ -103,7 +105,8 @@ def test_group_cards():
 def test_get_set_list():
     with patch.object(lc, "fetch_html", return_value=SETS_PAGE):
         assert lc.get_set_list() == {
-            "TWM": "Twilight Masquerade", "PRE": "Prismatic Evolutions"
+            "TWM": "Twilight Masquerade", "BS": "Base Set",
+            "PRE": "Prismatic Evolutions"
         }
 
 

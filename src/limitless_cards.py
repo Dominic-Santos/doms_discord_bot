@@ -18,7 +18,7 @@ REQUEST_TIMEOUT = 60
 REQUEST_DELAY = 0.5
 
 SET_ROW = re.compile(
-    r'<td><a href="/cards/([^"/]+)"><img class="set"[^>]*> '
+    r'<td><a href="/cards/([^"/]+)">(?:<img class="set"[^>]*>)? '
     r'(.*?) <span class="code annotation">'
 )
 CARD_ROW = re.compile(r"<tr[^>]*data-hover.*?</tr>", re.DOTALL)
