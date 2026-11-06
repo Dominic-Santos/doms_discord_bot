@@ -29,6 +29,7 @@ REQUEST_TIMEOUT = 60
 DECKLIST_LINK_TEXT = "Play! Pokémon Deck List (A4)"
 DECKLIST_LINK = re.compile(r'<a [^>]*href="([^"]+)"[^>]*>(.*?)</a>', re.DOTALL)
 EVENT_DATE_FORMAT = "%Y-%m-%d"
+STORE_EVENT_HOURS = 1
 EVENT_LOCATOR_PAGE_LOAD_TIME = 10
 EVENT_LOCATOR_DAYS_AHEAD = 365
 # Runs inside the browser so the request carries the cookies that passed the
@@ -90,8 +91,11 @@ class PokemonEvent():
         self.premier = premier
 
         self.start_date = start_date
-        # end_date is the last day of the event, discord wants the day after
-        self.end_date = end_date + timedelta(days=1)
+        if premier:
+            # end_date is the last day of the event, discord wants the day after
+            self.end_date = end_date + timedelta(days=1)
+        else:
+            self.end_date = end_date
 
 
 def convert_pdf_to_png(in_file: str, out_file: str):
@@ -137,6 +141,9 @@ def get_decklist_png(output_filename: str = "sign_up_sheet.png"):
 
 
 def parse_event_date(date: str) -> datetime:
+    # store events carry a time (2026-11-09T18:30:00Z), premier events only a date
+    if len(date) >= 16 and date[10] in "T ":
+        return datetime.strptime(date[:16].replace(" ", "T"), "%Y-%m-%dT%H:%M")
     return datetime.strptime(date[:10], EVENT_DATE_FORMAT)
 
 
@@ -228,7 +235,8 @@ def get_store_events(guids: list[str] = []) -> dict[str, list[PokemonEvent]]:
                     item["EventTypeName"],
                     item["Events"]["Address"]["Full_address"],
                     parse_event_date(item["Events"]["Start_date"]),
-                    parse_event_date(item["Events"]["Start_date"]),
+                    parse_event_date(item["Events"]["Start_date"])
+                    + timedelta(hours=STORE_EVENT_HOURS),
                     item["EventBadge"],
                     False
                 )

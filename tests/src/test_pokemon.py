@@ -98,7 +98,7 @@ def mock_event_locator(driver, *responses):
 
 
 def test_parse_event_date():
-    assert parse_event_date("2026-11-09T18:30:00Z") == datetime(2026, 11, 9)
+    assert parse_event_date("2026-11-09T18:30:00Z") == datetime(2026, 11, 9, 18, 30)
     assert parse_event_date("2026-11-14") == datetime(2026, 11, 14)
 
 
@@ -220,8 +220,8 @@ def test_get_store_events(mock_open_locator):
     assert event.name == "Game Night"
     assert event.type == "Friendly Tournament"
     assert event.location == "1 Some Road, London"
-    assert event.start_date == datetime(2026, 11, 9)
-    assert event.end_date == datetime(2026, 11, 10)
+    assert event.start_date == datetime(2026, 11, 9, 18, 30)
+    assert event.end_date == datetime(2026, 11, 9, 19, 30)
     assert event.logo == "/OPPlayerApp/img/badge.png"
     assert event.premier is False
     driver.quit.assert_called_once()

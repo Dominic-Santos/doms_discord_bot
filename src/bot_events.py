@@ -500,7 +500,10 @@ class EventsBot:
         text = f"{event.name}\n{event.location}\n"
 
         start_date = event.start_time.date()
-        end_date = (event.end_time - timedelta(days=1)).date()
+        end_date = event.end_time.date()
+        if event.end_time.time() == datetime.min.time():
+            # all day events end at midnight of the day after
+            end_date = (event.end_time - timedelta(days=1)).date()
 
         text += f"{start_date}"
         if end_date != start_date:
