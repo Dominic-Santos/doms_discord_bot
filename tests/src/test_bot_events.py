@@ -224,7 +224,7 @@ class TestBotEvents(unittest.IsolatedAsyncioTestCase):
                 "hell",
                 *e["date"],
                 "logo.png",
-                False
+                True
             )
             for e in [
                 {
