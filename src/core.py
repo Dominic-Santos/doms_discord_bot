@@ -154,7 +154,7 @@ def fill_sheet(
         )
         draw.text(
             (set_letter_x, y),
-            card.get("letter", "ABC"),
+            card.get("letter", ""),
             (0, 0, 0),
             font=player_name_font
         )

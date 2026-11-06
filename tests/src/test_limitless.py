@@ -71,7 +71,8 @@ def test_get_decklist_from_url():
         "x/builder?i=10433TWM1280232ASC16 0332MEE7".replace(" ", ""), lookup
     )
     assert deck["pokemon"] == [
-        {"quantity": 4, "name": "Pikachu", "set": "TWM", "number": 128}
+        {"quantity": 4, "name": "Pikachu", "set": "TWM", "number": 128,
+         "letter": ""}
     ]
     assert deck["trainers"] == {"Potion": {"quantity": 2}}
     assert deck["energies"] == {"Fire Energy": {"quantity": 3}}

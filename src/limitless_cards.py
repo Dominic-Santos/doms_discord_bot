@@ -9,7 +9,8 @@ from .core import REPLACE_CHARACTERS
 
 BASE_URL = "https://limitlesstcg.com"
 SETS_URL = f"{BASE_URL}/cards"
-SET_URL = f"{BASE_URL}/cards/{{set_code}}?display=list&show=all&page={{page}}"
+# the full display is the only one that shows the regulation mark
+SET_URL = f"{BASE_URL}/cards/{{set_code}}?display=full&show=all&page={{page}}"
 SEARCH_URL = (
     f"{BASE_URL}/cards?q={{query}}&display=list&show=all&page={{page}}"
 )
@@ -29,6 +30,19 @@ TAGS = re.compile(r"<[^>]+>")
 SYMBOL = re.compile(r'<span class="ptcg-symbol"[^>]*>([^<]*)</span>')
 LINK = re.compile(r'href="([^"]+)"')
 TOTAL = re.compile(r"([\d,]+) cards? found")
+CARD_BLOCK = '<div class="card-page-main">'
+CARD_NAME = re.compile(
+    r'class="card-text-name"><a href="(/cards/[^"/]+/[^"/]+)">(.*?)</a>',
+    re.DOTALL
+)
+CARD_TITLE = re.compile(r'class="card-text-title">(.*?)</p>', re.DOTALL)
+CARD_TYPE = re.compile(r'class="card-text-type">(.*?)</p>', re.DOTALL)
+REGULATION_MARK = re.compile(r'class="regulation-mark">\s*(\w+) Regulation')
+PRINT_DETAILS = re.compile(
+    r'class="prints-current-details">.*?<span class="text-lg">\s*(.*?)'
+    r'\((.*?)\)\s*</span>\s*<span>\s*#(.*?)\s*(?:·(.*?))?</span>',
+    re.DOTALL
+)
 LAST_PAGE = re.compile(r'data-max="(\d+)"')
 
 # the type of a Pokémon is shown as a symbol on the site
@@ -81,18 +95,59 @@ def parse_card_rows(page: str) -> list[dict]:
     return cards
 
 
+def parse_full_card_blocks(page: str) -> list[dict]:
+    cards = []
+    for block in page.split(CARD_BLOCK)[1:]:
+        link, name = CARD_NAME.search(block).groups()
+        title = [
+            part.strip() for part in
+            clean_text(CARD_TITLE.search(block).group(1)).split(" - ")
+        ]
+        kind = [
+            part.strip() for part in
+            clean_text(CARD_TYPE.search(block).group(1)).split(" - ")
+        ]
+        set_code, number, rarity = PRINT_DETAILS.search(block).group(2, 3, 4)
+        name = clean_text(name)
+        for old, new in REPLACE_CHARACTERS.items():
+            name = name.replace(old, new)
+        if kind[0].startswith("Pok"):
+            card_type, color = f"Pkmn > {kind[1]}", title[1]
+        elif kind[0] == "Energy":
+            energy = kind[1].replace("Energy", "").strip()
+            card_type, color = f"Energy > {energy}", ""
+        else:
+            card_type, color = f"Trainer > {kind[1]}", ""
+        mark = REGULATION_MARK.search(block)
+        card = {
+            "set": set_code,
+            "number": number,
+            "name": name,
+            "type": card_type,
+            "color": color,
+            "rarity": (rarity or "").strip(),
+            "link": BASE_URL + link,
+        }
+        if mark is not None:
+            card["regulation_mark"] = mark.group(1)
+        cards.append(card)
+    return cards
+
+
 def get_total_cards(page: str) -> int:
     total = TOTAL.search(page)
     return int(total.group(1).replace(",", "")) if total else 0
 
 
-def get_all_pages(url: str) -> tuple[list[dict], str]:
+def get_all_pages(
+    url: str, parse=parse_card_rows
+) -> tuple[list[dict], str]:
     first_page = fetch_html(url.format(page=1))
-    cards = parse_card_rows(first_page)
+    cards = parse(first_page)
     last_page = LAST_PAGE.search(first_page)
     for page_number in range(2, int(last_page.group(1)) + 1 if last_page else 1):
         time.sleep(REQUEST_DELAY)
-        cards += parse_card_rows(fetch_html(url.format(page=page_number)))
+        cards += parse(fetch_html(url.format(page=page_number)))
     return cards, first_page
 
 
@@ -208,7 +263,9 @@ def get_all_cards(
             break
 
         time.sleep(REQUEST_DELAY)
-        cards, _ = get_all_pages(SET_URL.replace("{set_code}", code))
+        cards, _ = get_all_pages(
+            SET_URL.replace("{set_code}", code), parse_full_card_blocks
+        )
         all_cards[code] = group_cards(cards).get(code, {})
         # saved per set so an interrupted run keeps its progress
         with open(filename, "w") as f:

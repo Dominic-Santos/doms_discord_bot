@@ -27,6 +27,24 @@ PIKACHU = row("TWM", "128", "Pikachu&#039;s", '<span class="ptcg-symbol">L</span
 POTION = row("TWM", "150", "Potion", "Item", "Uncommon")
 FIRE = row("TWM", "200", "Fire Energy", "Basic Energy")
 
+def block(set_code, number, name, title_extra, kind, mark=None, rarity="Common"):
+    mark_html = (
+        f'<div class="regulation-mark"> {mark} Regulation Mark &bull; </div>'
+        if mark else '<div class="regulation-mark"> None </div>'
+    )
+    return (
+        '<div class="card-page-main"><p class="card-text-title">'
+        f'<span class="card-text-name"><a href="/cards/{set_code}/{number}">'
+        f"{name}</a></span> {title_extra}</p>"
+        f'<p class="card-text-type"> {kind} </p>{mark_html}'
+        '<div class="prints-current-details"><span class="text-lg">'
+        f" Twilight Masquerade ({set_code}) </span><span> #{number}"
+        f"{' · ' + rarity if rarity else ''} </span></div></div>"
+    )
+
+
+FULL_PIKACHU = block("TWM", "128", "Pikachu&#039;s", "- Lightning - 80 HP", "Pokémon - Basic", "H")
+
 SETS_PAGE = (
     '<td><a href="/cards/TWM"><img class="set" src="x"> Twilight Masquerade '
     '<span class="code annotation">TWM</span></a></td>'
@@ -170,17 +188,38 @@ def test_get_pokemon_sets():
     }
 
 
+def test_parse_full_card_blocks():
+    cards = lc.parse_full_card_blocks("".join([
+        FULL_PIKACHU,
+        block("TWM", "150", "Potion", "", "Trainer - Item", None, "Uncommon"),
+        block("TWM", "200", "Fire Energy", "", "Energy - Basic Energy", None, ""),
+        block("TWM", "9", "Raichu", "- Lightning - 90 HP", "Pokémon - Stage 1 - Evolves from <a>Pikachu</a>"),
+    ]))
+    assert cards[0] == {
+        "set": "TWM", "number": "128", "name": "Pikachu's",
+        "type": "Pkmn > Basic", "color": "Lightning", "rarity": "Common",
+        "link": "https://limitlesstcg.com/cards/TWM/128",
+        "regulation_mark": "H",
+    }
+    assert cards[1]["type"] == "Trainer > Item"
+    assert "regulation_mark" not in cards[1]
+    assert cards[2]["type"] == "Energy > Basic"
+    assert cards[2]["rarity"] == ""
+    assert cards[3]["type"] == "Pkmn > Stage 1"
+
+
 def test_get_all_cards():
     existing = json.dumps({"cards": {"OLD": {"1": {}}}})
     m = mock_open(read_data=existing)
     with patch.object(lc, "get_set_rows", return_value=[("TWM", "x", 1)]), \
-            patch.object(lc, "fetch_html", return_value=page([PIKACHU])), \
+            patch.object(lc, "fetch_html", return_value=FULL_PIKACHU), \
             patch("time.sleep"), patch("builtins.open", m), \
             patch("json.dump") as dump:
         lc.get_all_cards("db.json")
     saved = dump.call_args[0][0]["cards"]
     assert saved["OLD"] == {"1": {}}
     assert saved["TWM"]["128"]["name"] == "Pikachu's"
+    assert saved["TWM"]["128"]["regulation_mark"] == "H"
 
 
 def test_get_all_cards_without_existing_file():
@@ -203,7 +242,7 @@ def test_get_all_cards_stops_at_first_current_set():
 
     def fetch(url):
         fetched.append(url)
-        return page([PIKACHU])
+        return FULL_PIKACHU
 
     with patch.object(lc, "get_set_rows", return_value=rows), \
             patch.object(lc, "fetch_html", side_effect=fetch), \

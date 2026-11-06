@@ -115,6 +115,7 @@ def get_decklist_from_url(link: str, card_lookup: dict) -> dict:
                 "name": name,
                 "set": info["set"],
                 "number": int(number) if number.isdigit() else number,
+                "letter": info.get("regulation_mark", ""),
             })
         elif card_type.startswith("Trainer"):
             trainers.setdefault(name, {"quantity": 0})["quantity"] += quantity
