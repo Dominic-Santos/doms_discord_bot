@@ -1,10 +1,24 @@
 import json
+import re
 
 from .pokebeach import get_newsfeed
 from .helpers import CustomThread, MAINTENANCE_MODE_MESSAGE
 from .core import DATA_FOLDER
 
 NEWSFEED_CHANNELS_FILE = f"{DATA_FOLDER}/newsfeed_channels.json"
+
+
+THREAD_ID_RE = re.compile(r"\.(\d+)/?$")
+
+
+def post_id(post):
+    match = THREAD_ID_RE.search(post)
+    return int(match.group(1)) if match else None
+
+
+def newest_post(posts):
+    with_ids = [p for p in posts if post_id(p) is not None]
+    return max(with_ids, key=post_id) if with_ids else posts[0]
 
 
 class NewsfeedBot:
@@ -101,22 +115,29 @@ class NewsfeedBot:
                 )
                 continue
 
-            # the previous post is unknown after a source change, so only
-            # remember the newest post instead of posting the whole feed
-            if latest_post is not None and latest_post not in posts:
-                self.newsfeed_channels[guild_id]["latest_post"] = posts[0]
+            # the feed is ordered by activity, so bumped threads can appear at
+            # the top; thread ids only increase, so compare by id instead
+            latest_id = post_id(latest_post) if latest_post else None
+            if latest_post is not None and latest_id is None:
+                # previous post is from an unknown source, only remember the
+                # newest id instead of posting the whole feed
+                guild_config["latest_post"] = newest_post(posts)
                 continue
 
-            should_post = []
-            for post in posts:
-                if post == latest_post:
-                    break
+            should_post = sorted(
+                (p for p in posts
+                 if post_id(p) is not None
+                 and (latest_id is None or post_id(p) > latest_id)),
+                key=post_id
+            )
 
-                should_post.append(post)
-
-            for post in should_post[::-1]:
+            for post in should_post:
                 await channel.send(post)
+                guild_config["latest_post"] = post
 
-            self.newsfeed_channels[guild_id]["latest_post"] = posts[0]
+            if should_post:
+                guild_config["latest_post"] = should_post[-1]
+            elif latest_post is None:
+                guild_config["latest_post"] = newest_post(posts)
 
         self.save_newsfeed_channels()

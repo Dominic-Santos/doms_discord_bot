@@ -107,7 +107,9 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
 
         mock_logger_instance.info.assert_called_once()
 
-        mock_newsfeed.return_value = ["this is a post"]
+        url = "https://www.pokebeach.com/forums/threads/{}.{}/"
+        p1, p2, p3 = url.format("a", 10), url.format("b", 20), url.format("c", 30)
+        mock_newsfeed.return_value = [p1]
         b.newsfeed_channels = {"1234": {"channel_id": "2345"}}
         mock_bot.get_channel.return_value = None
 
@@ -119,17 +121,32 @@ class TestBotNewsfeed(unittest.IsolatedAsyncioTestCase):
         mock_bot.get_channel.return_value = mock_ctx
         await b.do_get_newsfeed()
 
-        assert mock_ctx.last_response == "this is a post"
-        assert b.newsfeed_channels["1234"]["latest_post"] == "this is a post"
+        assert mock_ctx.last_response == p1
+        assert b.newsfeed_channels["1234"]["latest_post"] == p1
 
         mock_ctx.last_response = "nothing"
         await b.do_get_newsfeed()
         assert mock_ctx.last_response == "nothing"
 
-        b.newsfeed_channels["1234"]["latest_post"] = "https://old-source/post"
+        # a bumped old thread moves to the top but must not be reposted
+        mock_newsfeed.return_value = [p1, p2]
+        await b.do_get_newsfeed()
+        assert mock_ctx.last_response == p2
+        mock_ctx.last_response = "nothing"
+        mock_newsfeed.return_value = [p1, p2]
         await b.do_get_newsfeed()
         assert mock_ctx.last_response == "nothing"
-        assert b.newsfeed_channels["1234"]["latest_post"] == "this is a post"
+
+        mock_newsfeed.return_value = [p2, p3, p1]
+        await b.do_get_newsfeed()
+        assert mock_ctx.last_response == p3
+        assert b.newsfeed_channels["1234"]["latest_post"] == p3
+
+        b.newsfeed_channels["1234"]["latest_post"] = "https://old-source/post"
+        mock_ctx.last_response = "nothing"
+        await b.do_get_newsfeed()
+        assert mock_ctx.last_response == "nothing"
+        assert b.newsfeed_channels["1234"]["latest_post"] == p3
 
     @patch("src.bot.create_logger")
     @patch("src.bot.discord")
