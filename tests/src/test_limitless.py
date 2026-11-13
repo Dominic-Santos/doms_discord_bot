@@ -92,3 +92,21 @@ def test_get_decklist_unknown_card_type():
         get_decklist_from_url("x/builder?i=10133TWM1", lookup)
     with pytest.raises(ValueError, match="Unknown card ABC 123"):
         get_decklist_from_url("x/builder?i=10133ABC123", lookup)
+
+
+def test_get_decklist_trainer_gallery_number():
+    lookup = build_card_lookup({"cards": {
+        "LOR": {"TG24": {"name": "Gallery Mon", "type": "Pkmn"}},
+    }})
+    deck = get_decklist_from_url("x/builder?i=10133LORTG24", lookup)
+    assert deck["pokemon"][0]["name"] == "Gallery Mon"
+    assert deck["pokemon"][0]["number"] == "TG24"
+
+
+def test_get_decklist_prefix_sharing_set_codes():
+    lookup = build_card_lookup({"cards": {
+        "DR": {"1": {"name": "Dr", "type": "Pkmn"}},
+        "DRI": {"1": {"name": "Dri", "type": "Pkmn"}},
+    }})
+    deck = get_decklist_from_url("x/builder?i=10133DRI1", lookup)
+    assert deck["pokemon"][0]["name"] == "Dri"
